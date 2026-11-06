@@ -7,6 +7,10 @@ A farm has no cable, and its cellular signal comes and goes. This document defin
 1. Context and scope
 2. What the link carries
 3. Protocol and ingestion point
+4. The hourly cycle
+5. Store-and-forward buffer
+6. Time on the node
+7. Configuration back to the node
 
 ### Terms used
 
@@ -83,7 +87,7 @@ QoS 2 is not an option, because IoT Core supports QoS 0 and 1 only. Duplicates a
 
 Device certificates tie the fleet to an account in either case, so a custom domain buys little. If the platform ever moves, the new hostname reaches each node through its configuration while the old endpoint still runs, and no visit is needed.
 
-The endpoint scales with no change. Quotas for us-east-1 allow 3,000 connections and 20,000 inbound publishes a second per account, and 100 publishes a second per connection. At 1,000 farms the peak of section 5 reaches 8.3 messages a second.
+The endpoint scales with no change. Quotas for us-east-1 allow 3,000 connections and 20,000 inbound publishes a second per account, and 100 publishes a second per connection. At 1,000 farms the peak of section 4 reaches 8.3 messages a second.
 
 Each node may act only on its own resources. The policy attached to the certificate uses the policy variable `iot:Connection.Thing.ThingName`, so a stolen certificate reaches nothing else.
 
@@ -93,3 +97,104 @@ Each node may act only on its own resources. The policy attached to the certific
 | Publish | `aroma/{env}/farm/{node_id}/*` | Readings |
 | Publish | `$aws/things/{node_id}/shadow/get`, `$aws/things/{node_id}/shadow/update` | Read configuration and report state |
 | Subscribe, Receive | `$aws/things/{node_id}/shadow/get/accepted`, `.../get/rejected`, `.../update/accepted`, `.../update/rejected` | Answers to those requests |
+
+## 4. The hourly cycle
+
+The node runs one cycle each hour, all year, whether or not a reading is due. It wakes at a minute of the hour fixed for that node, taken from a hash of `node_id`, and it connects every time.
+
+| Option | Worst delay added to an alert | Connections a day, crop only | Wait for drying to start | Modem energy a day |
+|---|---|---|---|---|
+| **One cycle each hour** | 1 hour | 24 | Up to 1 hour | 0.45 Wh, 1.2 Wh with every attempt failing |
+| Connect on a reading, and hourly while data is pending | 1 hour | 6 | Up to 4 hours | 0.11 Wh with signal |
+| Connect only on a reading | 4 hours | 6 | Up to 4 hours | 0.11 Wh with signal |
+
+Energy assumes 1.5 W on average, 45 seconds for a good connection and 120 seconds for a failed attempt, to be measured with the chosen modem.
+
+One rule covers reading, retry and configuration. A failed attempt needs no retry logic of its own, because the next hour is the retry, and a node whose certificate was revoked simply fails each hour with no special case. Short windows of signal are also caught, which a node on a 4-hour rhythm would miss. Grain above 40 °C is the most urgent alert of the design, so a farmer who starts drying should wait one hour at most for the node to begin measuring.
+
+The cost is small. In the worst case, with every attempt failing, the modem uses 1.2 Wh a day, 4 percent of the 30.7 Wh daily budget of the node. A node already drying connects hourly under any of the three rules. For a node with crop readings only, the monthly data grows from about 1.4 MB to about 5.1 MB.
+
+The fixed minute also removes the rush that follows an outage. Nodes on one shared schedule would all wake together, and all drain together when a tower returns. Each node keeps its own minute, so the load spreads evenly across the hour with no random delay and no wait added to the alert.
+
+| Measure | 200 farms | 1,000 farms |
+|---|---|---|
+| Connections an hour | 200 | 1,000 |
+| Messages after every node was out for a full day, at 30 readings each | 6,000 | 30,000 |
+| Peak rate, spread over the hour | 1.7 a second | 8.3 a second |
+
+An attempt has a window of 120 seconds, counted from powering the modem until the connection is open. Inside the window the node retries the connection with exponential backoff and random jitter. When the window closes, the modem powers off and the node sleeps. The hourly wake-up is the outer retry, and it needs no further backoff.
+
+## 5. Store-and-forward buffer
+
+The buffer is an append-only log in the encrypted flash of the node. Each record holds the sequence number, the time of the reading, the values and a checksum. The buffer retains 24 hours at most.
+
+| Rule | Behavior | Reason |
+|---|---|---|
+| Write first | The reading reaches the flash before the modem powers on | A failed connection loses nothing |
+| Purge before connecting | Each cycle deletes records of age 24 hours or more, then connects | No reading ever passes 24 hours |
+| Count what is deleted | Each deleted record adds one to `dropped_total` | The platform knows what is missing |
+| Drain oldest first | Up to 10 unconfirmed messages at a time | The history arrives in order in the normal case |
+| Delete on confirmation | A record leaves the buffer only after its PUBACK | A lost connection leaves it safe for the next cycle |
+| Sequence survives restarts | On boot the node continues from the last record in the log | Duplicates and gaps stay detectable |
+
+Capacity sets no limit. A full day holds 30 readings, or 15 KB, against 64 MB of flash. The limit of 24 hours is a rule of the pilot, because an older reading no longer supports a timely decision.
+
+The ten-message window sits well below the quota of 100 unacknowledged messages. With an unstable signal it limits how many messages must be sent again, and 30 readings still drain in three rounds of confirmation, a matter of seconds.
+
+The purge runs before the connection, so with one attempt each hour the last chance for a reading comes at an age of about 23 hours.
+
+| Length of the outage | What reaches the platform | Delay |
+|---|---|---|
+| Under 1 hour | Everything | At the next cycle, 1 hour at most |
+| 1 to 23 hours | Everything | The outage, plus up to 1 hour |
+| 23 to 24 hours | Everything, except the oldest reading in some cases | The outage, plus up to 1 hour |
+| Over 24 hours | The readings of the last 23 hours. Older ones are counted in `dropped_total` | Up to 1 hour after the signal returns |
+
+With no ranges on the node, it cannot tell which reading deserves an alert, so the drain gives no priority to any of them. The platform evaluates each reading on arrival. An alert from a buffered reading goes out at the drain, within the 24-hour limit, and it carries the time of the reading.
+
+## 6. Time on the node
+
+`measured_at` is the base of the buffer limit, the order of readings and the age of an alert, and TLS itself needs a valid date to check the certificate of the endpoint. The clock therefore has to work before the connection.
+
+| Source | When it is used |
+|---|---|
+| Real-time clock with backup power | Always, including sleep and a brownout |
+| Network time from the modem | At each attach, when the carrier provides it |
+| NTP from `time.aws.com`, UDP port 123 | When the carrier provides no time |
+
+The node synchronizes right after the attach and before TLS. An ordinary 20 ppm crystal drifts less than 2 seconds a day, so an outage of one day leaves the readings well within what the alert needs.
+
+A node that lost its clock, for example with a dead battery and a failed backup, still reads on schedule. It stores the seconds elapsed since boot in place of the time, and the first synchronization turns them into `measured_at`. If power fails again before that happens, those readings have no recoverable time, so the node deletes them and counts them in `dropped_total`.
+
+The platform never relies on the node clock alone. The IoT rule adds `received_at` from `timestamp()`, the time seen by the rules engine, and the ingestion function compares both values.
+
+| Check | Action |
+|---|---|
+| `measured_at` more than 5 minutes ahead of `received_at` | Dead letter queue and a clock alarm |
+| `measured_at` more than 25 hours behind `received_at` | Stored in the history, no alert, clock alarm |
+| Anything else | Normal path, and the difference is the drain delay |
+
+## 7. Configuration back to the node
+
+The node keeps no alert ranges, since those live on the platform. It still needs one fact from the platform, whether a lot is drying, because the farmer starts and stops that cadence from the application. A node that sleeps cannot receive a push, so it must fetch the value when it wakes.
+
+| Option | For | Against | Result |
+|---|---|---|---|
+| Classic Device Shadow | Built for devices that disconnect, keeps the last value with no expiry, shows the application what the node applied | One more exchange per connection | **Chosen** |
+| Persistent session with a command topic | Plain MQTT | Sessions expire after one hour by default, so a node out for longer loses them, and queued messages are billed again on delivery | Discarded |
+| Retained message per node | Plain MQTT, no expiry in MQTT 3 | No reported state, so the application cannot tell whether the node applied the change | Discarded |
+
+The application writes the desired state, and the node writes the reported state and nothing else.
+
+```json
+{
+  "state": {
+    "desired": { "drying": true },
+    "reported": { "drying": false }
+  }
+}
+```
+
+The node reads the shadow after the drain, so a long configuration exchange can never delay a reading. It applies any difference and reports the new value, and the application then shows that drying monitoring is active. A farmer who presses start while the node has no signal sees the request as pending, and the node applies it on the first connection.
+
+The same document can carry a new endpoint if the platform ever moves. A LoRa node has no shadow, so its configuration path belongs to the design of out-of-coverage farms.
