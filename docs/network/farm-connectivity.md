@@ -11,6 +11,11 @@ A farm has no cable, and its cellular signal comes and goes. This document defin
 5. Store-and-forward buffer
 6. Time on the node
 7. Configuration back to the node
+8. Sequences
+9. Order and duplicates
+10. What fails and what happens
+11. Cost
+12. Assumptions and pending confirmations
 
 ### Terms used
 
@@ -198,3 +203,147 @@ The application writes the desired state, and the node writes the reported state
 The node reads the shadow after the drain, so a long configuration exchange can never delay a reading. It applies any difference and reports the new value, and the application then shows that drying monitoring is active. A farmer who presses start while the node has no signal sees the request as pending, and the node applies it on the first connection.
 
 The same document can carry a new endpoint if the platform ever moves. A LoRa node has no shadow, so its configuration path belongs to the design of out-of-coverage farms.
+
+## 8. Sequences
+
+Three sequences describe every cycle of a node. The diagram shows all three together.
+
+### Connection
+
+| Step | Node | Platform |
+|---|---|---|
+| 1 | Wakes at its minute of the hour | |
+| 2 | Reads the probes if a reading is due, and appends the record with `seq` and `measured_at` | |
+| 3 | Deletes records of age 24 hours or more and adds them to `dropped_total` | |
+| 4 | Powers the modem and attaches, which opens the window of 120 seconds | |
+| 5 | Synchronizes the clock | |
+| 6 | Opens TLS with its certificate and sends CONNECT with a clean session | Checks the certificate and the policy |
+| 7 | Publishes pending records with QoS 1, oldest first, 10 unconfirmed at most | The rule adds `received_at`, and sends one copy to Firehose and one to the queue |
+| 8 | Deletes each record when its PUBACK arrives | The function stores the reading and evaluates it |
+| 9 | Reads the shadow, applies any change and reports it | Keeps the desired and reported state |
+| 10 | Sends DISCONNECT, powers off the modem and sleeps | |
+
+A cycle with no reading due and an empty buffer goes straight from the connection to the shadow.
+
+### Disconnection
+
+A connection can fail at any step, and every failure ends the same way. The node stops, keeps what is unconfirmed, powers off the modem and sleeps until the next hour.
+
+| Where it fails | What stays on the node | What the platform sees |
+|---|---|---|
+| Attach, or the window of 120 seconds runs out | Every record | Nothing, the node stays silent |
+| TLS or CONNECT refused | Every record | A failed connection in the logs |
+| Connection falls during the drain | Every record with no PUBACK | The messages that arrived, stored normally |
+| Message arrives and its PUBACK is lost | That record | One stored reading, and a repeat at the next cycle |
+| No PUBACK within 10 seconds | Every unconfirmed record | Same as a fallen connection |
+| Shadow read fails | Nothing changes, the node keeps its last configuration | The reported state stays as it was |
+
+### Recovery
+
+| Situation | What the node does | What the platform does |
+|---|---|---|
+| Signal returns after an outage | Purges by age, drains oldest first with `buffered` set | Stores new readings, ignores repeats, and labels alerts from old readings with their time |
+| Outage over 24 hours | Same, and the messages carry a higher `dropped_total` | Records the loss and shows it on the operations dashboard |
+| Node boots after power loss | Scans the log, discards a final record with a bad checksum, continues the sequence, then runs a normal cycle | Sees a gap in `seq` if a reading was never completed |
+| Node boots with no valid time | Reads on elapsed time until the first synchronization | Receives corrected `measured_at` values |
+| Certificate revoked | Fails each hour until the node is removed, and old readings age out | Refuses the connection, and the operator has marked the thing as inactive |
+
+## 9. Order and duplicates
+
+Order is lost at several points on the path, so the platform never relies on it.
+
+| Point | Why order can change |
+|---|---|
+| Node | A repeat arrives after newer messages of the same window |
+| Broker | IoT Core does not guarantee the order of messages and acknowledgments |
+| Rule action | The rules engine is distributed, and its SQS action gives no order guarantee |
+| Queue | A standard queue delivers in approximate order |
+| Function | Several invocations can run at the same time |
+
+A FIFO queue would not repair this, because the SQS action of IoT rules does not support FIFO queues. A repeat sent hours later would also fall outside the five-minute deduplication window of such a queue.
+
+**Duplicates in the readings table.** A reading is identified by `node_id`, `measured_at` and `seq`, and a repeat carries the same three values. The table key holds them, so a conditional write stores the first copy and rejects the rest with no second alert. The function reports failures per message with partial batch responses, so a good message in a failed batch is not processed again.
+
+**Order for alerts.** Storage needs no order, since each reading carries its own time. Alert state does need it, because an alert fires on a change of state, and an old reading must not clear or reopen a newer one. The function sorts each batch by node and `measured_at`. It keeps one state item per node and variable in the readings table, with the sort key `state#<variable>` and no expiry, and a conditional update changes that item only if the reading is newer than the one stored. Two invocations racing on the same change therefore raise one alert.
+
+A late reading out of range, older than the current state, stays in the history and raises no alert, since the current state of the crop is already known. The application shows it in the record of that day.
+
+**Duplicates in the archive.** Firehose takes its copy from the rule before the function runs, which keeps the archive complete if the function fails. The archive therefore holds every repeat, and files fall in the partition of the day they arrived. Reports through Athena remove repeats on `node_id`, `measured_at` and `seq`, filter by `measured_at`, and scan one extra day so that late readings count on the right date.
+
+**Loss accounting.** `dropped_total` is a counter of the node that only grows and survives restarts, and the platform keeps the highest value seen.
+
+| Option | Behavior with a repeat | Result |
+|---|---|---|
+| Cumulative `dropped_total` | Any later message restores the correct value, and a lost one costs nothing | **Chosen** |
+| Count since the last message | A delivered message whose PUBACK was lost is sent again with a higher count, the repeat is rejected, and the counter resets, so the difference disappears | Discarded |
+
+In one rare case the counter runs high. A reading delivered at the edge of its 24 hours, with its PUBACK lost, ages out at the next cycle and counts as lost although the table holds it. `dropped_total` is therefore an upper bound, and gaps in `seq` give the exact number when an audit needs it.
+
+**Model of the rules.** The rules of this section and of section 5 ran in a simulation of one node and the platform, over 10,000 runs of 12 days. The rates are hostile by choice and come from no field measurement, with outages of up to 48 hours, 5 percent of messages lost, 10 percent of confirmations lost, connections falling mid-drain and random periods with a dead battery.
+
+| Check | Result |
+|---|---|
+| Readings generated | 2,044,670 |
+| Each reading stored once or counted as lost | Held in every run |
+| Oldest reading ever delivered | 23 hours |
+| Repeats rejected by the conditional write | 197,168 |
+| Archive after removing repeats equals the table | Held in every run |
+| Readings stored and also counted as lost | 1,880, or 0.09 percent |
+| Runs with a wrong final alert state, using the newer-reading check | 0 |
+| Runs with a wrong final alert state, with the last arrival winning | 3,103 |
+| Runs that under-reported losses, with the count since the last message | 210 |
+| Runs that under-reported losses, with `dropped_total` | 0 |
+
+## 10. What fails and what happens
+
+| Failure | Effect | Response |
+|---|---|---|
+| No signal at the wake-up | The attempt ends after 120 seconds | Next hour, nothing lost for 23 hours |
+| Signal too weak to finish a drain | Part of the buffer arrives | The rest follows next hour, repeats are ignored |
+| Tower out for an area | Many nodes silent | Buffers hold, and the fixed minutes spread the return across one hour |
+| Carrier filters port 8883 | The node cannot connect | Installer tests the signal at installation and sets port 443 |
+| Carrier gives no network time | The modem returns no time | The node uses NTP before TLS |
+| NTP and network time both missing | With a dead clock, TLS fails | The node keeps reading on elapsed time and retries each hour |
+| Dead battery | No readings during that time | A gap in the data, visible as a silent node after 24 hours |
+| Flash record cut by a power loss | The final record has a bad checksum | The node discards it and continues the sequence |
+| Node clock wrong | `measured_at` is far from `received_at` | Dead letter queue or stored with no alert, and a clock alarm |
+| IoT Core throttles or fails | Connection or publish refused | The node keeps the records and retries next hour |
+| Function fails | Messages return to the queue | Three retries, then the dead letter queue. The archive already holds the copy |
+| Farmer starts drying with no signal at the node | The request waits on the shadow | Applied on the first connection, and the application shows it as pending |
+| Certificate revoked | The node cannot connect | Readings age out, and the node stops publishing as required |
+
+## 11. Cost
+
+Calculated from the AWS price list for us-east-1, for 200 farms with one configuration read per hour, or 144,000 reads a month. This comes on top of the telemetry cost in the ingestion design.
+
+| Item | Rate | Monthly quantity | USD a month |
+|---|---|---|---|
+| Device Shadow reads | USD 1.25 per million | 144,000 | 0.18 |
+| Messages for those reads, one out and one back | USD 1.00 per million | 288,000 | 0.29 |
+| Connection minutes, at one minute each | USD 0.08 per million | 144,000 | 0.01 |
+| **Total** | | | **About 0.48** |
+
+The price list does not say whether shadow requests also count as messages, so the table includes them and shows the higher figure. At 1,000 farms the same model gives about USD 2.40 a month.
+
+The larger cost of this design falls on the farm. About 5.5 MB a month per node is the input for the data plan in the hardware and fee estimate, once the first nodes confirm the 6 KB per connection.
+
+## 12. Assumptions and pending confirmations
+
+| Item | Who confirms | Effect if it fails |
+|---|---|---|
+| A connection attempt averages 1.5 W, 45 seconds with signal and 120 seconds at most without | Field measurement with the chosen modem | The share of the energy budget scales linearly, from 4 percent at the worst case |
+| One connection costs about 6 KB in TLS and MQTT overhead | First nodes | The data plan scales linearly |
+| The carrier gives network time, or UDP port 123 is reachable | Carrier and first nodes | The node needs another time source, since with no time it cannot open TLS |
+| The node has a real-time clock on backup power | Node specification | Readings wait for a correction from elapsed time, and a full power loss costs their time |
+| With no signal at the node, drying monitoring may start late, on the first connection | Federation | A switch on the node would start it with no signal, at the price of more hardware |
+| Port 8883 is open on the carriers of the pilot | First installations | Those nodes use port 443 with ALPN |
+
+## Sources
+
+- AWS IoT Core endpoints and quotas.
+- AWS IoT Core Developer Guide, MQTT, device communication protocols, thing policy variables, Device Shadow service, rule SQL functions and the SQS rule action.
+- AWS Lambda Developer Guide, error handling for an SQS event source.
+- Amazon Data Firehose Developer Guide, data delivery.
+- AWS Well-Architected Framework, IoT Lens, failure management.
+- Amazon EC2 User Guide, public Amazon Time Sync Service.
+- AWS Price List API for AWS IoT in us-east-1.
