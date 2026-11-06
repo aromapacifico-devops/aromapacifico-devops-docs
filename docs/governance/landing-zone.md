@@ -142,6 +142,8 @@ The landing zone itself adds almost no fixed cost, so isolation does not compete
 
 The organization and its accounts are created once, as a prerequisite. The 100-hour infrastructure code produces the plan of one environment and receives account identifiers as variables. Automating the landing zone itself stays outside those hours.
 
+This structure is the target for the pilot. The demonstration runs on standalone credit accounts, because joining an Organization moves a free account to the paid plan, so service control policies stay in the design. The environments document explains it.
+
 ## 11. Assumptions and pending confirmations
 
 | Item | Who confirms | Effect if it fails |
