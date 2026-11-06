@@ -29,6 +29,8 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 
 The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
 
+The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
+
 ## Regenerating the diagrams
 
 `tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page.
