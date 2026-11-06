@@ -208,6 +208,8 @@ The same document can carry a new endpoint if the platform ever moves. A LoRa no
 
 Three sequences describe every cycle of a node. The diagram shows all three together.
 
+![Connection, disconnection and recovery of a farm node](../architecture/diagrams/07-farm-connection-sequence.drawio.png)
+
 ### Connection
 
 | Step | Node | Platform |

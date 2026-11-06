@@ -11,6 +11,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Pest to fumigation](diagrams/04-pest-to-fumigation.drawio.png) | How does an alert become a closed case |
 | [Landing zone](diagrams/05-landing-zone.drawio.png) | Which accounts exist, and what applies from the root |
 | [Environments](diagrams/06-environments.drawio.png) | How does a change reach production, and how do environments go up and down |
+| [Farm connection sequence](diagrams/07-farm-connection-sequence.drawio.png) | How does a farm node connect, lose its link and recover |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
