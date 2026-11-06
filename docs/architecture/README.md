@@ -22,13 +22,13 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | Farm with signal | MQTT over TLS on LTE | 24 hours at most | Stores, retries each hour, and the alert goes out when the buffer drains |
 | Farm out of coverage | LoRa to a shared gateway, TLS on LTE from there | 24 hours at most | Objects travel by data mule on daily routes |
 | Drone | HTTPS from the ground station | Drone buffer | Mission stays loaded, and the log publishes when the link returns |
-| Carrier | HTTPS on LTE | Application queue | Positions queue every 5 minutes, and custody events are always kept |
+| Carrier | HTTPS on LTE | Application queue | Positions queue for 24 hours at most, and custody events stay until the platform confirms them |
 | Collection center | IPsec VPN over a 100 Mbps link | Application queue | Reception continues locally and synchronizes on return |
 | Port | Carrier application | Application queue | Only the delivery event is recorded |
 
 ## Related documents
 
-[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, with the sequences of connection, disconnection and recovery. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
+[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, with the sequences of connection, disconnection and recovery, and [carrier tracking](../network/carrier-tracking.md) details the carrier row. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
 
 The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
 
