@@ -33,7 +33,7 @@ Each 60 kg sack carries a random code. The code lets anyone read the buyer view 
 | The code exposes no national ID and no full trace | It must hold no meaning |
 | A buyer reads it with no account | Possession of the code is the only access |
 | Staff type it when a label is damaged | It must be short and hard to misread |
-| Three centers and 200 farms issue codes | Uniqueness needs no central counter |
+| Three centers and 200 farms use codes, and some farms have no data | Codes are issued ahead of time, and uniqueness needs no central counter |
 | Some sacks arrive with no code | A center must be able to issue one |
 
 ## 2. Options
@@ -81,7 +81,7 @@ A collision is unlikely and harmless, because the write is conditional. If a cod
 | QR | Query address with the code |
 | Printed code | The same code, in groups of four, for manual entry |
 
-The label must withstand handling and humidity along the route. The design system defines its appearance.
+The label must withstand handling and humidity along the route. The design system defines its appearance. Farms receive labels pre-printed, as the [custody chain](custody-chain.md) explains, so a farm needs no printer and no connection to register a sack.
 
 ## 6. Registration record
 
