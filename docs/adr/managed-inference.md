@@ -14,4 +14,6 @@ A Bedrock multimodal model analyzes confirmation, verification and estimation ob
 
 ## Consequences
 
-Nothing is trained, and the model can change with no platform change. Analysis quality depends on the prompt and needs review with agronomists. Bedrock token prices must be confirmed in the cost document.
+Nothing is trained, and the model can change with no platform change. Analysis quality depends on the prompt and needs review with agronomists.
+
+Cost favors this option as well. Custom Labels bills USD 4 per hour while a model is running, about USD 2,920 a month if it stays on. With Nova 2 Lite, which bills 230 tokens per image, an image costs about USD 0.0007 in Bedrock and USD 0.001 in Rekognition, about USD 1.75 per 1,000 images counting the function. A harvest month of 9,000 images costs about USD 16.

@@ -12,5 +12,8 @@ Everything the design takes as true without a source in the pilot definition. Ea
 | Harvest lasts four months a year | Team estimate for cost purposes | Monthly cost figures change |
 | Three drone brigades, one per department, produce about 9,000 images in a harvest month | Team estimate for cost purposes | Inference and storage costs change |
 | A designated drone-service supervisor authorizes fumigation, distinct from the pilot who flies | Human authorization with MFA is required | The authorizer role moves to another identity |
+| Alerts reach the farmer by mobile push, and an SMS fallback stays optional | The price for Colombia could not be read from the price list | Alerts wait until the phone has data |
+| The panel gives at least 3 peak sun hours on an average day | Needs field data | A larger panel or battery |
+| Images average 3 MB | Common for a drone photo, to confirm with the supplier | Storage cost scales linearly |
 | Three of the seven subnets hold interface endpoints and four stay reserved | Managed services and functions run outside subnets | A data or query service moves into a subnet |
 | The United States is a valid destination for personal data under Colombian rules, with contractual clauses if needed | The status on the regulator's list is unconfirmed | Contract terms change, or personal data moves to another region |

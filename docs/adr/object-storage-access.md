@@ -14,4 +14,4 @@ Private route tables use gateway endpoints for S3 and DynamoDB, which carry no c
 
 ## Consequences
 
-No NAT gateway is needed. Three interface endpoints across two zones cost about USD 44 a month.
+No NAT gateway is needed. Three interface endpoints across two zones cost USD 43.80 a month, at USD 0.01 per hour for each zone.
