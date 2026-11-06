@@ -264,7 +264,7 @@ def overview():
 
     # Delivery
     p.zone("E. Infrastructure delivery", 570, 1436, 1620, 150, *G["dlv"])
-    p.card("Module repositories", "Versioned with Git tags", 590, 1474, 190, 66, "rep", net="server", impl=True)
+    p.card("Terraform modules", "Versioned with Git tags", 590, 1474, 190, 66, "rep", net="server", impl=True)
     p.card("Infrastructure repository", "Root, environments, no secrets", 800, 1474, 200, 66, "root", net="server", impl=True)
     p.code("C01", 966, 1468)
     p.card("Pull request", "fmt, validate, security scan", 1020, 1474, 180, 66, "pr", icon="organizations", color=CTRL, impl=True)

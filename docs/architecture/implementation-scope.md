@@ -113,7 +113,7 @@ The platform has no per-farm network. A farm exists in the cloud as an identity,
 
 ```hcl
 module "farm" {
-  source = "git::https://github.com/aromapacifico-devops/terraform-aws-farm.git?ref=v1.0.0"
+  source = "git::https://github.com/aromapacifico-devops/aromapacifico-devops-infra.git//modules/farm?ref=v1.0.0"
 
   environment    = "test"
   farm_id        = "f-41-0137"
@@ -130,15 +130,15 @@ module "farm" {
 
 ## 7. Module and repository layout
 
-The infrastructure rules ask for versioned modules consumed by tag, kept apart from their consumer.
+The code lives in the infrastructure repository for now, with modules separated from the roots of each environment.
 
-| Repository | Holds |
+| Path | Holds |
 |---|---|
-| Module repositories | Network, security, telemetry ingestion, inference function, farm |
-| Infrastructure repository | Roots, environment variables, pipeline |
-| Shared automation | Reusable workflows and templates |
+| `modules/` | Network, security, telemetry ingestion, inference function, farm |
+| `envs/` | Root and variables of each environment |
+| `.github/workflows/` | Plan, deploy and destroy workflows |
 
-Each module carries its own `sample/` and `README`, with inputs, outputs and the box it implements. The final layout depends on a pending decision about the number of repositories.
+Each module carries its own `sample/` and `README`, with inputs, outputs and the box it implements. Modules are consumed by version tag, so moving them to other repositories later changes only the `source` of each call.
 
 ## 8. Evidence
 
@@ -156,4 +156,4 @@ Each module carries its own `sample/` and `README`, with inputs, outputs and the
 |---|---|---|
 | The farm module fits inside the 14 hours of the workload pattern | Team | Hours move from another box, the total stays at 100 |
 | Destroy fits inside the pipeline hours | Team | Same |
-| Number of repositories | Team | Layout of section 7 changes, the boxes stay |
+| Repository layout, to be reviewed later | Team | The `source` of each module changes, the boxes stay |

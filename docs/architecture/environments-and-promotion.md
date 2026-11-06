@@ -91,7 +91,7 @@ The target design has seven accounts under one AWS Organization, as the landing 
 
 | Fact about a new AWS account | Effect on the demonstration |
 |---|---|
-| USD 100 in credits at sign-up, and up to USD 100 more for activities | Each team member's account holds a limited budget |
+| USD 100 in credits at sign-up, extensible to USD 200 through activities | Each team member's account holds a limited budget |
 | The free plan ends after six months or when credits run out | Account closes automatically, so the work must finish before |
 | Joining AWS Organizations moves a free account to the paid plan | The demonstration uses standalone accounts, with no Organization |
 | The free plan offers only select services | IoT Core, Bedrock and VPN must be checked on a real account first |
@@ -161,7 +161,7 @@ Nothing is deployed on Azure. The second cloud is prepared with contracts and an
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
-| Accounts in use are free plan accounts with USD 100 | Team | Other limits apply, such as a classroom lab with no IAM, which would block OIDC roles |
+| Whether each account is on the free or the paid plan | Team, in the billing console | On the free plan some services may be blocked, and on the paid plan charges start once credits run out |
 | IoT Core, Bedrock and VPN work on the free plan | First test on a real account | Those variables stay off, or the account upgrades to paid |
 | Two members lend accounts for test and production | Team | One account with prefixes |
 | Credits expire in time for the delivery | Billing console | AWS pages disagree between 6 and 12 months |
