@@ -1,38 +1,147 @@
 # Drone operating mode
 
-The drone service combines area work and precision work. Each of the five services stays, because each one answers a different need, and a brigade flies only when an order calls for it.
+The drone service combines area work and precision work. This document explains why, defines the event that moves a lot from one mode to the other, states how each of the five services works, who takes part, how often it flies in the pilot, and why it costs what it costs.
 
-## Services and mode
+## Contents
 
-| Service | Mode | Trigger | Result |
-|---|---|---|---|
-| Delimit the lot | Area | First visit to a farm | Polygon and no-fly zones |
-| Confirm the alert | Precision | Sensor alert | Photo of the focus and confirmation |
-| Fumigate | Precision | Authorized order | Flight log with window, operator and product lot |
-| Verify | Precision | Closed fumigation flight | Photo or short path that closes the case |
-| Estimate the harvest | Area | Once per harvest | Estimated sacks for the collection center |
+1. What the service must do
+2. Modes compared
+3. Services and mode
+4. Event that passes from area to precision
+5. Who does what
+6. Cadence
+7. Mission package and link
+8. Flight logs
+9. Cost
+10. Assumptions and pending confirmations
 
-No service replaces another. Estimation never fumigates, and fumigation never runs on a lot with no polygon.
+### Terms used
 
-## Event that passes from area to precision
-
-The event is **lot polygon published**. A lot enters precision work only after its polygon and no-fly zones exist on the platform. From then on, a sensor alert on that lot can open a confirmation mission, and a confirmed case can reach a fumigation order.
-
-## Why the combination
-
-| Alternative | Result |
+| Term | Meaning in this document |
 |---|---|
-| Precision only | No polygon and no harvest estimate, so two services would be missing |
-| Area only | Blanket flights to find foci, and no way to fumigate one focus |
-| Combination | Each service uses the flight that suits it |
+| Precision agriculture | Working on one focus: confirm, fumigate, verify |
+| Area agriculture | Working on a whole lot or farm: delimit, estimate |
+| Focus | The place a sensor reading marked |
+| Polygon | The geographic outline of a lot |
+| No-fly zone | Houses, drying facilities, roads and water sources |
+| Campaign | A planned round of flights in a period |
 
-## Cost and cadence
+---
 
-| Period | Cadence |
+## 1. What the service must do
+
+| Service | Result | Hard rule |
+|---|---|---|
+| Delimit the lot | Polygon and no-spray zones | Without it, no fumigation order goes out |
+| Confirm the alert | Evidence of the focus | The drone flies to the focus, never over the whole farm |
+| Fumigate | Treated lot and flight log | Only on a delimited lot, with an authorized order |
+| Verify | Photo or short path | Without it, the fumigation stays open |
+| Estimate the harvest | Number of sacks for the center | One area flight per harvest, no fumigation |
+
+The five services all enter the design, and none replaces another.
+
+## 2. Modes compared
+
+| Option | Delimit | Confirm | Fumigate | Verify | Estimate | Result |
+|---|---|---|---|---|---|---|
+| Precision only | No polygon | Yes | Blocked, no polygon | Yes | No | Discarded, misses two services and blocks a third |
+| Area only | Yes | By sweeping everything | Would treat more than needed | By sweeping again | Yes | Discarded, flies far more and cannot act on one focus |
+| Combination | Area | Precision | Precision | Precision | Area | **Chosen** |
+
+Precision alone cannot work, since fumigation depends on a polygon that only area work produces. Area alone meets the letter of the services at a much higher flight cost, and the mode rules out fumigating a whole area. The combination gives each service the flight that suits it.
+
+## 3. Services and mode
+
+| Service | Mode | Trigger | Who starts it | Object produced |
+|---|---|---|---|---|
+| Delimit the lot | Area | First visit to a farm | Campaign plan | Polygon, map |
+| Confirm the alert | Precision | Sensor alert or visible symptom | Platform | Focus photo |
+| Fumigate | Precision | Authorized order | Supervisor | Flight log with product lot |
+| Verify | Precision | Closed fumigation flight | Platform | Photo or short path |
+| Estimate the harvest | Area | Once per harvest | Campaign plan | Area images, estimated sacks |
+
+A visible symptom on a coffee plant also enters through the confirmation service, so no separate weekly review exists.
+
+## 4. Event that passes from area to precision
+
+The event is **lot polygon published**. A lot enters precision work only after its polygon and no-fly zones exist on the platform.
+
+| State of the lot | What can happen |
 |---|---|
-| Harvest | One review campaign a month, plus fumigations from open cases |
-| Outside harvest | One review campaign every three months |
+| No polygon | Only a delimitation mission |
+| Polygon published | A sensor alert can open a confirmation mission |
+| Focus confirmed | A person can create and authorize a fumigation order |
+| Fumigation closed | Verification closes the case |
+| Harvest period | An estimation flight returns to area work on that lot |
 
-Drones fly to the focus a sensor marks, so the service costs far less than a sweep of all 200 farms. The team's cost model puts the shared service at about USD 5,640 a year, against about USD 18,000 for weekly sweeps or one drone per farmer. In a harvest month, that is about USD 9.90 per farm. Fleet size and image counts behind those figures are estimates recorded with the assumptions.
+The rule is enforced by the platform with a conditional write, so an order cannot exist for a lot with no polygon.
 
-The farmer neither buys nor flies a drone. Three brigades, one per department, operate for the Federation.
+## 5. Who does what
+
+The farmer neither buys nor flies a drone. The Federation runs the service.
+
+| Actor | Role |
+|---|---|
+| Brigade | Three, one per department, with the certified pilot and equipment |
+| Pilot | Flies the mission and closes the flight log |
+| Drone supervisor | Authorizes the order, with MFA, and never the same person as the pilot |
+| Platform | Creates missions, stores objects, checks preconditions |
+| Farmer | Receives the visit and sees the case |
+| Center | Receives the harvest estimate |
+
+Fumigation is authorized with a human identity, and no trigger can execute it. Flights must follow the rules of the Colombian civil aviation authority, and the exact permit each brigade needs must be confirmed before operating.
+
+## 6. Cadence
+
+| Period | Review campaigns | Fumigations |
+|---|---|---|
+| Harvest | One a month | Those that open cases, about 25 a month |
+| Outside harvest | One every three months | Few |
+
+| Estimate for a harvest month | Value |
+|---|---|
+| Foci confirmed | About 40 |
+| Fumigation orders | About 25 |
+| Verification flights | About 25 |
+| Images | About 9,000 |
+
+These counts are estimates. The team sets them from the pilot size, and the first harvest should replace them with real ones.
+
+## 7. Mission package and link
+
+The drone operates far from the farmer's phone, so a mission never depends on signal at the lot.
+
+| Moment | Where | What happens |
+|---|---|---|
+| Before departure | Municipal seat or center | The ground station downloads the mission, polygon and no-fly zones |
+| At the lot | No signal needed | The drone flies the loaded mission |
+| After landing | Lot | Objects and log stay in the drone and ground station buffers |
+| On return | Municipal seat or center | The ground station uploads with presigned URLs |
+
+If the link falls at the lot, the mission stays in the buffer of the drone. The fumigation does not close until its flight log is stored on the platform.
+
+## 8. Flight logs
+
+Each flight closes its own log. The confirmation or delimitation flight closes first, a person authorizes after that, and the fumigation and verification close the case with their own logs. This reading removes the apparent circle between "no authorization without a closed log" and "no closure without a stored log".
+
+## 9. Cost
+
+The shared service avoids two expensive alternatives, a drone for each farmer and weekly sweeps over all 200 farms.
+
+| Option | Yearly cost in the team's model, USD |
+|---|---|
+| Own drone per farmer or weekly sweeps | About 18,000 |
+| Shared brigades directed by sensors | About 5,640 |
+
+In a harvest month, the shared service costs about USD 1,980, or USD 9.90 per farm. These are estimates from the team's model, resting on the assumptions of section 6, and the cost document holds their detail.
+
+Cloud cost for inference is small next to flight cost. At about USD 1.75 per 1,000 images, a harvest month of 9,000 images costs about USD 16.
+
+## 10. Assumptions and pending confirmations
+
+| Item | Who confirms | Effect if it fails |
+|---|---|---|
+| Three brigades cover the three departments | Federation | Fleet and cost change |
+| A supervisor can authorize remotely in time | Federation | Authorization moves to the brigade lead |
+| Flight permits for spraying drones | Civil aviation rules, legal review | Operating model changes |
+| Yearly harvest of four months | Federation | Cadence and cost change |
