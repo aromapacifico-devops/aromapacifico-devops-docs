@@ -1,6 +1,6 @@
 # Telemetry ingestion
 
-Farm nodes publish to one regional endpoint. Each reading is validated, stored once and evaluated against the current ranges, with no compute waiting between messages. This document defines the service, the message contract, how duplicates and bursts are handled, how the alert meets its five-minute budget, where readings live for five years, what fails and how, and what the infrastructure module creates.
+Farm nodes publish to one regional endpoint. Each reading is validated, stored once and evaluated against the current ranges, with no compute waiting between messages. This document defines the service, the message contract, how duplicates and bursts are handled, how the alert meets its five-minute budget, where readings live for five years, what fails and how, and what the infrastructure module creates. [Farm connectivity](../network/farm-connectivity.md) covers everything before IoT Core, including the node cycle, the buffer and the sequences of connection and recovery.
 
 ## Contents
 
@@ -71,11 +71,11 @@ IoT Core accepts payloads of up to 128 KB and 100 publish requests a second per 
 ## 4. Path of a reading
 
 1. The node publishes over MQTT with TLS on port 8883, QoS 1, using its device certificate.
-2. An IoT rule validates the topic and sends the message to two destinations.
+2. An IoT rule validates the topic, adds `received_at` from the time of the rules engine, and sends the message to two destinations.
 3. Amazon Data Firehose receives a copy and writes Parquet files to the S3 archive.
 4. An SQS queue receives the other copy.
-5. A Lambda function reads batches from the queue, validates the contract and writes to DynamoDB with a conditional write.
-6. The function compares the reading with the current ranges.
+5. A Lambda function reads batches from the queue, sorts them by node and `measured_at`, validates the contract and writes to DynamoDB with a conditional write.
+6. The function compares the reading with the current ranges and updates the alert state if the reading is the newest one.
 7. A reading out of range creates an alert, and SNS delivers it to the farmer's phone.
 
 The queue sits between IoT Core and the function so that a slow or failing function loses nothing. Firehose takes its copy straight from the rule, so the archive stays complete even if the function fails.
@@ -92,7 +92,7 @@ Topic format is `aroma/{env}/farm/{node_id}/{stream}`, where stream is `crop` or
   "measured_at": "2026-05-14T06:00:00Z",
   "stream": "crop",
   "buffered": false,
-  "dropped_since_last": 0,
+  "dropped_total": 0,
   "values": {
     "n_mg_kg": 42.1,
     "p_mg_kg": 18.4,
@@ -110,11 +110,13 @@ Topic format is `aroma/{env}/farm/{node_id}/{stream}`, where stream is `crop` or
 |---|---|
 | `schema` | Lets the contract evolve while old nodes keep working |
 | `node_id` | Must match the certificate of the connection |
-| `seq` | Counter that survives restarts, used for duplicates and gaps |
+| `seq` | Counter that survives restarts, shared by both streams, used for duplicates and gaps |
 | `measured_at` | Time of the reading, which stays correct when drained hours later |
 | `buffered` | Tells that the message waited in the buffer |
-| `dropped_since_last` | Readings lost past the 24-hour limit |
+| `dropped_total` | Readings this node has lost past the 24-hour limit, a counter that only grows |
 | `values` | Variables of the stream |
+
+The IoT rule adds `received_at`, the time the platform saw the message, so the age of a reading and the delay of a drain need no trust in the node clock. A reading more than 5 minutes ahead of `received_at` is treated as a clock fault.
 
 Messages that fail validation go to the dead letter queue, and they stay in the archive for analysis.
 
@@ -122,19 +124,21 @@ Messages that fail validation go to the dead letter queue, and they stay in the 
 
 QoS 1 delivers at least once, so a node that loses the confirmation sends the message again. Duplicates are normal and the design expects them.
 
-The idempotency key is `node_id` with `seq`. The readings table uses a conditional write, so a repeat fails silently and creates no second reading or second alert.
+The idempotency key is `node_id` with `measured_at` and `seq`, which a repeat carries unchanged. The readings table uses a conditional write, so a repeat fails silently and creates no second reading or second alert. The event source mapping reports failures per message, so a good message in a failed batch is not processed again.
 
-Order does not matter for storage, since each reading carries its own time. For alerts, the function checks the age of the reading and labels drained alerts, so a farmer does not read an old alert as a current one.
+No part of the path guarantees order, and the SQS action of IoT rules does not support FIFO queues. Order does not matter for storage, since each reading carries its own time. For alerts, each node and variable keeps one state item, and a conditional update changes it only if the reading is newer than the one stored. An old reading therefore cannot clear or reopen a newer state, and two invocations racing on one change raise one alert. The function checks the age of the reading and labels drained alerts, so a farmer does not read an old alert as a current one.
+
+The archive receives its copy before this check, so it holds every repeat. Reports through Athena remove them on the same three fields. [Farm connectivity](../network/farm-connectivity.md) gives the full reasoning and the results of a model of these rules.
 
 ## 7. Bursts when buffers drain
 
-The worst plausible case is a tower that returns after a day of outage, with every drying node of an area draining at once.
+The worst plausible case is a tower that returns after a day of outage, with every node of an area holding a full day of crop and drying readings. Each node wakes at a minute of the hour fixed for it, so the return spreads across one hour.
 
-| Scenario | Messages | If all arrive in 5 minutes |
+| Scenario | Messages | Spread over the hour |
 |---|---|---|
-| Every one of 200 nodes drains 24 readings | 4,800 | 16 messages a second |
+| Every one of 200 nodes drains 30 readings | 6,000 | 1.7 messages a second |
 
-That is a modest burst for these services. The queue absorbs it and the function scales by itself. Reserved concurrency stays low, so that a burst cannot exhaust DynamoDB capacity or the budget, and the queue simply takes longer. A random delay of a few seconds on each node before publishing spreads the arrivals.
+That is a modest load for these services. The queue absorbs it and the function scales by itself. Reserved concurrency stays low, so that a burst cannot exhaust DynamoDB capacity or the budget, and the queue simply takes longer.
 
 ## 8. Alert in under five minutes
 
@@ -142,14 +146,14 @@ The clock starts at the out-of-range reading and stops when the alert reaches th
 
 | Stage | Budget |
 |---|---|
-| Node reads and connects | 60 seconds |
+| Node reads and connects | Up to 120 seconds |
 | IoT Core and rule | 1 second |
 | Queue batching | Up to 30 seconds |
 | Function | Under 5 seconds |
 | SNS to the phone | Under 60 seconds |
-| **Total** | **About 2.5 minutes** |
+| **Total** | **About 3.6 minutes** |
 
-The budget leaves more than two minutes of margin. With no signal at the node, the alert goes out when the buffer drains, within 24 hours, and it carries the time of the reading.
+The budget leaves more than one minute of margin, with the node using the whole connection window of 120 seconds. With no signal at the node, the alert goes out when the buffer drains, within 24 hours, and it carries the time of the reading.
 
 Alerts fire on the change of state. A reading out of range raises one alert, and further readings of the same condition update it. This avoids a stream of messages to a farmer during a long drying.
 
@@ -160,9 +164,10 @@ Alerts fire on the change of state. A reading out of range raises one alert, and
 | Store | Key | Retention | Purpose |
 |---|---|---|---|
 | Readings table | Partition `node_id`, sort `measured_at#seq` | 90 days through TTL | Recent history in the application |
+| Alert state items, in the readings table | Partition `node_id`, sort `state#<variable>` | Current values, no expiry | Change of state per variable |
 | Ranges table | Partition `zone_type`, sort `variable` | Current values | Evaluation |
 | Alerts table | Partition `farm_id`, sort `raised_at` | Five years | Alert history |
-| Telemetry archive | Parquet, by `stream/year/month/day/` | Five years through a lifecycle rule | Pilot reports through Athena |
+| Telemetry archive | Parquet, by `stream/year/month/day/` of arrival | Five years through a lifecycle rule | Pilot reports through Athena |
 
 | Option for telemetry | For | Against | Result |
 |---|---|---|---|
@@ -170,6 +175,8 @@ Alerts fire on the change of state. A reading out of range raises one alert, and
 | Timestream for LiveAnalytics | Built for time series | Closed to new customers since June 2025 | Not available |
 | Timestream for InfluxDB | Time series engine | A provisioned instance running all day | Discarded |
 | Aurora PostgreSQL | SQL | Billed while idle, more to operate | Discarded |
+
+Reports filter by `measured_at` and scan one extra day, because a buffered reading falls in the partition of the day it arrived.
 
 Point-in-time recovery covers the tables, with a restore point about 5 minutes behind the current time.
 
@@ -185,9 +192,9 @@ Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, they s
 
 | Failure | Effect | Response |
 |---|---|---|
-| Node loses signal | Buffer holds readings | Publishes on return |
+| Node loses signal | Buffer holds readings | Tries each hour and publishes on return |
 | Tower or gateway fails | Many nodes silent | Alarm for silent nodes, buffers hold 24 hours |
-| IoT Core throttled | Publish fails | Node retries next cycle |
+| IoT Core throttled | Publish fails | Node retries at the next hourly cycle |
 | Function fails | Message returns to the queue | Three retries, then the dead letter queue and an alarm |
 | Invalid message | Function rejects it | Dead letter queue, kept in the archive |
 | DynamoDB throttled | Function retries | Queue grows, nothing lost |
@@ -201,7 +208,8 @@ Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, they s
 | Nodes silent over 24 hours | Required, shows dead nodes and farms | Yes |
 | Depth and age of the queue | Shows a stuck consumer | Age over 2 minutes |
 | Messages in the dead letter queue | Failed processing | Any |
-| `dropped_since_last` above zero | Data lost at the edge | Yes, on the operations dashboard |
+| `dropped_total` grows | Data lost at the edge | Yes, on the operations dashboard |
+| `measured_at` far from `received_at` | Node clock at fault | Yes, more than 5 minutes ahead or 25 hours behind |
 | Alerts not delivered | Required | Yes |
 | Latency from `measured_at` to alert | First objective of the platform | Yes |
 
@@ -219,13 +227,14 @@ Calculated from the AWS price list for us-east-1, at the volumes of section 2.
 | DynamoDB writes and reads | USD 0.625 and USD 0.125 per million | 0.08 |
 | Firehose ingestion and conversion | USD 0.029 and USD 0.018 per GB | Under 0.01 |
 | S3 requests | USD 0.005 per 1,000 PUT | 0.01 |
-| **Total** | | **About 0.50** |
+| Hourly configuration read, with its messages and connections | USD 1.25 per million operations, plus the rates above | 0.48 |
+| **Total** | | **About 1.00** |
 
-At 1,000 farms, the same model gives about USD 2.50 a month. Telemetry is the least of the costs of the platform, so no effort goes into optimizing it.
+At 1,000 farms, the same model gives about USD 5 a month. [Farm connectivity](../network/farm-connectivity.md) shows the calculation of the configuration read. Telemetry is the least of the costs of the platform, so no effort goes into optimizing it.
 
 ## 14. Infrastructure module
 
-This module of the first plan implements box C07. It creates the IoT rule, the SQS queue with its dead letter queue, the Firehose stream, the DynamoDB tables and the S3 archive with its lifecycle rule. It receives KMS keys and execution roles from the security module, and it creates no network or identity resources, following the separation of domains in the infrastructure rules.
+This module of the first plan implements box C07. It creates the IoT rule, the SQS queue with its dead letter queue, the Firehose stream, the DynamoDB tables and the S3 archive with its lifecycle rule. The IoT rule adds `received_at`, and the event source mapping reports batch item failures. It receives KMS keys and execution roles from the security module, and it creates no network or identity resources, following the separation of domains in the infrastructure rules.
 
 | Input | Output |
 |---|---|
