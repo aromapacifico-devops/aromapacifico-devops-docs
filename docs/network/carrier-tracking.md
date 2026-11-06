@@ -36,7 +36,7 @@ Carriers have a smartphone with data in municipal seats and on main roads. Farm 
 
 | Topic | Where it is defined |
 |---|---|
-| Sack events, their states and valid transitions | Traceability design |
+| Sack events, their states and valid transitions | [Sack states](../traceability/sack-states.md) |
 | Application flows and screens | Carrier application contract. The pilot does not build the application |
 | Identity and session of a carrier | [Identity and access](../security/identity-and-access.md) |
 | Retention of positions | [Personal data and retention](../security/personal-data-and-retention.md) |
@@ -166,7 +166,7 @@ The platform adds `received_at`, so the delay of a record needs no trust in the 
 {
   "results": [
     { "record_id": "0f8c2a6e-1b7d-4c55-9a1e-3d2f6b7c8e10", "status": "accepted" },
-    { "record_id": "7a1d4f0c-92be-4e0a-b6c3-5e8d1f2a9c44", "status": "rejected", "reason": "unknown_sack_code" }
+    { "record_id": "7a1d4f0c-92be-4e0a-b6c3-5e8d1f2a9c44", "status": "rejected", "reason": "invalid_sack_code" }
   ]
 }
 ```
@@ -175,7 +175,7 @@ The platform adds `received_at`, so the delay of a record needs no trust in the 
 |---|---|---|
 | `accepted` | Stored now | Deletes the record |
 | `repeated` | Already stored | Deletes the record |
-| `rejected` | Can never be stored, with a reason | Deletes it from the queue and shows a task for custody events |
+| `rejected` | Malformed, so it can never be stored, with a reason | Deletes it from the queue and shows a task for custody events |
 
 ## 8. Duplicates and order
 
@@ -188,7 +188,7 @@ The platform adds `received_at`, so the delay of a record needs no trust in the 
 **Order of custody events.** Two phones can report one sack, so arrival order cannot be trusted. A center with a working link can record an arrival while the handover waits on the phone of the carrier. The traceability design receives two conditions from this flow.
 
 - Lateness alone never rejects an event. A valid event that arrives late is stored and takes its place in the history.
-- Logical order comes from `seq` inside one phone and from `captured_at` across phones, with `received_at` kept as evidence.
+- Logical order sorts by `captured_at`, then by the position of the event along the route, then by `seq`, with `received_at` kept as evidence.
 
 **Clock.** A record more than 5 minutes ahead of `received_at`, or with `time_source` set to `device`, is stored and flagged. A custody event is never refused over its clock, because refusing it would lose proof of custody. An operator reviews flagged records.
 
@@ -222,7 +222,8 @@ The loss rate reflects outages far longer than the route should produce. As on t
 | Carrier denies the location permission | The trip has no route | The application asks again and warns at the handover. Custody events still work |
 | Application closed by the system | Tracking stops | The notification disappears, and a break in the times of the route shows the missing period |
 | Battery runs out | Tracking stops | The queue survives on the phone and syncs after charging |
-| Invalid sack code read with no data | The platform cannot accept the event | Rejected with a reason, and shown to the carrier as a task |
+| Sack code that fails its check symbol | The event is malformed | Rejected with a reason, and shown to the carrier as a task |
+| Well-formed code the platform does not know yet | The registration may still be queued at the farm | Stored as a gap, and it closes when the registration arrives |
 | Phone lost or broken | Records not yet sent are lost | The next event, such as the arrival at the center, shows the gap, and the operator completes the history |
 | Phone stolen | Risk to the stored data | The operator ends the session, and the store on the phone stays encrypted |
 | API or function down | Requests fail | Records stay on the phone, with no loss on the platform side |

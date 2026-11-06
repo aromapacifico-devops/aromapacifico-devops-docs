@@ -71,7 +71,7 @@ Federation staff could later sign in with a corporate directory by adding a fede
 | Readings and alerts of own farms | Read | None | None | None | Read, for the assigned focus | None |
 | Alert ranges | None | None | None | None | None | Change, on Federation request |
 | Sack registration | Create, own farms | None | Create, when issuing a code | None | None | None |
-| Sack events | Read own | Create handover and transit | Create reception and dispatch | None | None | None |
+| Sack events | Read own, create reweighing | Create handover, arrival, pickup, delivery and missing report | Create reception, correction, return, dispatch, label reprint and missing report | None | None | None |
 | Buyer view of a sack | Read | Read | Read | Read | None | None |
 | Trip of a sack | None | Read own | Read | None | None | None |
 | Farm and lot polygon | Read own | None | None | None | Create, read | None |
