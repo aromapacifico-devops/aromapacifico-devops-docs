@@ -55,7 +55,7 @@ National ID is stored encrypted, stays out of every response, and is never used 
 
 ## 3. Retention, archive and deletion
 
-Five years applies to readings, photos, flights and sack history.
+Five years applies to readings, photos, flights, sack history and personal data.
 
 | Data | Active storage | Archive | Deletion |
 |---|---|---|---|
@@ -64,8 +64,10 @@ Five years applies to readings, photos, flights and sack history.
 | Flight logs | S3 Standard, 90 days | Glacier Instant Retrieval, to five years | Lifecycle rule at five years |
 | Sack history | DynamoDB, five years | None | Scheduled deletion at five years |
 | Carrier positions | DynamoDB, 90 days | S3, to five years | Lifecycle rule at five years |
-| Personal data | While the relationship lasts | Up to five years after it ends | Deletion or anonymization at term or by request |
+| Personal data | While the relationship lasts | Five years after it ends | Deletion or anonymization at term or by request |
 | Audit logs | CloudWatch, 90 days | S3 in the log archive account, five years | Lifecycle rule at five years |
+
+The pilot sets five years for personal data and gives no starting point. Every other record counts from the day it is written, and that clock does not fit a person who is still active, since deleting the identity of a farmer who keeps delivering coffee would break the service. Personal data therefore counts from the end of the relationship, which is the closing of the account or the last delivery. The term is a limit from that date, and a request from the person can shorten it.
 | Objects with a person | Restricted prefix, 30 days | None | Lifecycle rule at 30 days |
 
 Glacier Instant Retrieval was chosen over slower archive classes because a case review or a claim may need a photo at once. At USD 0.004 per GB a month against USD 0.023 for S3 Standard, it costs about 83 percent less and keeps retrieval in milliseconds. Objects stay in Standard for 90 days, which is also the minimum storage period of that class, so no early deletion charge applies.
@@ -143,7 +145,7 @@ Five years of retention stays under USD 3 a month, so retention does not need tr
 |---|---|---|
 | Adequacy status of the United States | Legal counsel | Model clauses apply, or personal data moves |
 | The Federation acts as controller | Federation | Contracts change |
-| Five years also applies to personal data | Federation and legal counsel | Retention of personal data shortens |
+| The five years of personal data start when the relationship ends | Federation and legal counsel | Data of active farmers and carriers needs another legal basis to stay past five years |
 | Images average 3 MB | Drone supplier | Storage cost scales linearly |
 | The person filter confidence threshold | Review with real images | More repeated flights, or more risk |
 
