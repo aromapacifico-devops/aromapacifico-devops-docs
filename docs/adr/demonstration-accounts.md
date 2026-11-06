@@ -2,7 +2,7 @@
 
 ## Context
 
-The code is proven on AWS accounts with USD 100 in credits. Joining an Organization moves a free account to the paid plan, and a free account closes when its credits run out. A full test environment costs about USD 0.08 an hour while up.
+The code is proven on AWS accounts with USD 100 in credits, extensible to USD 200. Joining an Organization moves a free account to the paid plan, and a free account closes when its credits run out. A full test environment costs about USD 0.08 an hour while up.
 
 ## Options
 
