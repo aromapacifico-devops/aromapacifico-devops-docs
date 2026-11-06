@@ -103,13 +103,15 @@ The `state` field takes one of seven values, which match the states of the pilot
 
 | Value | Meaning |
 |---|---|
-| `in_preparation` | Registered on the farm |
+| `in_preparation` | Registered, on the farm or at the center for a sack with no code |
 | `in_transit_to_center` | With the carrier, on the way to the center |
 | `at_center_accepted` | Received at the center and accepted |
 | `at_center_rejected` | Received at the center and rejected |
 | `in_transit_to_port` | On the way to Buenaventura |
 | `delivered_accepted` | Delivered at the port and accepted |
 | `delivered_rejected` | Delivered at the port and rejected |
+
+[Sack states](sack-states.md) defines the events and the valid movements between these values.
 
 ## 7. What each actor sees
 
@@ -156,4 +158,3 @@ The upper bound of 3 million in section 4 therefore leaves a wide margin.
 | Origin at department level is enough for buyers | Federation | The buyer view gains or loses detail |
 | Label material resists the route | Supplier test | Material changes |
 | Offline code blocks are worth the complexity | Team | Centers wait for the WAN to issue codes |
-| Transitions between states, with the event and the responsible person of each one | State model of the sack, a separate document in this folder | The `state` values gain or lose detail |
