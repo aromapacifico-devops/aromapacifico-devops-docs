@@ -45,7 +45,7 @@ The platform has three environments, development, test and production, built fro
 
 Test and production run the same version in turn, which makes a test result meaningful. Development can run ahead of them.
 
-The 100-hour code covers the variables of test and production. Development uses the same pattern and adds one more variables file when the team needs it.
+The code carries one variables file for each of the three environments. Test and production are the ones deployed in the demonstration, and development is deployed only when the team needs it.
 
 ## 2. What changes between environments
 

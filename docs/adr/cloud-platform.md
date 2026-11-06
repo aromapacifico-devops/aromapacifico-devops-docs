@@ -10,7 +10,7 @@ AWS us-east-1 with Azure prepared, AWS sa-east-1 with Azure prepared, and Azure 
 
 ## Decision
 
-AWS us-east-1 is primary, because every service in the design is available there and the 26 infrastructure rules apply as written. Azure East US is the second cloud and stays idle.
+AWS us-east-1 is primary, because every service in the design is available there and the 26 infrastructure rules are already written for AWS. Azure East US is the second cloud and stays idle.
 
 In sa-east-1, IoT messages cost USD 1.50 per million against USD 1.00 in us-east-1. Azure bills IoT Hub by provisioned unit, USD 25 a month for S1, against about USD 0.11 a month in messages for the pilot load on AWS.
 

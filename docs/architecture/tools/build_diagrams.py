@@ -256,7 +256,7 @@ def overview():
     p.card("Cost dashboard", "Split by tags", 1592, 1236, 170, 66, icon="budgets", color=MGMT)
     p.note("<b>Two SLOs.</b> Crop alert delivery and sack query availability. Alarms cover silent nodes over 24 h, unclosed flights and failed invocations.", 1232, 1316, 530, 66, fill="#FFFFFF", stroke=G["obs"][1])
     p.zone("D6. Environments and promotion", 1790, 1204, 384, 202, *G["dlv"], size=13)
-    p.step("<b>Development</b><br>10.50.0.0/16", 1804, 1240, 106, 66, cid="e1", size=11)
+    p.step("<b>Development</b><br>10.50.0.0/16", 1804, 1240, 106, 66, cid="e1", size=11, fill="#D6E6FA", stroke="#0B3D91")
     p.step("<b>Test</b><br>10.60.0.0/16", 1926, 1240, 106, 66, cid="e2", size=11, fill="#D6E6FA", stroke="#0B3D91")
     p.step("<b>Production</b><br>10.70.0.0/16", 2048, 1240, 112, 66, cid="e3", size=11, fill="#D6E6FA", stroke="#0B3D91")
     p.edge("e1", "e2", "", CTRL, width=2)
