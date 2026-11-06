@@ -1,0 +1,34 @@
+# Platform architecture
+
+Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production.
+
+| Diagram | Question it answers |
+|---|---|
+| [Platform overview](diagrams/00-platform-overview.drawio.png) | What is the whole platform |
+| [End to end](diagrams/01-end-to-end.drawio.png) | Which path, boundary and identity does each flow have |
+| [Implementation scope](diagrams/02-implementation-scope.drawio.png) | What does the infrastructure code build, box by box |
+| [Connectivity and centers](diagrams/03-connectivity-and-centers.drawio.png) | How does each site connect, and what happens with no signal |
+| [Pest to fumigation](diagrams/04-pest-to-fumigation.drawio.png) | How does an alert become a closed case |
+| [Landing zone](diagrams/05-landing-zone.drawio.png) | Which accounts exist, and what applies from the root |
+| [Environments](diagrams/06-environments.drawio.png) | How does a change reach production, and how do environments go up and down |
+
+![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
+
+## Connectivity by flow
+
+| Flow | Protocol out | Local buffer | With no signal |
+|---|---|---|---|
+| Farm with signal | MQTT over TLS on LTE | 24 hours at most | Stores, retries, and the alert goes out when the buffer drains |
+| Farm out of coverage | LoRa to a shared gateway, TLS on LTE from there | 24 hours at most | Objects travel by data mule on daily routes |
+| Drone | HTTPS from the ground station | Drone buffer | Mission stays loaded, and the log publishes when the link returns |
+| Carrier | HTTPS on LTE | Application queue | Positions queue every 5 minutes, and custody events are always kept |
+| Collection center | IPsec VPN over a 100 Mbps link | Application queue | Reception continues locally and synchronizes on return |
+| Port | Carrier application | Application queue | Only the delivery event is recorded |
+
+## Related documents
+
+The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
+
+## Regenerating the diagrams
+
+`tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page.
