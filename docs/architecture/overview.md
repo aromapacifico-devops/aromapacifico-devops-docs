@@ -99,8 +99,8 @@ The buyer flow deserves a note. A buyer does not sign in, so the sack code works
 
 | Failure | What the platform does | What is lost |
 |---|---|---|
-| Node loses signal | Stores readings and retries at the next cycle | Nothing within 24 hours. Older readings are dropped and counted |
-| Shared gateway fails | Nodes keep buffering, and an alarm reports the silent vereda | Nothing within 24 hours |
+| Node loses signal | Stores readings and retries each hour | Nothing in an outage of up to 23 hours. Older readings are dropped and counted |
+| Shared gateway fails | Nodes keep buffering, and an alarm reports the silent vereda | Nothing in an outage of up to 23 hours |
 | Carrier loses data | The application queues positions and custody events | Nothing, since custody events are never dropped |
 | Center loses WAN | Staff keep receiving sacks in the application queue, and the printer works on the local network | Nothing, it synchronizes on return |
 | Tunnel fails | The second tunnel of the same connection takes over | Nothing |
