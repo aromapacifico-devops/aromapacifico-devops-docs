@@ -7,7 +7,7 @@ from collections import Counter
 from pathlib import Path
 
 SOURCE = Path(__file__).resolve().parent.parent / "diagrams" / "platform-architecture.drawio"
-CODES = [f"C{i:02d}" for i in range(1, 10)]
+CODES = [f"C{i:02d}" for i in range(1, 11)]
 ELEMENTS = ["Farm with signal", "Farm out of coverage", "Drone brigade", "Carrier in transit", "Centers",
             "AWS us-east-1", "Buyer browser", "Port of Buenaventura"]
 SUBNET_BLOCKS = 7
@@ -17,10 +17,10 @@ def main():
     root = ET.parse(SOURCE).getroot()
     pages = {d.get("name"): d for d in root.findall("diagram")}
     errors = []
-    if len(pages) != 6:
-        errors.append(f"expected 6 pages, found {len(pages)}")
+    if len(pages) != 7:
+        errors.append(f"expected 7 pages, found {len(pages)}")
 
-    deployment = pages["02 Cloud deployment"]
+    deployment = pages["02 Implementation scope"]
     codes = Counter(c.get("value") for c in deployment.iter("mxCell"))
     for code in CODES:
         if codes[code] != 1:

@@ -1,15 +1,16 @@
 # Platform architecture
 
-Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost.
+Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production.
 
 | Diagram | Question it answers |
 |---|---|
 | [Platform overview](diagrams/00-platform-overview.drawio.png) | What is the whole platform |
 | [End to end](diagrams/01-end-to-end.drawio.png) | Which path, boundary and identity does each flow have |
-| [Cloud deployment](diagrams/02-cloud-deployment.drawio.png) | What does the infrastructure code build, box by box |
+| [Implementation scope](diagrams/02-implementation-scope.drawio.png) | What does the infrastructure code build, box by box |
 | [Connectivity and centers](diagrams/03-connectivity-and-centers.drawio.png) | How does each site connect, and what happens with no signal |
 | [Pest to fumigation](diagrams/04-pest-to-fumigation.drawio.png) | How does an alert become a closed case |
 | [Landing zone](diagrams/05-landing-zone.drawio.png) | Which accounts exist, and what applies from the root |
+| [Environments](diagrams/06-environments.drawio.png) | How does a change reach production, and how do environments go up and down |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 

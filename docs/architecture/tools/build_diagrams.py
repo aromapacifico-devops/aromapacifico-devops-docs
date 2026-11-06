@@ -77,10 +77,12 @@ class Page:
                  f"fontSize={size};fontStyle=1;fontColor={INK};")
         return self._v(label, style, x, y, w, h, cid)
 
-    def card(self, title, sub, x, y, w=170, h=64, cid=None, stroke="#7F8C8D", dashed=False, icon=None, color=None, net=None, azure=None):
+    def card(self, title, sub, x, y, w=170, h=64, cid=None, stroke="#7F8C8D", dashed=False, icon=None, color=None, net=None, azure=None, impl=False):
         pad = 44 if (icon or net or azure) else 6
+        fill, sw = ("#D6E6FA", 3) if impl else ("#FFFFFF", 1.2)
+        stroke = "#0B3D91" if impl else stroke
         value = f"<b>{title}</b><br><font style='font-size:10px'>{sub}</font>" if sub else f"<b>{title}</b>"
-        style = (f"rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor={stroke};strokeWidth=1.2;"
+        style = (f"rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor={fill};strokeColor={stroke};strokeWidth={sw};"
                  f"dashed={1 if dashed else 0};align=left;verticalAlign=middle;spacingLeft={pad};spacingRight=3;"
                  f"fontSize=12;fontColor={INK};")
         cid = self._v(value, style, x, y, w, h, cid)
@@ -94,9 +96,11 @@ class Page:
             self.azure("", x + 7, iy, azure, size=ih)
         return cid
 
-    def chip(self, text, x, y, w=120, h=26, fill="#FFFFFF", stroke="#7F8C8D", dashed=False):
+    def chip(self, text, x, y, w=120, h=26, fill="#FFFFFF", stroke="#7F8C8D", dashed=False, impl=False):
+        if impl:
+            fill, stroke = "#D6E6FA", "#0B3D91"
         style = (f"rounded=1;arcSize=30;whiteSpace=wrap;html=1;fillColor={fill};strokeColor={stroke};"
-                 f"dashed={1 if dashed else 0};align=center;verticalAlign=middle;fontSize=11;fontColor={INK};")
+                 f"strokeWidth={3 if impl else 1};dashed={1 if dashed else 0};align=center;verticalAlign=middle;fontSize=11;fontColor={INK};")
         return self._v(text, style, x, y, w, h)
 
     def code(self, code, x, y):
@@ -140,8 +144,8 @@ class Page:
 
 
 def overview():
-    p = Page("00 Platform overview", 2640, 1690, "Aroma Pacifico: target platform on AWS, from the farm to the port of Buenaventura")
-    p.text("Pilot of 200 farms, 3 collection centers and 60 carriers in Cauca, Huila and Tolima. AWS us-east-1 is primary and Azure East US stays prepared. The same pattern grows to 1,000 farms.", 40, 46, 2000, 22, size=13, color="#5D6D7E")
+    p = Page("00 Platform overview", 2640, 1730, "Aroma Pacifico: target platform on AWS, from the farm to the port of Buenaventura")
+    p.text("Pilot of 200 farms, 3 collection centers and 60 carriers in Cauca, Huila and Tolima. AWS us-east-1 is primary and Azure East US stays prepared. The same pattern grows to 1,000 farms. <b>Blue boxes are what the infrastructure code implements, everything else is designed and documented.</b>", 40, 46, 2200, 22, size=13, color="#5D6D7E")
     G = dict(ext=("#F4F6F7", "#AEB6BF"), field=("#EEF7EE", "#6AA84F"), site=("#FDF2E9", "#D68910"), org=("#F7FAFC", "#34495E"), gov=("#FEF9E7", "#B7950B"),
              prod=("#EBF5FB", "#2E86C1"), net=("#F4ECF7", "#8E44AD"), sec=("#FDEDEC", "#CB4335"), obs=("#E8F8F5", "#17A589"), dlv=("#F2F3F4", "#566573"), app=("#EAF2F8", "#2471A3"), az=("#EBF5FB", "#0078D4"), des=("#FDF2E9", "#CA6F1E"))
 
@@ -196,14 +200,14 @@ def overview():
     W = 164
     for label, x in (("Entry", c[0]), ("Queue and route", c[1]), ("Functions", c[2]), ("Data", c[3]), ("Analysis", c[4])):
         p.text(label, x, 408, W, 20, size=12, bold=True, color="#2E86C1")
-    p.card("IoT Core", "MQTT over TLS, LoRaWAN, X.509", c[0], 436, W, 66, "iot", icon="iot_core", color=IOT)
-    p.card("SQS", "Burst buffer, 3 retries", c[1], 436, W, 66, "sqs", icon="sqs", color=APP)
-    p.card("Ingestion", "Validates, dedupes, checks ranges", c[2], 436, W, 66, "fn", icon="lambda", color=COMPUTE)
+    p.card("IoT Core", "MQTT over TLS, LoRaWAN, X.509", c[0], 436, W, 66, "iot", icon="iot_core", color=IOT, impl=True)
+    p.card("SQS", "Burst buffer, 3 retries", c[1], 436, W, 66, "sqs", icon="sqs", color=APP, impl=True)
+    p.card("Ingestion", "Validates, dedupes, checks ranges", c[2], 436, W, 66, "fn", icon="lambda", color=COMPUTE, impl=True)
     p.code("C07", c[2] + W - 34, 430)
-    p.card("DynamoDB readings", "90 days, ranges, alerts", c[3], 436, W, 66, "ddb", icon="dynamodb", color=DATA)
+    p.card("DynamoDB readings", "90 days, ranges, alerts", c[3], 436, W, 66, "ddb", icon="dynamodb", color=DATA, impl=True)
     p.card("SNS", "Push under 5 min", c[6], 436, W, 66, "sns", icon="sns", color=APP)
-    p.card("Firehose", "Parquet batches", c[1], 516, W, 66, "fh", icon="kinesis_data_firehose", color=NET)
-    p.card("S3 archive", "Readings, 5 years", c[3], 516, W, 66, "arc", icon="s3", color=STORAGE)
+    p.card("Firehose", "Parquet batches", c[1], 516, W, 66, "fh", icon="kinesis_data_firehose", color=NET, impl=True)
+    p.card("S3 archive", "Readings, 5 years", c[3], 516, W, 66, "arc", icon="s3", color=STORAGE, impl=True)
     p.card("Athena", "Pilot reports", c[4], 516, W, 66, "ath", icon="athena", color=NET)
     p.card("API Gateway", "HTTP API, Cognito JWT", c[0], 626, W, 66, "api", icon="api_gateway", color=NET)
     p.card("Cognito", "Four user groups, MFA for three", c[1], 626, W, 66, icon="cognito", color=SEC)
@@ -211,34 +215,36 @@ def overview():
     p.card("DynamoDB records", "Sacks, orders, cases, PITR", c[3], 626, W, 66, "rec", icon="dynamodb", color=DATA)
     p.card("S3 web assets", "Reports and query pages", c[6], 516, W, 66, "wa", icon="s3", color=STORAGE)
     p.card("CloudFront", "Web, static assets", c[6], 626, W, 66, "cf", icon="cloudfront", color=NET)
-    p.note("<b>Event-driven inference.</b> A function starts on an event, reads the stored object, calls the managed service and writes the result with time, confidence and source object. Then it ends. If it fails, the object stays and the case does not change. Only a person authorizes a fumigation.", 1600, 756, 564, 112, fill="#FFFFFF", stroke=G["prod"][1])
+    p.note("<b>Event-driven inference.</b> A function starts on an event, reads the stored object, calls the managed service and writes the result with time, confidence and source object. Then it ends. If it fails, the object stays and the case does not change. Only a person authorizes a fumigation. In code, only focus confirmation is built, with its case table, and Rekognition and Bedrock are called, not created.", 1600, 756, 564, 130, fill="#FFFFFF", stroke=G["prod"][1])
     p.card("WAF", "Rate limit on sack reads", c[7], 626, W, 66, "waf", icon="waf", color=SEC)
-    p.card("S3 flight objects", "Photos, maps, logs, 5 years", c[0], 756, W, 66, "obj", icon="s3", color=STORAGE)
-    p.card("EventBridge", "Object created rules", c[1], 756, W, 66, "eb", icon="eventbridge", color=APP)
-    p.card("Inference functions", "Focus, verification, estimation", c[2], 756, W, 66, "inf", icon="lambda", color=COMPUTE)
+    p.card("S3 flight objects", "Photos, maps, logs, 5 years", c[0], 756, W, 66, "obj", icon="s3", color=STORAGE, impl=True)
+    p.card("EventBridge", "Object created rules", c[1], 756, W, 66, "eb", icon="eventbridge", color=APP, impl=True)
+    p.card("Inference functions", "Focus, verification, estimation", c[2], 756, W, 66, "inf", icon="lambda", color=COMPUTE, impl=True)
     p.code("C08", c[2] + W - 34, 750)
     p.card("Rekognition", "DetectLabels, person filter", c[3], 756, W, 66, "rek", icon="rekognition", color=ML)
     p.card("Bedrock", "Multimodal model, no training", c[4], 756, W, 66, "bed", icon="bedrock", color=ML)
+    p.card("Farm module", "Thing, CSR certificate, policy", c[0], 516, W, 66, "farmmod", icon="iot_core", color=IOT, impl=True)
+    p.code("C10", c[0] + W - 34, 510)
     p.card("S3 restricted", "Objects with a person, 30 days", c[3], 856, W, 66, "quar", icon="s3", color=STORAGE)
-    p.card("SQS dead letter", "Keeps failures, state unchanged", c[1], 856, W, 66, "dlq", icon="sqs", color=APP)
-    p.card("CloudWatch alarm", "Reports failed invocations", c[2], 856, W, 66, "alm", icon="cloudwatch_2", color=MGMT)
+    p.card("SQS dead letter", "Keeps failures, state unchanged", c[1], 856, W, 66, "dlq", icon="sqs", color=APP, impl=True)
+    p.card("CloudWatch alarm", "Reports failed invocations", c[2], 856, W, 66, "alm", icon="cloudwatch_2", color=MGMT, impl=True)
 
     p.zone("D3. Network account: VPC shared with each environment, no internet or NAT gateway", 586, 980, 1588, 212, *G["net"], size=13, align="center")
-    p.card("Virtual private gateway", "Site-to-site VPN, 2 tunnels, 3 centers", c[0], 1020, 190, 76, "vgw", icon="site_to_site_vpn", color=NET)
+    p.card("Virtual private gateway", "VPN to one center in code, 3 in the design", c[0], 1020, 190, 76, "vgw", icon="site_to_site_vpn", color=NET, impl=True)
     p.code("C04", c[0] + 156, 1078)
     subs = [("Telemetry ingress", "10.70.0.0/20", "IoT endpoint"), ("Drone object ingress", "10.70.16.0/20", "S3 endpoint"), ("Application", "10.70.32.0/20", "API endpoint"), ("Data", "10.70.48.0/20", "reserved"),
             ("Object storage", "10.70.64.0/20", "reserved"), ("Administration", "10.70.80.0/20", "reserved"), ("Public query", "10.70.96.0/20", "reserved")]
     for i, (n, cidr, use) in enumerate(subs):
-        p.chip(f"<b>{n}</b><br>{cidr}<br>{use}", 806 + i * 196, 1020, 188, 76, dashed=use == "reserved")
+        p.chip(f"<b>{n}</b><br>{cidr}<br>{use}", 806 + i * 196, 1020, 188, 76, dashed=use == "reserved", impl=True)
     p.code("C03", 2130, 986)
-    p.card("Gateway endpoints", "S3 and DynamoDB, no charge", c[0], 1110, 190, 66, icon="endpoints", color=NET)
-    p.note("<b>Permanent firewall rules.</b> Endpoint security groups allow TCP 443 from logistics and local servers only, and deny all else.", 806, 1110, 1184, 66)
+    p.card("Gateway endpoints", "S3 and DynamoDB, no charge", c[0], 1110, 190, 66, icon="endpoints", color=NET, impl=True)
+    p.card("Permanent firewall rules", "Endpoint security groups allow TCP 443 from logistics and local servers only, and deny all else", 806, 1110, 1184, 66, impl=True)
     p.code("C06", 1952, 1104)
 
     p.zone("D4. Security and audit", 586, 1204, 620, 202, *G["sec"], size=13)
-    p.card("KMS", "Keys for data, objects, platform", 600, 1236, 190, 66, icon="key_management_service", color=SEC)
+    p.card("KMS", "Keys for data, objects, platform", 600, 1236, 190, 66, icon="key_management_service", color=SEC, impl=True)
     p.card("Secrets Manager", "VPN keys, API keys", 800, 1236, 190, 66, icon="secrets_manager", color=SEC)
-    p.card("IAM roles", "Per function, OIDC for pipeline", 1000, 1236, 192, 66, icon="identity_and_access_management", color=SEC)
+    p.card("IAM roles", "Per function, OIDC for pipeline", 1000, 1236, 192, 66, icon="identity_and_access_management", color=SEC, impl=True)
     p.code("C05", 1158, 1230)
     p.card("CloudTrail", "Organization trail, 5 years", 600, 1316, 190, 66, icon="cloudtrail", color=MGMT)
     p.card("GuardDuty", "Threat detection", 800, 1316, 190, 66, icon="guardduty", color=SEC)
@@ -248,23 +254,29 @@ def overview():
     p.card("Operations dashboard", "WAN, objects, silent nodes", 1412, 1236, 170, 66, icon="cloudwatch_2", color=MGMT)
     p.card("Cost dashboard", "Split by tags", 1592, 1236, 170, 66, icon="budgets", color=MGMT)
     p.note("<b>Two SLOs.</b> Crop alert delivery and sack query availability. Alarms cover silent nodes over 24 h, unclosed flights and failed invocations.", 1232, 1316, 530, 66, fill="#FFFFFF", stroke=G["obs"][1])
-    p.zone("D6. Test and development", 1790, 1204, 384, 202, *G["dlv"], size=13)
-    p.note("Same code, separate accounts and address ranges. Simulated nodes and synthetic data replace real sensors. Promotion goes development, test, production.", 1804, 1236, 356, 146, fill="#FFFFFF", stroke=G["dlv"][1])
+    p.zone("D6. Environments and promotion", 1790, 1204, 384, 202, *G["dlv"], size=13)
+    p.step("<b>Development</b><br>10.50.0.0/16", 1804, 1240, 106, 66, cid="e1", size=11)
+    p.step("<b>Test</b><br>10.60.0.0/16", 1926, 1240, 106, 66, cid="e2", size=11, fill="#D6E6FA", stroke="#0B3D91")
+    p.step("<b>Production</b><br>10.70.0.0/16", 2048, 1240, 112, 66, cid="e3", size=11, fill="#D6E6FA", stroke="#0B3D91")
+    p.edge("e1", "e2", "", CTRL, width=2)
+    p.edge("e2", "e3", "", CTRL, width=2)
+    p.note("Same code, separate accounts, ranges and data. Production needs a person's approval. Detail on the environments page.", 1804, 1316, 356, 72, fill="#FFFFFF", stroke=G["dlv"][1])
 
     # Delivery
     p.zone("E. Infrastructure delivery", 570, 1436, 1620, 150, *G["dlv"])
-    p.card("Module repositories", "Versioned with Git tags", 590, 1474, 190, 66, "rep", net="server")
-    p.card("Infrastructure repository", "Root, environments, no secrets", 800, 1474, 200, 66, "root", net="server")
+    p.card("Module repositories", "Versioned with Git tags", 590, 1474, 190, 66, "rep", net="server", impl=True)
+    p.card("Infrastructure repository", "Root, environments, no secrets", 800, 1474, 200, 66, "root", net="server", impl=True)
     p.code("C01", 966, 1468)
-    p.card("Pull request", "fmt, validate, security scan", 1020, 1474, 180, 66, "pr", icon="organizations", color=CTRL)
-    p.card("Plan", "Output kept as evidence", 1220, 1474, 160, 66, "plan", icon="organizations", color=CTRL)
+    p.card("Pull request", "fmt, validate, security scan", 1020, 1474, 180, 66, "pr", icon="organizations", color=CTRL, impl=True)
+    p.card("Plan", "Output kept as evidence", 1220, 1474, 160, 66, "plan", icon="organizations", color=CTRL, impl=True)
     p.code("C09", 1346, 1468)
-    p.card("Person approves", "Protected environment", 1400, 1474, 170, 66, "ok", stroke=FAIL, icon="identity_and_access_management", color=SEC)
-    p.card("Apply", "OIDC role, no static keys", 1590, 1474, 170, 66, "app", icon="organizations", color=CTRL)
-    p.card("Remote state", "S3, KMS, native lock file", 1780, 1474, 190, 66, "st", icon="s3", color=STORAGE)
+    p.card("Person approves", "Protected environment", 1400, 1474, 170, 66, "ok", icon="identity_and_access_management", color=SEC, impl=True)
+    p.card("Apply", "OIDC role, no static keys", 1590, 1474, 170, 66, "app", icon="organizations", color=CTRL, impl=True)
+    p.card("Remote state", "S3, KMS, native lock file", 1780, 1474, 190, 66, "st", icon="s3", color=STORAGE, impl=True)
     p.code("C02", 1936, 1468)
-    p.note("No production change between 05:00 and 18:00 in harvest week, except during an incident.", 1984, 1470, 190, 76)
-    for a, b in (("rep", "root"), ("root", "pr"), ("pr", "plan"), ("plan", "ok"), ("ok", "app"), ("app", "st")):
+    p.card("Destroy", "On demand, nightly outside production", 1990, 1474, 180, 66, "des", icon="organizations", color=CTRL, impl=True)
+    p.text("No production change between 05:00 and 18:00 in harvest week, except during an incident. The pipeline can bring an environment up and down, so credits are spent only while it is in use.", 590, 1546, 1580, 30, size=11)
+    for a, b in (("rep", "root"), ("root", "pr"), ("pr", "plan"), ("plan", "ok"), ("ok", "app"), ("app", "st"), ("st", "des")):
         p.edge(a, b, "", CTRL)
 
     # Right column
@@ -316,7 +328,7 @@ def overview():
     p.edge("app", "org", "⑥ OIDC role", CTRL, exit=(0.5, 0), entry=(0.682, 1), width=2)
 
     # Legend
-    p.zone("Legend", 30, 1436, 520, 240, "#FFFFFF", INK, size=13)
+    p.zone("Legend", 30, 1436, 520, 276, "#FFFFFF", INK, size=13)
     rows = [(TEL, False, "① Telemetry: MQTT over TLS, X.509 per device"), (ALERT, False, "② Crop alert: mobile push in under 5 minutes"), (BIZ, False, "③ Events: HTTPS, user token. ⑤ Queries: public, read-only"), (OBJ, False, "④ Drone objects: HTTPS, presigned URL, or IPsec at centers"), (FAIL, True, "Failure path: the state stays unchanged"), (CTRL, False, "⑥ Infrastructure delivery: pipeline with approval")]
     yy = 1466
     for color, dashed, text in rows:
@@ -324,9 +336,11 @@ def overview():
         p.edges.append(f'<mxCell id={quoteattr(p.nid())} value="" style={quoteattr(style)} edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="44" y="{yy + 11}" as="sourcePoint"/><mxPoint x="92" y="{yy + 11}" as="targetPoint"/></mxGeometry></mxCell>')
         p.text(text, 100, yy, 440, 22, size=12)
         yy += 24
-    p.code("C07", 44, yy + 6)
-    p.text("Box built by the infrastructure code, C01 to C09", 100, yy + 2, 340, 24, size=12)
-    p.text("Dashed outline: reserved or prepared, nothing runs there.", 44, yy + 28, 490, 22, size=12)
+    p.chip("Blue box", 44, yy + 4, 76, 22, impl=True)
+    p.text("Implemented in code, C01 to C10", 130, yy + 2, 400, 26, size=12, bold=True)
+    p.chip("White box", 44, yy + 32, 76, 22)
+    p.text("Designed and documented, not coded", 130, yy + 30, 400, 26, size=12)
+    p.text("Dashed outline: reserved or prepared, nothing runs there.", 44, yy + 58, 490, 22, size=12)
     p.text("Detail by subject continues on the following pages.", 590, 1600, 1500, 24, size=12, color="#5D6D7E")
     return p
 
@@ -435,7 +449,7 @@ def end_to_end():
 
 
 def cloud_deployment():
-    p = Page("02 Cloud deployment", 1860, 1020, "One AWS environment: what the infrastructure code builds, by box")
+    p = Page("02 Implementation scope", 1860, 1100, "Everything the infrastructure code implements: one environment, boxes C01 to C10, within 100 hours")
     p.group("AWS us-east-1", 300, 70, 1520, 690, stroke=INK, sw=2)
 
     # Center
@@ -515,9 +529,14 @@ def cloud_deployment():
     p.aws("S3 state bucket<br>native lock file", 900, 640, "s3", STORAGE, "state")
 
     p.group("Reserved for later plans", 1070, 600, 720, 150, stroke="#AEB6BF", color="#5D6D7E", dashed=True)
-    p.text("API Gateway, domain functions, Cognito, CloudFront, WAF and the three other inference triggers stay in the architecture and outside the first plan. The Huila and Tolima links reuse the C04 pattern.", 1090, 640, 680, 70, size=12)
+    p.text("API Gateway, domain functions, Cognito, CloudFront, WAF, the sack query and the three other inference triggers stay in the architecture and outside the code. So do the 200 farms, the three centers and the landing zone. The Huila and Tolima links reuse the C04 pattern, and each farm reuses C10.", 1090, 640, 680, 70, size=12)
 
     # Outside AWS: repo and pipeline
+    p.group("Farm module", 30, 566, 250, 186, stroke="#0B3D91", sw=2)
+    p.badge("C10", 232, 572)
+    p.text("Reusable module, called for one sample farm. The 200 farms are not instantiated.", 42, 596, 228, 54, size=11)
+    p.card("IoT thing and group", "Farm, department", 42, 650, 226, 44, impl=True)
+    p.card("Certificate from CSR", "Key stays on the device", 42, 700, 226, 44, impl=True)
     p.group("Code and delivery, GitHub", 30, 764, 1790, 136, stroke=INK, sw=2)
     p.group("Infrastructure repository", 50, 796, 240, 96, stroke="#0B3D91", sw=2)
     p.group("Pipeline with approval", 310, 796, 900, 96, stroke="#0B3D91", sw=2)
@@ -526,16 +545,18 @@ def cloud_deployment():
     p.step("Plan on the test<br>environment", 550, 824, 170, 58, cid="plan")
     p.step("Person approves<br>protected environment", 760, 824, 170, 58, cid="ok", stroke=FAIL)
     p.step("Apply<br>OIDC deployment role", 970, 824, 170, 58, cid="apply")
+    p.group("Bring down", 1230, 796, 210, 96, stroke="#0B3D91", sw=2)
+    p.step("Destroy, on demand<br>and nightly outside prod", 1244, 824, 182, 58, cid="dst")
     p.badge("C01", 240, 800)
     p.badge("C09", 1160, 800)
-    p.note("Validation evidence stays with each pull request. No production change between 05:00 and 18:00 in a harvest week, except during an incident.", 1240, 804, 560, 80)
+    p.note("Validation evidence stays with each pull request. No production change between 05:00 and 18:00 in a harvest week, except during an incident.", 1460, 804, 344, 80)
     p.edge("root", "pr", "", CTRL)
     p.edge("pr", "plan", "", CTRL)
     p.edge("plan", "ok", "", CTRL)
     p.edge("ok", "apply", "", CTRL)
     p.legend(40, 916, 700, [(TEL, False, "Telemetry"), (OBJ, False, "Center and drone object traffic")])
     p.legend(760, 916, 500, [(FAIL, True, "Failure path"), (CTRL, False, "Delivery flow")])
-    p.note("Blue badges C01 to C09 are the boxes the infrastructure code implements. Dashed subnets stay reserved. Each subnet has one /24 per zone inside a /20 block.", 1280, 916, 510, 74)
+    p.note("Blue badges C01 to C10 are the boxes the infrastructure code implements. Dashed subnets stay reserved. Each subnet has one /24 per zone inside a /20 block.", 1280, 916, 510, 74)
     return p
 
 
@@ -690,8 +711,40 @@ def landing_zone():
     return p
 
 
+def environments():
+    p = Page("06 Environments", 1860, 1040, "Environments and controlled promotion: same code, separate accounts, ranges and data")
+    envs = [("Development", 40, "#F2F3F4", [("Purpose", "Try changes"), ("Target account", "Development"), ("Lab account", "Optional, one member's credits"), ("Range", "10.50.0.0/16"), ("Zones", "One"), ("Data", "Simulated nodes"), ("In code", "Designed, variables can follow"), ("Stays up", "Only while in use")]),
+            ("Test", 640, "#EBF5FB", [("Purpose", "Validate before production, first plan"), ("Target account", "Test"), ("Lab account", "One member's credits"), ("Range", "10.60.0.0/16"), ("Zones", "One"), ("Data", "Synthetic readings, one sample farm"), ("In code", "Variables and plan, applied in the lab"), ("Stays up", "Hours, destroyed every night")]),
+            ("Production", 1240, "#FDEDEC", [("Purpose", "The pilot"), ("Target account", "Production"), ("Lab account", "Another member's credits, short demo"), ("Range", "10.70.0.0/16"), ("Zones", "Two"), ("Data", "Real, after the pilot starts"), ("In code", "Variables and plan, apply needs approval"), ("Stays up", "Short demo in the lab, always in the pilot")])]
+    for name, x, fill, rows in envs:
+        p.zone(name, x, 70, 580, 330, fill, "#566573")
+        y = 104
+        for k, v in rows:
+            p.text(f"<b>{k}</b>", x + 16, y, 150, 30, size=12)
+            p.text(v, x + 170, y, 400, 30, size=12)
+            y += 35
+    p.zone("Controlled promotion: a change moves through the same pipeline", 40, 416, 1780, 200, "#FFFFFF", "#0B3D91")
+    steps = [("Pull request", "fmt, validate, security scan, cross review", "s1"), ("Merge to main", "Version tag on the module", "s2"), ("Plan and apply test", "Automatic, evidence kept", "s3"), ("Validation", "Checks on test", "s4"), ("Plan production", "Output for the approver", "s5"), ("Person approves", "Protected environment", "s6"), ("Apply production", "OIDC role, outside the freeze", "s7")]
+    for i, (t, sub, cid) in enumerate(steps):
+        p.card(t, sub, 60 + i * 250, 462, 218, 84, cid, stroke=FAIL if cid == "s6" else "#7F8C8D")
+    for a, b in zip(steps, steps[1:]):
+        p.edge(a[2], b[2], "", CTRL, width=2)
+    p.text("Rollback: revert the version in the environment variables and run the same pipeline. The state and the Git history keep what was deployed. No production change between 05:00 and 18:00 in a harvest week, except during an incident.", 60, 560, 1740, 40, size=12)
+    p.zone("Bring up and down: credits are spent only while an environment is in use", 40, 632, 1780, 230, "#FFFFFF", "#0B3D91")
+    ups = [("Bootstrap, once", "State bucket and OIDC role, never destroyed", "u1"), ("Deploy workflow", "Manual, choose the environment", "u2"), ("Environment up", "About USD 0.09 an hour with VPN and endpoints", "u3"), ("Destroy workflow", "Manual, or nightly outside production", "u4"), ("Environment down", "Only the state bucket remains, near zero", "u5")]
+    for i, (t, sub, cid) in enumerate(ups):
+        p.card(t, sub, 60 + i * 352, 676, 310, 84, cid)
+    for a, b in zip(ups, ups[1:]):
+        p.edge(a[2], b[2], "", CTRL, width=2)
+    p.edge("u5", "u2", "next session", CTRL, dashed=True, exit=(0.5, 1), entry=(0.5, 1), points=[(1604, 790), (567, 790)], width=2)
+    p.text("Switches turn off the VPN and the interface endpoints when a session does not need them. Forgotten for a month, a full environment would burn about USD 60, which is why the nightly destroy exists.", 60, 806, 1740, 44, size=12)
+    p.legend(40, 878, 700, [(CTRL, False, "Pipeline step"), (CTRL, True, "Next session starts again")])
+    p.note("The lab uses separate credit accounts for test and production, with no AWS Organization, because joining one moves a free account to the paid plan. The target design keeps the seven accounts. Azure stays undeployed.", 760, 878, 1060, 74)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

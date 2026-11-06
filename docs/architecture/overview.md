@@ -2,6 +2,8 @@
 
 This document explains the complete platform in one reading. It covers what the pilot must achieve, the shape of the solution, why that shape fits a pilot with little connectivity and little budget, how each flow works when everything is fine and when it is not, and where each of the seven subjects of the proposal is developed. The documents listed at the end carry the detail.
 
+In the diagram, blue boxes are what the infrastructure code implements. White boxes are designed and documented, and they stay out of the code.
+
 ![Target platform on AWS, from the farm to the port of Buenaventura](diagrams/00-platform-overview.drawio.png)
 
 ## Contents
@@ -14,7 +16,8 @@ This document explains the complete platform in one reading. It covers what the 
 6. Scale from 200 to 1,000 farms
 7. Monthly cost of the cloud platform
 8. What the infrastructure code builds
-9. Where each subject is developed
+9. Environments
+10. Where each subject is developed
 
 ### Terms used
 
@@ -138,7 +141,7 @@ About 89 percent of the normal month is fixed network, the VPN and the endpoints
 
 ## 8. What the infrastructure code builds
 
-The infrastructure code implements the pattern of one environment and stays inside the 100 hours. The boxes marked C01 to C09 on the diagram are the ones it builds.
+The infrastructure code implements the pattern of network, security and one environment, and it stays inside the 100 hours. It does not instantiate the 200 farms, and it delivers the reusable module of one farm instead. The boxes marked C01 to C10 on the diagram are the ones it builds, and the implementation scope document explains them one by one.
 
 | Code | Box | Implemented by |
 |---|---|---|
@@ -151,14 +154,19 @@ The infrastructure code implements the pattern of one environment and stays insi
 | C07 | Telemetry ingestion pattern | Ingestion module |
 | C08 | Inference function pattern | Function module |
 | C09 | Pipeline, approval and validation evidence | Pipeline workflows |
+| C10 | Reusable module of one farm | Farm module |
 
-## 9. Where each subject is developed
+## 9. Environments
+
+Development, test and production come from the same code with different variables, accounts and address ranges. A change moves from development to test to production through the pipeline, and production needs a person's approval. The environments document explains promotion, rollback, the change window and how the demonstration runs on credit accounts.
+
+## 10. Where each subject is developed
 
 | Subject | Documents |
 |---|---|
 | Governance | Landing zone, cloud selection, requirement matrix |
 | Security | Identity and access, encryption and revocation, personal data and retention |
 | Network and connectivity | Collection center LAN, cloud addressing |
-| Automation and change | Decision records and the pipeline documents |
+| Automation and change | Implementation scope, environments and promotion |
 | Workloads | Sensors, telemetry ingestion, drone operating mode, sack identity |
 | Decisions and assumptions | Decision records and assumption register |
