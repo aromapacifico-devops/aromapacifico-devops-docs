@@ -84,7 +84,7 @@ Three customer managed keys in each workload account would be enough. Using one 
 
 | Secret | Location | Consumed by | Rotation |
 |---|---|---|---|
-| VPN pre-shared keys | Secrets Manager | Center firewall, at installation | On change of device or staff |
+| VPN pre-shared keys | Secrets Manager, in a secret AWS creates with the connection | Center firewall, at installation | On change of device or staff |
 | Third-party API keys | Secrets Manager | Functions, read at run time | Per provider |
 | Pipeline credentials | None | OIDC federation replaces them | Not applicable |
 | Function credentials | None | IAM role | Not applicable |
@@ -115,9 +115,12 @@ Readings already stored stay in place. Messages from a revoked identity are reje
 |---|---|
 | No secret in the repository | Scanner in the pull request, variables with no values |
 | No secret in state | Terraform receives the name or ARN of a secret, and the value stays in Secrets Manager |
+| No VPN key in state | The connection sets `preshared_key_storage = "SecretsManager"` and leaves the tunnel key arguments empty |
 | State is encrypted | S3 backend with KMS and native lock file |
 | Sensitive variables are marked | `sensitive = true` |
 | No static credentials in the pipeline | OIDC roles |
+
+The VPN row matters because Terraform otherwise stores the tunnel keys in the state as plain text. With that setting, AWS generates the keys, keeps them in a secret, and the state holds only the ARN and a redacted value. The installer reads the keys from Secrets Manager when configuring the center firewall.
 
 ## 8. Cost
 
@@ -141,3 +144,4 @@ Encryption adds under USD 5 a month, so it never competes with the budget.
 
 - AWS IoT Core transport security documentation.
 - AWS Price List API for KMS and Secrets Manager in us-east-1.
+- [Terraform AWS provider, `aws_vpn_connection`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/vpn_connection) and [AWS, pre-shared key management with Secrets Manager](https://aws.amazon.com/blogs/networking-and-content-delivery/aws-site-to-site-vpn-secure-pre-shared-key-psk-management-with-aws-secrets-manager).
