@@ -15,5 +15,7 @@ Everything the design takes as true without a source in the pilot definition. Ea
 | Alerts reach the farmer by mobile push, and an SMS fallback stays optional | The price for Colombia could not be read from the price list | Alerts wait until the phone has data |
 | The panel gives at least 3 peak sun hours on an average day | Needs field data | A larger panel or battery |
 | Images average 3 MB | Common for a drone photo, to confirm with the supplier | Storage cost scales linearly |
+| The demonstration runs on standalone AWS accounts with promotional credits | The team has those accounts, and joining an Organization would move them to the paid plan | One account with name prefixes, or a paid account with a budget |
+| IoT Core, Bedrock and VPN are usable on a free plan account | AWS lists only select services and names no list for these | Those variables stay off in the demonstration, and the plan still proves the code |
 | Three of the seven subnets hold interface endpoints and four stay reserved | Managed services and functions run outside subnets | A data or query service moves into a subnet |
 | The United States is a valid destination for personal data under Colombian rules, with contractual clauses if needed | The status on the regulator's list is unconfirmed | Contract terms change, or personal data moves to another region |
