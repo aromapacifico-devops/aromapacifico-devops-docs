@@ -6,7 +6,7 @@ OUT = Path(__file__).resolve().parent.parent / "diagrams" / "platform-architectu
 
 COMPUTE, DATA, STORAGE, NET, SEC, APP, ML, MGMT, IOT = (
     "#ED7100", "#C925D1", "#7AA116", "#8C4FFF", "#DD344C", "#E7157B", "#01A88D", "#E7157B", "#7AA116")
-TEL, OBJ, BIZ, CTRL, FAIL = "#2E7D32", "#1565C0", "#6A1B9A", "#616161", "#C62828"
+TEL, OBJ, BIZ, CTRL, FAIL, ALERT = "#2E7D32", "#1565C0", "#6A1B9A", "#616161", "#C62828", "#E65100"
 INK = "#232F3E"
 
 
@@ -71,10 +71,43 @@ class Page:
                  "fontSize=12;fontStyle=1;align=center;verticalAlign=middle;")
         return self._v(code, style, x, y, 42, 22, f"box-{code}")
 
+    def zone(self, label, x, y, w, h, fill, stroke, cid=None, dashed=False, size=15, align="left"):
+        style = (f"rounded=0;whiteSpace=wrap;html=1;fillColor={fill};strokeColor={stroke};strokeWidth=1.5;"
+                 f"dashed={1 if dashed else 0};verticalAlign=top;align={align};spacingLeft=10;spacingTop=6;"
+                 f"fontSize={size};fontStyle=1;fontColor={INK};")
+        return self._v(label, style, x, y, w, h, cid)
+
+    def card(self, title, sub, x, y, w=170, h=64, cid=None, stroke="#7F8C8D", dashed=False, icon=None, color=None, net=None, azure=None):
+        pad = 44 if (icon or net or azure) else 6
+        value = f"<b>{title}</b><br><font style='font-size:10px'>{sub}</font>" if sub else f"<b>{title}</b>"
+        style = (f"rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor={stroke};strokeWidth=1.2;"
+                 f"dashed={1 if dashed else 0};align=left;verticalAlign=middle;spacingLeft={pad};spacingRight=3;"
+                 f"fontSize=12;fontColor={INK};")
+        cid = self._v(value, style, x, y, w, h, cid)
+        ih = 32
+        iy = y + (h - ih) // 2
+        if icon:
+            self.aws("", x + 7, iy, icon, color, size=ih)
+        if net:
+            self.net("", x + 7, iy, net, w=ih, h=ih)
+        if azure:
+            self.azure("", x + 7, iy, azure, size=ih)
+        return cid
+
+    def chip(self, text, x, y, w=120, h=26, fill="#FFFFFF", stroke="#7F8C8D", dashed=False):
+        style = (f"rounded=1;arcSize=30;whiteSpace=wrap;html=1;fillColor={fill};strokeColor={stroke};"
+                 f"dashed={1 if dashed else 0};align=center;verticalAlign=middle;fontSize=11;fontColor={INK};")
+        return self._v(text, style, x, y, w, h)
+
+    def code(self, code, x, y):
+        style = ("rounded=1;arcSize=40;whiteSpace=wrap;html=1;fillColor=#0B3D91;strokeColor=#0B3D91;fontColor=#FFFFFF;"
+                 "fontSize=10;fontStyle=1;align=center;verticalAlign=middle;")
+        return self._v(code, style, x, y, 32, 17)
+
     def edge(self, src, dst, label="", color=INK, dashed=False, points=(), exit=None, entry=None, width=1.5):
         style = (f"edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;strokeColor={color};strokeWidth={width};"
                  f"dashed={1 if dashed else 0};endArrow=block;endFill=1;fontSize=11;fontColor={INK};"
-                 f"labelBackgroundColor=#FFFFFF;")
+                 f"labelBackgroundColor=#FFFFFF;jumpStyle=arc;jumpSize=10;")
         if exit:
             style += f"exitX={exit[0]};exitY={exit[1]};exitDx=0;exitDy=0;"
         if entry:
@@ -104,6 +137,198 @@ class Page:
                 f'guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" '
                 f'pageWidth="{self.w}" pageHeight="{self.h}" background="#FFFFFF"><root><mxCell id="0"/><mxCell id="1" parent="0"/>'
                 + "".join(self.cells) + "".join(self.edges) + "</root></mxGraphModel></diagram>")
+
+
+def overview():
+    p = Page("00 Platform overview", 2640, 1690, "Aroma Pacifico: target platform on AWS, from the farm to the port of Buenaventura")
+    p.text("Pilot of 200 farms, 3 collection centers and 60 carriers in Cauca, Huila and Tolima. AWS us-east-1 is primary and Azure East US stays prepared. The same pattern grows to 1,000 farms.", 40, 46, 2000, 22, size=13, color="#5D6D7E")
+    G = dict(ext=("#F4F6F7", "#AEB6BF"), field=("#EEF7EE", "#6AA84F"), site=("#FDF2E9", "#D68910"), org=("#F7FAFC", "#34495E"), gov=("#FEF9E7", "#B7950B"),
+             prod=("#EBF5FB", "#2E86C1"), net=("#F4ECF7", "#8E44AD"), sec=("#FDEDEC", "#CB4335"), obs=("#E8F8F5", "#17A589"), dlv=("#F2F3F4", "#566573"), app=("#EAF2F8", "#2471A3"), az=("#EBF5FB", "#0078D4"), des=("#FDF2E9", "#CA6F1E"))
+
+    # A external
+    p.zone("A. External parties", 30, 76, 2580, 128, *G["ext"])
+    ext = [("Federation", "Sets alert ranges, reads reports, approves changes"), ("Platform operators", "Console with SSO and MFA"), ("GitHub", "Code, pull requests and Actions"),
+           ("Mobile operators", "LTE in municipal seats and main roads"), ("Apple and Google push", "Deliver alerts to phones"), ("Shipping company", "Keeps its own telemetry, no integration"),
+           ("Coffee buyers", "Read one sack by code"), ("Data regulator", "Colombian rules on personal data")]
+    for i, (t, sub) in enumerate(ext):
+        p.card(t, sub, 50 + i * 318, 112, 300, 74, cid=f"ext{i}")
+
+    # B field and sites
+    p.zone("B. Field and sites", 30, 220, 520, 1200, *G["field"])
+    p.zone("Farm with signal, repeated for each covered farm", 46, 252, 488, 182, "#FFFFFF", G["field"][1], size=12)
+    p.card("Local buffer", "FIFO, retains 24 h at most, then drops and counts", 60, 282, 230, 64, net="server")
+    p.card("Autonomous node", "ESP32-S3, IP67, LTE modem, encrypted flash", 300, 282, 220, 64, "node", net="wireless_modem")
+    p.card("Probes", "NPK, pH, soil, air and grain", 60, 354, 230, 64, net="wireless_hub")
+    p.card("Solar kit", "20 W panel, LiFePO4, 5 days of autonomy", 300, 354, 220, 64, net="server")
+    p.zone("Out-of-coverage vereda", 46, 444, 488, 118, "#FFFFFF", G["field"][1], size=12)
+    p.chip("Data mule<br>for objects", 60, 480, 84, 60)
+    p.card("LoRa node", "Same node, LoRa radio", 154, 474, 170, 72, "lnode", net="wireless_modem")
+    p.card("Shared gateway", "High point, LTE backhaul", 350, 474, 170, 72, "lgw", net="wireless_hub")
+    p.edge("lnode", "lgw", "", TEL)
+    p.zone("Carriers: 60 phones", 46, 572, 488, 102, "#FFFFFF", G["field"][1], size=12)
+    p.card("Carrier application", "Position every 5 min, queues offline, custody events always kept", 60, 600, 460, 62, "carrier", net="mobile")
+    p.zone("Drone service: 3 brigades", 46, 684, 488, 174, "#FFFFFF", G["field"][1], size=12)
+    p.card("Drone", "Mission preloaded, flight log held in its buffer", 60, 712, 460, 62, net="wireless_modem")
+    p.card("Ground station", "Loads missions at the municipal seat or center, uploads objects and logs", 60, 782, 460, 62, "ground", net="pc")
+    p.zone("C. Collection centers: one pattern, X = 41 Cauca, 42 Huila, 43 Tolima", 46, 870, 488, 424, *G["site"], size=12)
+    zones = [("Management", "10.X.1.0/24"), ("Support", "10.X.2.0/24"), ("Logistics", "10.X.3.0/24"), ("Transport", "10.X.4.0/24"), ("Visitors, isolated", "10.X.5.0/24"), ("Local servers", "10.X.10.0/24")]
+    for i, (z, c) in enumerate(zones):
+        p.chip(f"<b>{z}</b><br>{c}", 60 + (i % 2) * 150, 902 + (i // 2) * 56, 142, 48)
+    p.card("WLAN and VLANs", "One SSID per zone, QoS", 360, 902, 164, 64, net="wireless_hub")
+    p.card("Code printer", "Sheets for sacks with no code", 360, 974, 164, 64, net="printer")
+    p.card("Perimeter firewall", "10.X.20.0/24, default deny, one per center", 60, 1078, 464, 64, "fw", net="firewall")
+    p.card("WAN 100 Mbps", "Symmetric, shared with operations", 60, 1150, 464, 60, net="router")
+    p.note("Visitors reach the internet only. Logistics and local servers reach the cloud through the tunnel.", 60, 1218, 464, 62)
+    p.zone("Port of Buenaventura", 46, 1304, 488, 102, "#FFFFFF", G["field"][1], size=12)
+    p.note("No Federation equipment. The platform records only the sack delivery event, from the carrier application.", 60, 1334, 460, 60)
+
+    # AWS organization
+    p.zone("D. AWS Organization", 570, 220, 1620, 1200, *G["org"], cid="org")
+    p.zone("D1. Governance from the root", 586, 252, 1588, 118, *G["gov"], size=13)
+    for i, (t, c) in enumerate([("Management", "Billing, SSO"), ("Log archive", "Audit, 5 years"), ("Security tooling", "Findings, keys"), ("Network", "VPCs, VPN"), ("Production", "10.70.0.0/16"), ("Test", "10.60.0.0/16"), ("Development", "10.50.0.0/16")]):
+        p.chip(f"<b>{t}</b><br>{c}", 600 + i * 140, 284, 132, 44)
+    p.card("Service control policies", "Region limit, audit protection", 1590, 280, 280, 40, icon="organizations", color=MGMT)
+    p.card("Tags, budgets, trail", "Cost by farms, drones, collection, trips", 1880, 280, 280, 40, icon="budgets", color=MGMT)
+    p.text("Tags and budgets are inherited by every account, and the cost dashboard splits by them.", 600, 336, 1500, 24, size=11)
+
+    p.zone("D2. Production account: serverless workload, nothing runs while no event arrives", 586, 382, 1588, 586, *G["prod"], size=13)
+    c = [600, 800, 1000, 1200, 1400, 1600, 1800, 2000]
+    W = 164
+    for label, x in (("Entry", c[0]), ("Queue and route", c[1]), ("Functions", c[2]), ("Data", c[3]), ("Analysis", c[4])):
+        p.text(label, x, 408, W, 20, size=12, bold=True, color="#2E86C1")
+    p.card("IoT Core", "MQTT over TLS, LoRaWAN, X.509", c[0], 436, W, 66, "iot", icon="iot_core", color=IOT)
+    p.card("SQS", "Burst buffer, 3 retries", c[1], 436, W, 66, "sqs", icon="sqs", color=APP)
+    p.card("Ingestion", "Validates, dedupes, checks ranges", c[2], 436, W, 66, "fn", icon="lambda", color=COMPUTE)
+    p.code("C07", c[2] + W - 34, 430)
+    p.card("DynamoDB readings", "90 days, ranges, alerts", c[3], 436, W, 66, "ddb", icon="dynamodb", color=DATA)
+    p.card("SNS", "Push under 5 min", c[6], 436, W, 66, "sns", icon="sns", color=APP)
+    p.card("Firehose", "Parquet batches", c[1], 516, W, 66, "fh", icon="kinesis_data_firehose", color=NET)
+    p.card("S3 archive", "Readings, 5 years", c[3], 516, W, 66, "arc", icon="s3", color=STORAGE)
+    p.card("Athena", "Pilot reports", c[4], 516, W, 66, "ath", icon="athena", color=NET)
+    p.card("API Gateway", "HTTP API, Cognito JWT", c[0], 626, W, 66, "api", icon="api_gateway", color=NET)
+    p.card("Cognito", "Four user groups, MFA for three", c[1], 626, W, 66, icon="cognito", color=SEC)
+    p.card("Domain functions", "Sacks, trips, orders, query", c[2], 626, W, 66, "dom", icon="lambda", color=COMPUTE)
+    p.card("DynamoDB records", "Sacks, orders, cases, PITR", c[3], 626, W, 66, "rec", icon="dynamodb", color=DATA)
+    p.card("S3 web assets", "Reports and query pages", c[6], 516, W, 66, "wa", icon="s3", color=STORAGE)
+    p.card("CloudFront", "Web, static assets", c[6], 626, W, 66, "cf", icon="cloudfront", color=NET)
+    p.note("<b>Event-driven inference.</b> A function starts on an event, reads the stored object, calls the managed service and writes the result with time, confidence and source object. Then it ends. If it fails, the object stays and the case does not change. Only a person authorizes a fumigation.", 1600, 756, 564, 112, fill="#FFFFFF", stroke=G["prod"][1])
+    p.card("WAF", "Rate limit on sack reads", c[7], 626, W, 66, "waf", icon="waf", color=SEC)
+    p.card("S3 flight objects", "Photos, maps, logs, 5 years", c[0], 756, W, 66, "obj", icon="s3", color=STORAGE)
+    p.card("EventBridge", "Object created rules", c[1], 756, W, 66, "eb", icon="eventbridge", color=APP)
+    p.card("Inference functions", "Focus, verification, estimation", c[2], 756, W, 66, "inf", icon="lambda", color=COMPUTE)
+    p.code("C08", c[2] + W - 34, 750)
+    p.card("Rekognition", "DetectLabels, person filter", c[3], 756, W, 66, "rek", icon="rekognition", color=ML)
+    p.card("Bedrock", "Multimodal model, no training", c[4], 756, W, 66, "bed", icon="bedrock", color=ML)
+    p.card("S3 restricted", "Objects with a person, 30 days", c[3], 856, W, 66, "quar", icon="s3", color=STORAGE)
+    p.card("SQS dead letter", "Keeps failures, state unchanged", c[1], 856, W, 66, "dlq", icon="sqs", color=APP)
+    p.card("CloudWatch alarm", "Reports failed invocations", c[2], 856, W, 66, "alm", icon="cloudwatch_2", color=MGMT)
+
+    p.zone("D3. Network account: VPC shared with each environment, no internet or NAT gateway", 586, 980, 1588, 212, *G["net"], size=13, align="center")
+    p.card("Virtual private gateway", "Site-to-site VPN, 2 tunnels, 3 centers", c[0], 1020, 190, 76, "vgw", icon="site_to_site_vpn", color=NET)
+    p.code("C04", c[0] + 156, 1078)
+    subs = [("Telemetry ingress", "10.70.0.0/20", "IoT endpoint"), ("Drone object ingress", "10.70.16.0/20", "S3 endpoint"), ("Application", "10.70.32.0/20", "API endpoint"), ("Data", "10.70.48.0/20", "reserved"),
+            ("Object storage", "10.70.64.0/20", "reserved"), ("Administration", "10.70.80.0/20", "reserved"), ("Public query", "10.70.96.0/20", "reserved")]
+    for i, (n, cidr, use) in enumerate(subs):
+        p.chip(f"<b>{n}</b><br>{cidr}<br>{use}", 806 + i * 196, 1020, 188, 76, dashed=use == "reserved")
+    p.code("C03", 2130, 986)
+    p.card("Gateway endpoints", "S3 and DynamoDB, no charge", c[0], 1110, 190, 66, icon="endpoints", color=NET)
+    p.note("<b>Permanent firewall rules.</b> Endpoint security groups allow TCP 443 from logistics and local servers only, and deny all else.", 806, 1110, 1184, 66)
+    p.code("C06", 1952, 1104)
+
+    p.zone("D4. Security and audit", 586, 1204, 620, 202, *G["sec"], size=13)
+    p.card("KMS", "Keys for data, objects, platform", 600, 1236, 190, 66, icon="key_management_service", color=SEC)
+    p.card("Secrets Manager", "VPN keys, API keys", 800, 1236, 190, 66, icon="secrets_manager", color=SEC)
+    p.card("IAM roles", "Per function, OIDC for pipeline", 1000, 1236, 192, 66, icon="identity_and_access_management", color=SEC)
+    p.code("C05", 1158, 1230)
+    p.card("CloudTrail", "Organization trail, 5 years", 600, 1316, 190, 66, icon="cloudtrail", color=MGMT)
+    p.card("GuardDuty", "Threat detection", 800, 1316, 190, 66, icon="guardduty", color=SEC)
+    p.card("Security Hub", "Findings in one place", 1000, 1316, 192, 66, icon="security_hub", color=SEC)
+    p.zone("D5. Observability", 1218, 1204, 560, 202, *G["obs"], size=13)
+    p.card("CloudWatch", "Metrics, logs, traces", 1232, 1236, 170, 66, icon="cloudwatch_2", color=MGMT)
+    p.card("Operations dashboard", "WAN, objects, silent nodes", 1412, 1236, 170, 66, icon="cloudwatch_2", color=MGMT)
+    p.card("Cost dashboard", "Split by tags", 1592, 1236, 170, 66, icon="budgets", color=MGMT)
+    p.note("<b>Two SLOs.</b> Crop alert delivery and sack query availability. Alarms cover silent nodes over 24 h, unclosed flights and failed invocations.", 1232, 1316, 530, 66, fill="#FFFFFF", stroke=G["obs"][1])
+    p.zone("D6. Test and development", 1790, 1204, 384, 202, *G["dlv"], size=13)
+    p.note("Same code, separate accounts and address ranges. Simulated nodes and synthetic data replace real sensors. Promotion goes development, test, production.", 1804, 1236, 356, 146, fill="#FFFFFF", stroke=G["dlv"][1])
+
+    # Delivery
+    p.zone("E. Infrastructure delivery", 570, 1436, 1620, 150, *G["dlv"])
+    p.card("Module repositories", "Versioned with Git tags", 590, 1474, 190, 66, "rep", net="server")
+    p.card("Infrastructure repository", "Root, environments, no secrets", 800, 1474, 200, 66, "root", net="server")
+    p.code("C01", 966, 1468)
+    p.card("Pull request", "fmt, validate, security scan", 1020, 1474, 180, 66, "pr", icon="organizations", color=CTRL)
+    p.card("Plan", "Output kept as evidence", 1220, 1474, 160, 66, "plan", icon="organizations", color=CTRL)
+    p.code("C09", 1346, 1468)
+    p.card("Person approves", "Protected environment", 1400, 1474, 170, 66, "ok", stroke=FAIL, icon="identity_and_access_management", color=SEC)
+    p.card("Apply", "OIDC role, no static keys", 1590, 1474, 170, 66, "app", icon="organizations", color=CTRL)
+    p.card("Remote state", "S3, KMS, native lock file", 1780, 1474, 190, 66, "st", icon="s3", color=STORAGE)
+    p.code("C02", 1936, 1468)
+    p.note("No production change between 05:00 and 18:00 in harvest week, except during an incident.", 1984, 1470, 190, 76)
+    for a, b in (("rep", "root"), ("root", "pr"), ("pr", "plan"), ("plan", "ok"), ("ok", "app"), ("app", "st")):
+        p.edge(a, b, "", CTRL)
+
+    # Right column
+    p.zone("F. Applications, built outside this project", 2206, 220, 404, 470, *G["app"])
+    p.note("The platform hosts three planned applications. They are built outside this project, and the carrier application appears with the carriers in zone B.", 2224, 256, 368, 96, fill="#FFFFFF", stroke=G["app"][1])
+    p.card("Farmer application", "Few screens, alerts and history", 2224, 436, 368, 66, "farmer", net="mobile")
+    p.card("Reports web", "Federation and collection centers", 2224, 560, 368, 56, "web", net="pc")
+    p.card("Sack query", "Public, by code, buyer view only", 2224, 624, 368, 56, "buyer", net="pc")
+    p.zone("G. Azure East US: prepared, idle", 2206, 706, 404, 330, *G["az"], dashed=True)
+    p.card("IoT Hub", "Replaces IoT Core", 2224, 744, 178, 66, azure="iot/IoT_Hub.svg", dashed=True, stroke="#0078D4")
+    p.card("Functions", "Replaces Lambda", 2414, 744, 178, 66, azure="compute/Function_Apps.svg", dashed=True, stroke="#0078D4")
+    p.card("Blob Storage", "Replaces S3", 2224, 820, 178, 66, azure="storage/Storage_Accounts.svg", dashed=True, stroke="#0078D4")
+    p.card("Cosmos DB", "Replaces DynamoDB", 2414, 820, 178, 66, azure="databases/Azure_Cosmos_DB.svg", dashed=True, stroke="#0078D4")
+    p.note("No resources run here. Portable contracts, the equivalence table and the five-year archive keep the exit available with no idle cost.", 2224, 900, 368, 118, fill="#FFFFFF", stroke="#0078D4")
+    p.zone("H. Design system", 2206, 1052, 404, 150, *G["des"])
+    p.note("Logo, palette with sack states and crop alert, type for phone and web, spacing, base components and rules of use for the three applications.", 2224, 1088, 368, 98, fill="#FFFFFF", stroke=G["des"][1])
+
+    # Flows
+    p.edge("node", "iot", "①", TEL, exit=(1, 0.5), entry=(0, 0.3), points=[(556, 314), (556, 456)], width=2)
+    p.edge("lgw", "iot", "①", TEL, exit=(1, 0.5), entry=(0, 0.7), points=[(544, 510), (544, 482)], width=2)
+    p.edge("iot", "sqs", "", TEL, width=2)
+    p.edge("sqs", "fn", "", TEL, width=2)
+    p.edge("fn", "ddb", "", TEL, width=2)
+    p.edge("ddb", "sns", "② out of range", ALERT, width=2)
+    p.edge("sns", "farmer", "② push", ALERT, width=2)
+    p.edge("iot", "fh", "", TEL, exit=(1, 0.75), entry=(0, 0.5), points=[(782, 486), (782, 549)], width=2)
+    p.edge("fh", "arc", "objects", TEL, width=2)
+    p.edge("arc", "ath", "", TEL, width=2)
+    p.edge("carrier", "api", "③", BIZ, exit=(1, 0.5), entry=(0, 0.5), width=2)
+    p.edge("api", "dom", "", BIZ, exit=(1, 0.75), entry=(0, 0.75), points=[(780, 676), (780, 702), (985, 702), (985, 676)], width=2)
+    p.edge("dom", "rec", "", BIZ, width=2)
+    p.edge("ground", "obj", "④", OBJ, exit=(1, 0.5), entry=(0, 0.5), points=[(562, 813), (562, 789)], width=2)
+    p.edge("obj", "eb", "", OBJ, width=2)
+    p.edge("eb", "inf", "", OBJ, width=2)
+    p.edge("inf", "rek", "", OBJ, width=2)
+    p.edge("rek", "bed", "", OBJ, width=2)
+    p.edge("rek", "quar", "person", FAIL, dashed=True, width=2)
+    p.edge("inf", "rec", "result", OBJ, exit=(0.85, 0), entry=(0.2, 1), points=[(1139, 726), (1233, 726)], width=2)
+    p.edge("eb", "dlq", "fails", FAIL, dashed=True, width=2)
+    p.edge("dlq", "alm", "", FAIL, dashed=True, width=2)
+    p.edge("buyer", "waf", "⑤", BIZ, exit=(0, 0.5), entry=(1, 0.39), width=2)
+    p.edge("web", "waf", "", BIZ, exit=(0, 0.5), entry=(1, 0.15), points=[(2195, 588), (2195, 636)], width=2)
+    p.edge("cf", "wa", "", BIZ, exit=(0.5, 0), entry=(0.5, 1), width=2)
+    p.edge("waf", "cf", "", BIZ, width=2)
+    p.edge("cf", "api", "⑤ read-only API", BIZ, exit=(0, 0.25), entry=(0.5, 0), points=[(1700, 642), (1700, 606), (682, 606)], width=2)
+    p.edge("fw", "vgw", "③ ④", OBJ, exit=(1, 0.5), entry=(0, 0.5), points=[(562, 1110), (562, 1058)], width=2)
+    p.edge("vgw", "obj", "④", OBJ, exit=(0.3, 0), entry=(0.3, 1), width=2)
+    p.edge("vgw", "api", "③", BIZ, exit=(0.6, 0), entry=(0.85, 1), points=[(714, 1000), (782, 1000), (782, 730), (739, 730)], width=2)
+    p.edge("app", "org", "⑥ OIDC role", CTRL, exit=(0.5, 0), entry=(0.682, 1), width=2)
+
+    # Legend
+    p.zone("Legend", 30, 1436, 520, 240, "#FFFFFF", INK, size=13)
+    rows = [(TEL, False, "① Telemetry: MQTT over TLS, X.509 per device"), (ALERT, False, "② Crop alert: mobile push in under 5 minutes"), (BIZ, False, "③ Events: HTTPS, user token. ⑤ Queries: public, read-only"), (OBJ, False, "④ Drone objects: HTTPS, presigned URL, or IPsec at centers"), (FAIL, True, "Failure path: the state stays unchanged"), (CTRL, False, "⑥ Infrastructure delivery: pipeline with approval")]
+    yy = 1466
+    for color, dashed, text in rows:
+        style = f"endArrow=block;endFill=1;html=1;strokeColor={color};strokeWidth=2;dashed={1 if dashed else 0};"
+        p.edges.append(f'<mxCell id={quoteattr(p.nid())} value="" style={quoteattr(style)} edge="1" parent="1"><mxGeometry relative="1" as="geometry"><mxPoint x="44" y="{yy + 11}" as="sourcePoint"/><mxPoint x="92" y="{yy + 11}" as="targetPoint"/></mxGeometry></mxCell>')
+        p.text(text, 100, yy, 440, 22, size=12)
+        yy += 24
+    p.code("C07", 44, yy + 6)
+    p.text("Box built by the infrastructure code, C01 to C09", 100, yy + 2, 340, 24, size=12)
+    p.text("Dashed outline: reserved or prepared, nothing runs there.", 44, yy + 28, 490, 22, size=12)
+    p.text("Detail by subject continues on the following pages.", 590, 1600, 1500, 24, size=12, color="#5D6D7E")
+    return p
 
 
 def end_to_end():
@@ -466,7 +691,7 @@ def landing_zone():
 
 
 def main():
-    pages = [end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
