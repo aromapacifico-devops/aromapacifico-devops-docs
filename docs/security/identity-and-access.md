@@ -95,7 +95,7 @@ MFA is required for center operators, drone operators and platform operators, th
 | Drone operator | Authenticator application | Works offline in the field, where SMS may not arrive |
 | Platform operator | Security key or authenticator | Highest privilege |
 
-Farmers and carriers sign in with their phone number and keep a long session, since a code at every use would be a barrier on a phone with intermittent data. Their worst case is limited, because they act only on their own records.
+Farmers and carriers sign in with their phone number and keep a session of 30 days with refresh token rotation, since a code at every use would be a barrier on a phone with intermittent data. A session that ends during a trip stops only synchronization, and capture continues on the phone. Their worst case is limited, because they act only on their own records.
 
 Time-based codes work with no connection on the device, which matters at a lot with no signal.
 

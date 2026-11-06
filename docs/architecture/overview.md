@@ -101,7 +101,7 @@ The buyer flow deserves a note. A buyer does not sign in, so the sack code works
 |---|---|---|
 | Node loses signal | Stores readings and retries each hour | Nothing in an outage of up to 23 hours. Older readings are dropped and counted |
 | Shared gateway fails | Nodes keep buffering, and an alarm reports the silent vereda | Nothing in an outage of up to 23 hours |
-| Carrier loses data | The application queues positions and custody events | Nothing, since custody events are never dropped |
+| Carrier loses data | The application queues positions and custody events, and sends custody first on return | No custody event. Positions older than 24 hours are dropped and counted |
 | Center loses WAN | Staff keep receiving sacks in the application queue, and the printer works on the local network | Nothing, it synchronizes on return |
 | Tunnel fails | The second tunnel of the same connection takes over | Nothing |
 | Function fails | Three retries, then the dead letter queue and an alarm | Nothing. The object stays and the case does not change |
@@ -170,7 +170,7 @@ Development, test and production come from the same code with different variable
 |---|---|
 | Governance | Landing zone, cloud selection, requirement matrix |
 | Security | Identity and access, encryption and revocation, personal data and retention |
-| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity |
+| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, carrier tracking |
 | Automation and change | Implementation scope, environments and promotion |
 | Workloads | Sensors, telemetry ingestion, drone operating mode, sack identity |
 | Decisions and assumptions | Decision records and assumption register |

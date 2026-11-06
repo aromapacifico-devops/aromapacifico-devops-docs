@@ -64,6 +64,7 @@ Five years applies to readings, photos, flights, sack history and personal data.
 | Flight logs | S3 Standard, 90 days | Glacier Instant Retrieval, to five years | Lifecycle rule at five years |
 | Sack history | DynamoDB, five years | None | Scheduled deletion at five years |
 | Carrier positions | DynamoDB, 90 days | S3, to five years | Lifecycle rule at five years |
+| Positions queued on the carrier phone | Encrypted application store, 24 hours at most | None | Deleted on confirmation or at 24 hours |
 | Personal data | While the relationship lasts | Five years after it ends | Deletion or anonymization at term or by request |
 | Audit logs | CloudWatch, 90 days | S3 in the log archive account, five years | Lifecycle rule at five years |
 

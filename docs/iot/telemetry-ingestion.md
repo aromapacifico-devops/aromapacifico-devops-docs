@@ -42,7 +42,7 @@ Farm nodes publish to one regional endpoint. Each reading is validated, stored o
 | Alert | Under five minutes from the out-of-range reading | 8 |
 | History | Five years, for the farmer and the pilot report | 9 |
 
-Carrier positions travel through the carrier API and share the storage pattern, so this document leaves them out. Drone objects have their own path.
+Carrier positions travel through the carrier API and share the storage pattern, so this document leaves them out, and [carrier tracking](../network/carrier-tracking.md) covers them. Drone objects have their own path.
 
 ## 2. Volume
 
