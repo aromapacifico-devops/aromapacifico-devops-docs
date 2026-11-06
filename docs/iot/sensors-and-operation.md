@@ -8,7 +8,7 @@ This document defines what the farm node measures, how often, how pH is handled,
 2. Volumes
 3. pH
 4. Alert ranges
-5. Daily cycle
+5. Hourly cycle
 6. Energy
 7. Buffer
 8. Installation in one visit
@@ -74,7 +74,7 @@ The Federation configures ranges on the platform and the node holds none. A chan
 | Temperature | Outside 14 to 30 °C, recommended 17 to 23 °C | Grain above 40 °C |
 | Nitrogen, phosphorus, potassium | Outside the range the Federation publishes | Not applicable |
 
-## 5. Daily cycle
+## 5. Hourly cycle
 
 | Step | Action |
 |---|---|
