@@ -40,13 +40,17 @@ The pilot follows coffee from the farm to the buyer in three departments. Five c
 
 | Capability | What it means in numbers |
 |---|---|
-| Crop and drying monitoring | 200 farms, with a reading every 4 hours in cultivation and every hour in drying |
-| Crop alert | Under 5 minutes with a delivery path, and within 24 hours with no signal |
+| Crop and drying monitoring, with an alert to the farmer | 200 farms, with a reading every 4 hours in cultivation and every hour in drying. The alert arrives in under 5 minutes with a delivery path, and within 24 hours with no signal |
 | Harvest and packing record | Up to 400 sacks a day at each of the 3 centers |
 | Trip tracking | 60 carriers, one position every 5 minutes |
 | Sack lookup | Peaks of 30 reads a minute in harvest, available within 4 hours of a failure |
 | Drone service | Five services that do not replace one another |
-| Retention | Five years for readings, photos, flights and sack history |
+
+Two requirements apply across all of them.
+
+| Requirement | What it means in numbers |
+|---|---|
+| Retention | Five years for readings, photos, flights, sack history and personal data |
 | Recovery | Sack events lose at most 15 minutes |
 
 The hard part is the field. Farms have no cable, some have no signal, drones fly far from any phone, and each center starts with no network at all. The load itself is small, and the design treats it that way.

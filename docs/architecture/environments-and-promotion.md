@@ -148,7 +148,7 @@ A destroy that fails leaves resources billing, so the modules are written to com
 |---|---|
 | `prevent_destroy` blocks any destroy and cannot depend on a variable | Modules use DynamoDB deletion protection and S3 `force_destroy` driven by a variable, instead |
 | S3 buckets with objects | `force_destroy_data = true` outside production |
-| Secrets wait 7 days or more by default | Recovery window of 0 outside production |
+| VPN keys live in a secret that AWS creates with the connection | The code declares no secret, so a destroy has none to wait for. A new connection brings new keys, which the center firewall loads again |
 | KMS keys wait at least 7 days to delete | Key names include the environment, and aliases are deleted at once |
 | IoT certificates attached and active | The module detaches and deactivates first |
 | State bucket | Lives in bootstrap, outside the environment |
@@ -162,6 +162,7 @@ Nothing is deployed on Azure. The second cloud is prepared with contracts and an
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
 | Whether each account is on the free or the paid plan | Team, in the billing console | On the free plan some services may be blocked, and on the paid plan charges start once credits run out |
+| Whether AWS removes the VPN secret together with the connection | First destroy in a demonstration account | A leftover secret costs USD 0.40 a month and is deleted by hand |
 | IoT Core, Bedrock and VPN work on the free plan | First test on a real account | Those variables stay off, or the account upgrades to paid |
 | Two members lend accounts for test and production | Team | One account with prefixes |
 | Credits expire in time for the delivery | Billing console | AWS pages disagree between 6 and 12 months |

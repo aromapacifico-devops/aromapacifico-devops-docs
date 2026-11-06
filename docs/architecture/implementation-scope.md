@@ -45,9 +45,12 @@ The code also applies in the demonstration accounts, which the environments docu
 | Farms | One reusable farm module with one sample farm | The other 199 farms and their devices |
 | Workload | Telemetry ingestion | Sack query, trip events, drone orders, applications |
 | Functions | Focus confirmation pattern | Verification, estimation and the other functions |
-| Delivery | Pipeline with plan, approval, apply and destroy | Application pipelines |
+| Delivery | Platform pipeline with plan, approval, apply and destroy | Ingestion and flight object reception pipelines |
 | Observability | Alarm on failed invocations | Dashboards and objectives, delivered with the project |
+| Release notes | Nothing | Two templates with one example each, delivered with the project |
 | Second cloud | Nothing | Contracts and equivalence table |
+
+The project asks for three deployment pipelines, one each for the platform, the ingestion and the reception of flight objects. They deploy software, which makes them separate from the data paths that carry readings and objects. The code builds the platform pipeline, which is the one the 100 hours require. The other two deploy application code that this project does not write, so they stay as designs with the same promotion and rollback rules.
 
 ## 3. Boxes the code implements
 
@@ -55,8 +58,8 @@ The code also applies in the demonstration accounts, which the environments docu
 |---|---|---|---|
 | C01 | Repository, root and environments | Root per environment, providers, tags, variables with no secrets | Each environment |
 | C02 | Remote state | S3 bucket with KMS and native lock file | Each environment |
-| C03 | VPC, subnets and routes | VPC, seven subnets, route tables, gateway endpoints | Development, test, production |
-| C04 | Link to one collection center | Virtual private gateway, customer gateway, VPN, routes to logistics and local servers | Cauca now, Huila and Tolima by variables |
+| C03 | VPC, subnets and routes | VPC, seven subnets, route tables, gateway endpoints, three interface endpoints for IoT Core, S3 and the private API | Development, test, production |
+| C04 | Link to one collection center | Virtual private gateway, customer gateway, VPN with its keys in Secrets Manager, routes to logistics and local servers | Cauca now, Huila and Tolima by variables |
 | C05 | Platform identities and encryption | KMS keys, function roles, pipeline OIDC roles | All modules |
 | C06 | Permanent cloud firewall rules | Security groups of the interface endpoints, default deny | Each environment |
 | C07 | Telemetry ingestion pattern | IoT rule, SQS and dead letter queue, Firehose, ingestion function, DynamoDB, S3 archive | Each environment |
@@ -65,6 +68,8 @@ The code also applies in the demonstration accounts, which the environments docu
 | C10 | Reusable module of one farm | IoT thing, group membership, certificate, policy attachment | Each farm |
 
 The function pattern shows the four pieces asked of it, namely the trigger, the read permission on the object, the write permission on the result and the invoke permission on the inference service. Rekognition and Bedrock are called and never created, since they are managed services.
+
+**Keys of the VPN.** Terraform keeps the tunnel keys of a VPN in the state as plain text unless the connection sets `preshared_key_storage = "SecretsManager"`. C04 sets it, so AWS generates the keys and creates the secret, and the state holds only its ARN and a redacted value. The code therefore declares no secret of its own, and Secrets Manager appears in the diagram as a service that C04 relies on.
 
 ## 4. How the 100 hours divide
 
