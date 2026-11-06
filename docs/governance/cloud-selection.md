@@ -116,6 +116,8 @@ The second cloud exists to keep an exit available without paying for a copy of t
 
 Activating Azure would be a planned migration, sitting outside the recovery objectives of the pilot.
 
+Nothing is deployed on Azure, and the 100-hour scope holds no Azure code.
+
 ## 8. What would change this decision
 
 | Event | Effect |
