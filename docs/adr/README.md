@@ -6,6 +6,7 @@ Each record states the problem, the options and the decision, in terms a reviewe
 |---|---|
 | [Primary and second cloud](cloud-platform.md) | AWS us-east-1, with Azure East US prepared and idle |
 | [Out-of-coverage farms](out-of-coverage-connectivity.md) | Shared LoRaWAN gateway for readings, data mule for objects |
+| [Farm node connection](farm-node-connection.md) | One cycle each hour, configuration through a Device Shadow, default IoT endpoint |
 | [Drone operating mode](drone-operating-mode.md) | Combination of area and precision work |
 | [pH measurement](ph-measurement.md) | Soil probe, with a manual reading as a fallback |
 | [Flight log and fumigation](flight-log-and-fumigation.md) | Two logs, one before authorization and one before closure |

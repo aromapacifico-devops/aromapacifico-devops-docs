@@ -114,7 +114,7 @@ The platform has no per-farm network. A farm exists in the cloud as an identity,
 | IoT thing | The record of the node, with farm, department and zones as attributes |
 | Group membership | Places the node in its department, for cost and operations |
 | Certificate from a CSR | Identity of the node |
-| Policy attachment | Lets the node publish only on topics with its own name |
+| Policy attachment | Lets the node publish only on topics with its own name and use only its own shadow |
 
 ```hcl
 module "farm" {

@@ -8,7 +8,7 @@ This document defines what the farm node measures, how often, how pH is handled,
 2. Volumes
 3. pH
 4. Alert ranges
-5. Daily cycle
+5. Hourly cycle
 6. Energy
 7. Buffer
 8. Installation in one visit
@@ -39,7 +39,7 @@ This document defines what the farm node measures, how often, how pH is handled,
 
 One multiparameter probe was chosen over separate sensors, because each extra sensor adds cost, wiring and failure points to a site that is hard to reach.
 
-The farmer starts and stops the drying cadence from the application. Outside drying, the probe stays idle, which saves energy and avoids readings with no use.
+The farmer starts and stops the drying cadence from the application, and the node picks up the change at its next hourly connection. Outside drying, the probe stays idle, which saves energy and avoids readings with no use.
 
 ## 2. Volumes
 
@@ -50,7 +50,7 @@ The farmer starts and stops the drying cadence from the application. Outside dry
 | Drying in a normal month | About 20 farms × 24 readings | 480 | 14,400 |
 | Carrier positions, for reference | 60 carriers × 12 positions × 10 hours | 7,200 | 216,000 |
 
-A reading fits in about 0.5 KB, so a farm sends under 15 KB on the busiest day. The monthly data plan can stay very small, which suits a moderate fee.
+A reading fits in about 0.5 KB, so the payload of a farm stays under 15 KB on the busiest day. Each connection also costs TLS and MQTT overhead, which brings the total to about 5.5 MB a month. The data plan can stay very small, which suits a moderate fee. [Farm connectivity](../network/farm-connectivity.md) shows the calculation.
 
 ## 3. pH
 
@@ -74,20 +74,20 @@ The Federation configures ranges on the platform and the node holds none. A chan
 | Temperature | Outside 14 to 30 °C, recommended 17 to 23 °C | Grain above 40 °C |
 | Nitrogen, phosphorus, potassium | Outside the range the Federation publishes | Not applicable |
 
-## 5. Daily cycle
+## 5. Hourly cycle
 
 | Step | Action |
 |---|---|
-| 1 | The controller wakes on schedule and powers the probes |
-| 2 | It waits for the probes to stabilize and reads them |
-| 3 | It writes the reading to the buffer with its time and sequence number |
-| 4 | It powers the modem and connects |
+| 1 | The controller wakes each hour, at a minute fixed for the node |
+| 2 | If a reading is due, it powers the probes, waits for them to stabilize and reads them |
+| 3 | It writes the reading to the buffer with its time and sequence number, and deletes records of age 24 hours or more |
+| 4 | It powers the modem and connects, within 120 seconds |
 | 5 | It publishes everything in the buffer, oldest first, with delivery confirmation |
-| 6 | It deletes what was confirmed and sleeps |
+| 6 | It deletes what was confirmed, reads its configuration and sleeps |
 
-The node reads first and publishes after. A failed connection then loses nothing, and the reading waits for the next cycle.
+The node reads first and publishes after. A failed connection then loses nothing, and the reading waits for the next hour.
 
-Time comes from the network at each connection, and the controller keeps it during sleep. A reading stored in the buffer keeps its measured time.
+Time comes from the network at each connection, with NTP as a fallback, and a real-time clock on backup power keeps it during sleep. A reading stored in the buffer keeps its measured time.
 
 ## 6. Energy
 
@@ -102,7 +102,7 @@ There is no reliable power at the lot, so the node must live on its solar kit.
 | Panel | 20 W |
 | Panel output with 3 peak sun hours | 60 Wh a day |
 
-The panel covers about twice the daily budget with 3 peak sun hours, which leaves margin to recharge after cloudy days. Since the controller sleeps most of the time, real consumption should sit under this budget, and field measurement must confirm that with the chosen modem.
+The panel covers about twice the daily budget with 3 peak sun hours, which leaves margin to recharge after cloudy days. Since the controller sleeps most of the time, real consumption should sit under this budget. The hourly connection takes about 0.45 Wh a day, and 1.2 Wh with every attempt failing, at an assumed 1.5 W on the modem. Field measurement must confirm that with the chosen modem.
 
 ## 7. Buffer
 
@@ -110,9 +110,9 @@ The buffer retains 24 hours at most. Storage is not the limit, since 64 MB of fl
 
 | Situation | Behavior |
 |---|---|
-| Signal returns within 24 hours | Everything publishes, oldest first |
-| Reading passes 24 hours | The node deletes it and adds it to `dropped_since_last` |
-| Next successful message | Reports how many readings were lost |
+| Signal returns within 23 hours | Everything publishes, oldest first |
+| Reading reaches 24 hours | The node deletes it before connecting and adds it to `dropped_total` |
+| Next successful message | Reports the running total of lost readings |
 
 The platform therefore knows what is missing and when. A silent node for more than 24 hours raises an alarm.
 
@@ -123,7 +123,7 @@ The platform therefore knows what is missing and when. A silent node for more th
 | 1 | Fix the mast and panel | 30 min |
 | 2 | Bury the soil probe and fix the climate sensor | 20 min |
 | 3 | Place the grain probe in the drying zone | 10 min |
-| 4 | Power on, check the signal and the first reading on the platform | 15 min |
+| 4 | Power on, check the signal, the port the carrier allows and the first reading on the platform | 15 min |
 | 5 | Link the node to the farm and show the application to the farmer | 25 min |
 
 Times are estimates to validate in the first installations. The kit arrives assembled, and the installer needs no special tools.

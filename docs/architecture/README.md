@@ -11,6 +11,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Pest to fumigation](diagrams/04-pest-to-fumigation.drawio.png) | How does an alert become a closed case |
 | [Landing zone](diagrams/05-landing-zone.drawio.png) | Which accounts exist, and what applies from the root |
 | [Environments](diagrams/06-environments.drawio.png) | How does a change reach production, and how do environments go up and down |
+| [Farm connection sequence](diagrams/07-farm-connection-sequence.drawio.png) | How does a farm node connect, lose its link and recover |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
@@ -18,7 +19,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 
 | Flow | Protocol out | Local buffer | With no signal |
 |---|---|---|---|
-| Farm with signal | MQTT over TLS on LTE | 24 hours at most | Stores, retries, and the alert goes out when the buffer drains |
+| Farm with signal | MQTT over TLS on LTE | 24 hours at most | Stores, retries each hour, and the alert goes out when the buffer drains |
 | Farm out of coverage | LoRa to a shared gateway, TLS on LTE from there | 24 hours at most | Objects travel by data mule on daily routes |
 | Drone | HTTPS from the ground station | Drone buffer | Mission stays loaded, and the log publishes when the link returns |
 | Carrier | HTTPS on LTE | Application queue | Positions queue every 5 minutes, and custody events are always kept |
@@ -27,7 +28,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 
 ## Related documents
 
-The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
+[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, with the sequences of connection, disconnection and recovery. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
 
 The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
 

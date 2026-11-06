@@ -136,6 +136,18 @@ class Page:
             self.text(text, x + 66, yy, w - 74, 20, size=11)
             yy += 22
 
+    def lifeline(self, title, sub, x, top, bottom, icon=None, color=None, net=None):
+        self._v("", f"rounded=0;html=1;fillColor=#AAB7B8;strokeColor=none;", x - 1, top + 60, 2, bottom - top - 60)
+        self.card(title, sub, x - 95, top, 190, 60, icon=icon, color=color, net=net)
+
+    def message(self, x1, x2, y, label, color=INK, dashed=False):
+        style = (f"endArrow=block;endFill=1;html=1;strokeColor={color};strokeWidth=1.5;dashed={1 if dashed else 0};"
+                 f"fontSize=11;fontColor={INK};labelBackgroundColor=#FFFFFF;")
+        self.edges.append(
+            f'<mxCell id={quoteattr(self.nid())} value={quoteattr(label)} style={quoteattr(style)} edge="1" parent="1">'
+            f'<mxGeometry relative="1" as="geometry"><mxPoint x="{x1}" y="{y}" as="sourcePoint"/>'
+            f'<mxPoint x="{x2}" y="{y}" as="targetPoint"/></mxGeometry></mxCell>')
+
     def xml(self):
         return (f'<diagram name={quoteattr(self.name)}><mxGraphModel dx="1400" dy="900" grid="1" gridSize="10" '
                 f'guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" '
@@ -746,8 +758,63 @@ def environments():
     return p
 
 
+def farm_sequence():
+    p = Page("07 Farm connection sequence", 1560, 1280, "How a farm node connects, loses its link and recovers, with no reading lost silently")
+    node, net, iot, ing, db = 250, 610, 860, 1120, 1390
+    top, bottom = 70, 1100
+    bands = [("Connection, each hour at the minute fixed for the node", 140, 372, "#EAF6EC", "#2E7D32"),
+             ("Disconnection, a failure at any step ends the same way", 524, 276, "#FDEDEC", "#C62828"),
+             ("Recovery, the signal returns", 812, 288, "#EAF2F8", "#147EBA")]
+    for _, y, h, fill, stroke in bands:
+        p.zone("", 40, y, 1480, h, fill, stroke)
+    p.lifeline("Farm node", "Controller, flash buffer, LTE modem", node, top, bottom, net="wireless_modem")
+    p.lifeline("Mobile network", "Attach and network time", net, top, bottom, net="radio_tower")
+    p.lifeline("AWS IoT Core", "Broker, rule and shadow", iot, top, bottom, icon="iot_core", color=IOT)
+    p.lifeline("Queue and function", "SQS, ingestion function", ing, top, bottom, icon="sqs", color=APP)
+    p.lifeline("DynamoDB", "Readings and alert state", db, top, bottom, icon="dynamodb", color=DATA)
+    for label, y, _, fill, _ in bands:
+        p._v(label, f"text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor={INK};fillColor={fill};strokeColor=none;spacingLeft=6;", 50, y + 6, 470, 24)
+
+    p.note("<b>Wake.</b> Read if due, append record with seq and measured_at, delete records of 24 h or more", 70, 176, 360, 44)
+    p.message(node, net, 240, "Attach, network time", CTRL)
+    p.message(node, iot, 274, "TLS, CONNECT clean session", CTRL)
+    p.message(iot, node, 308, "CONNACK", CTRL, dashed=True)
+    p.message(node, iot, 342, "PUBLISH QoS 1, oldest first, 10 unconfirmed at most", TEL)
+    p.message(iot, ing, 342, "Rule adds received_at", TEL)
+    p.message(ing, db, 342, "Conditional write", TEL)
+    p.message(iot, node, 376, "PUBACK, record leaves the buffer", TEL, dashed=True)
+    p.message(node, iot, 410, "Get shadow", BIZ)
+    p.message(iot, node, 444, "Desired state, drying on or off", BIZ, dashed=True)
+    p.message(node, iot, 478, "DISCONNECT, then modem off and sleep", CTRL)
+
+    p.message(node, net, 572, "Attach fails, window of 120 s ends", FAIL)
+    p.note("<b>No path.</b> Records stay. The next hour is the retry", 70, 590, 360, 34)
+    p.message(node, iot, 640, "PUBLISH seq n", TEL)
+    p.message(iot, ing, 640, "Copy to queue", TEL)
+    p.message(ing, db, 640, "Stored", TEL)
+    p.message(iot, 540, 674, "PUBACK lost", FAIL, dashed=True)
+    p.note("<b>No PUBACK in 10 s.</b> Record stays, modem off, sleep until the next hour", 70, 700, 360, 34)
+    p.note("<b>At 24 h.</b> A record still waiting is deleted, and dropped_total grows", 70, 746, 360, 34)
+
+    p.message(node, net, 850, "Attach, signal is back", CTRL)
+    p.message(node, iot, 886, "PUBLISH seq n, repeat, buffered true", TEL)
+    p.message(iot, ing, 886, "Copy to queue", TEL)
+    p.message(ing, db, 886, "Conditional write", TEL)
+    p.message(db, ing, 920, "Rejected, already stored", FAIL, dashed=True)
+    p.message(iot, node, 954, "PUBACK, record leaves the buffer", TEL, dashed=True)
+    p.message(node, iot, 988, "PUBLISH seq n+1 and newer, buffered true", TEL)
+    p.message(iot, ing, 988, "Copy to queue", TEL)
+    p.message(ing, db, 988, "Stored, state if newer", TEL)
+    p.note("<b>Alerts.</b> Only a newer measured_at changes the alert state. An alert from an old reading carries the time of that reading", 960, 1020, 540, 44)
+    p.message(node, iot, 1064, "Get shadow, DISCONNECT, sleep", CTRL)
+
+    p.legend(40, 1116, 560, [(TEL, False, "Reading and its confirmation"), (BIZ, False, "Configuration through the shadow"),
+                             (CTRL, False, "Connection control"), (FAIL, False, "Failure or rejection"), (CTRL, True, "Dashed line, an answer to a request")])
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
