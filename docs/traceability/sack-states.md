@@ -113,3 +113,122 @@ Eleven of the 42 possible movements are valid.
 | `in_transit_to_port` | `delivered_rejected` | `delivered_rejected` | Carrier |
 
 The route always passes through a center, and there is no direct path from a farm to the port.
+
+## 6. Invalid transitions
+
+An event that does not fit the history is never lost. Each event ends in one of three outcomes, and only a malformed one is refused at the door.
+
+| Outcome | Meaning | Effect on the state |
+|---|---|---|
+| Applied | The event fits the history | Moves as the table says |
+| Gap | The event is ahead of the history, so an earlier one is missing | Moves anyway, and the record shows what is missing |
+| Anomaly | The event contradicts the history | No change, and the event is kept for review |
+
+A gap moves the state because the person who records the later step has seen the sack. A center that received a sack must be able to dispatch it while the handover waits on a phone with no data. The late event then takes its place, and the gap closes with no action from anyone.
+
+A gap still open after 48 hours appears on the list of the platform operator, and so does every anomaly. The operator resolves them with the people involved, and any change is a new event, so the anomaly remains in the history.
+
+| Case | Why it does not fit | Outcome |
+|---|---|---|
+| Reception before the handover arrives | Normal with a carrier out of data | Gap, closes on its own |
+| Handover of a sack whose registration has not arrived | Normal when the farm also lacks data | Gap, closes on its own |
+| Delivery with no dispatch recorded | A step is missing | Gap, reviewed if it stays open |
+| Delivery of a sack that never passed through a center | The route always includes a center | Gap that never closes, reviewed |
+| Dispatch of a rejected sack | Only an accepted sack leaves for the port | Anomaly |
+| Return of an accepted sack | Only a rejected sack returns | Anomaly |
+| Second handover while in transit | Two carriers claim the same sack | Anomaly |
+| Second registration of a code | The code already has a history | Anomaly |
+| Correction after dispatch | The sack has left the center | Anomaly |
+| Any transition after a delivery | The record has ended | Anomaly |
+| Code that fails its check symbol | The event is malformed | Rejected by the API, and shown to the person as a task |
+
+A well-formed code that the platform does not know yet is treated as a gap. The farm may still hold its registration in a queue, so refusing that event would punish lateness.
+
+The application prevents most of these at the moment of capture, when it has the data to do so. The platform applies the same rules on its own, because a phone with no data decides with an old view.
+
+## 7. Rejection and correction
+
+**A rejection erases nothing.** Every event stays in the history for five years, and later events add to it. A sack that was rejected, returned and later accepted shows all three facts in order.
+
+**After a rejection at the center.** The sack returns to its farm with the same code and goes back to `in_preparation`. It can enter again with a new handover, and `reweighed` records its weight if drying changed it. One physical sack keeps one code and one history.
+
+| Option | For | Against | Result |
+|---|---|---|---|
+| Return with the same code | One code and one history, no eighth state, the rejection stays visible | A sack can repeat the loop | **Chosen** |
+| Terminal, re-entry as a new sack | States only move forward | Two codes for one sack, and the buyer may lose sight of the rejection | Discarded |
+| Terminal, no re-entry | Simplest | Coffee that returns to the farm leaves the platform with no record | Discarded |
+
+**After a rejection at the port.** The record ends, as with an accepted delivery. A sack that travels back does so outside the platform, as a commercial claim.
+
+**Correction.** A center operator can reverse a reception decision while the sack is still at the center, with a mandatory reason. The correction is a new event, so both the first decision and the change remain visible, along with who made each. Once the sack leaves the center, its reception can no longer change.
+
+## 8. How the state is derived
+
+The source of truth is the history of events, and the state is computed from it.
+
+| Option | Behavior | For | Against | Result |
+|---|---|---|---|---|
+| Event history with a derived state | Events are stored unchanged, and the state comes from replay | Any arrival order gives the same result, and a rejection cannot be lost | One more read per event | **Chosen** |
+| Current state with validation on arrival | An event that does not fit is refused | Simple to explain | Refuses valid late events | Discarded |
+| Last write wins by time | The newest event sets the state | No validation | An illegal jump passes in silence, and a wrong clock rewrites the state | Discarded |
+
+On each event the platform stores it, reads the history of that sack, and replays it in logical order. It then writes the event and the resulting `state` in one transaction, with a version condition on the sack. If another event landed in between, the transaction fails and the function replays again. The `state` field stays as a projection, so reads need no replay.
+
+The logical order sorts events by `captured_at`, and a tie falls to the position of the event along the route, then to `seq`. Sorting never uses arrival time, so the result cannot depend on who reached the platform first. A late event carries an earlier `captured_at`, takes its place, and the replay gives the same state with the gap closed.
+
+**Model of the rules.** The transition table and the replay ran in an exhaustive test.
+
+| Check | Result |
+|---|---|
+| Valid histories tested, including loops, corrections and sacks with no code | 8 |
+| Arrival orders tested | 11,208 |
+| Same final state in every order, and no gap or anomaly once complete | Held in every order |
+| Events lost at any step of any order | 0 |
+| Each of the 9 transition events tried on each of the 7 states | 63 cases, 9 applied, 18 gap, 36 anomaly |
+| Anomalies that changed the state | 0 |
+| Rejection present after the sack returned and was accepted | Held |
+
+The test covers the rules and comes from no field data.
+
+## 9. What fails and what happens
+
+| Failure | Effect | Response |
+|---|---|---|
+| Carrier with no data at the handover | The center sees a sack it was not expecting | Reception applies with a gap, and the handover closes it on return |
+| Wrong clock on a phone | A handover sorts after the reception | Anomaly, the state stays correct, and the operator reviews it |
+| Two carriers claim one sack | Second handover | Anomaly, kept with both identities |
+| Sack lost on the road | No more events | Stays in transit, with `reported_missing` for review. The state keeps saying where it was last known |
+| Operator accepts by mistake | A wrong decision | Correction with a reason, before dispatch |
+| Operator dispatches the wrong sack | A wrong record | Operator review, since the reception can no longer change |
+| Two events on one sack at the same moment | The version condition fails | The function replays and writes again |
+| Phone lost with queued events | Those events never arrive | Gaps remain open, and the operator completes the history |
+| Function fails | The event is not stored | The sender keeps it and retries |
+
+## 10. Cost
+
+Calculated from the AWS price list for us-east-1, for 252,000 events in a harvest month. A transactional write of two items consumes 4 write units, since DynamoDB performs two underlying writes for each item.
+
+| Item | Rate | One request per event, USD | Grouped by truck, USD |
+|---|---|---|---|
+| API Gateway HTTP API | USD 1.00 per million | 0.25 | 0.01 |
+| Lambda, 0.2 s at 256 MB | USD 0.20 per million and USD 0.0000166667 per GB-second | 0.26 | 0.01 |
+| DynamoDB transactional writes | USD 0.625 per million | 0.63 | 0.63 |
+| DynamoDB history reads | USD 0.125 per million | 0.03 | 0.03 |
+| **Total** | | **About 1.17** | **About 0.68** |
+
+Grouping assumes about 30 sacks in a request, which the event endpoint allows. Each sack still gets its own transaction, as DynamoDB advises keeping transactions small.
+
+## 11. Assumptions and pending confirmations
+
+| Item | Who confirms | Effect if it fails |
+|---|---|---|
+| A sack rejected at a center physically returns to its farm | Federation | The return event changes, and a new code per attempt may fit better |
+| The carrier can record the delivery at the port, naming who received it | Federation | The port needs another role or a record from a third party |
+| Inspection at a center happens after arrival, in the same place | Center operation | Arrival and reception may merge into one event |
+| A window of 48 hours fits how long a gap usually lasts | First harvest | The review list grows or misses cases |
+| A history rarely exceeds 20 events | First harvest | Replay reads more, with a small effect on cost |
+
+## Sources
+
+- Amazon DynamoDB Developer Guide, transactions, including capacity use and conflicts.
+- AWS Price List API for API Gateway, Lambda and DynamoDB in us-east-1.
