@@ -1,56 +1,143 @@
 # Encryption, secrets and revocation
 
-Telemetry and drone objects never travel or rest in clear text.
+Telemetry and drone objects never travel or rest in clear text, secrets stay out of repositories and out of Terraform state, and a lost device stops publishing. This document defines how, for each flow and each store.
 
-## Encryption in transit
+## Contents
 
-| Flow | Protocol | Authentication |
-|---|---|---|
-| Farm node to IoT Core | MQTT over TLS 1.3, port 8883 | X.509 device certificate |
-| LoRa node to LoRaWAN gateway | LoRaWAN AES-128 session keys | Device keys |
-| LoRaWAN gateway to cloud | TLS over cellular | Gateway certificate |
-| Carrier application to API | HTTPS with TLS 1.2 or later | Cognito token |
-| Drone ground station to API and S3 | HTTPS with TLS 1.2 or later | Cognito token and presigned URL |
-| Collection center to VPC | IPsec site-to-site VPN | Pre-shared keys held in the secrets manager |
-| Browser to public query | HTTPS through CloudFront | None, read by code |
-| Function to AWS services | HTTPS with TLS 1.2 or later | IAM role |
+1. Threats this design answers
+2. Encryption in transit
+3. Encryption at rest
+4. Keys
+5. Secrets
+6. Revocation of a node or a drone
+7. Secrets in the infrastructure code
+8. Cost
+9. Assumptions and pending confirmations
 
-IoT Core applies a security policy that accepts TLS 1.3 and TLS 1.2 by default. Constrained modems that only support TLS 1.2 stay compatible.
+### Terms used
 
-## Encryption at rest
-
-| Store | Key |
+| Term | Meaning in this document |
 |---|---|
-| DynamoDB tables for readings, sacks and cases | Customer managed KMS key for data |
-| S3 buckets for flight objects and the telemetry archive | Customer managed KMS key for objects |
-| Terraform state | Customer managed KMS key for platform |
-| Secrets | Customer managed KMS key for platform |
-| Audit logs | Customer managed KMS key in the log archive account |
+| Customer managed key | A KMS key the platform controls, with its own policy and rotation |
+| Envelope encryption | Data is encrypted with a data key, and that key is encrypted with the KMS key |
+| Pre-shared key | Secret shared by both ends of a VPN tunnel |
+| Certificate revocation | Marking a certificate as invalid so that the service refuses it |
 
-Annual key rotation is on for every key. The node's buffer uses the microcontroller's flash encryption, so a lost node exposes no readings.
+---
 
-## Secrets
+## 1. Threats this design answers
 
-Secrets stay out of the repositories and out of Terraform state.
+| Threat | Control |
+|---|---|
+| Someone listens on a mobile or LoRa network | TLS and LoRaWAN session encryption |
+| A node is stolen from a lot | Encrypted flash, one identity per device, revocation |
+| A drone is lost with its data | Encrypted storage, revocation of the ground station |
+| A credential leaks from a repository | No static credentials, repository scanning |
+| Someone copies a bucket or a table | Encryption at rest with restricted key policies |
+| A state file exposes secrets | No secret values reach Terraform |
 
-| Secret | Location | Consumed by |
+## 2. Encryption in transit
+
+| Flow | Protocol | Authentication | Notes |
+|---|---|---|---|
+| Node to IoT Core | MQTT over TLS, port 8883 | X.509 device certificate | IoT Core supports TLS 1.3 and TLS 1.2 |
+| LoRa node to gateway | LoRaWAN AES-128 session keys | Device keys | The network server cannot be bypassed |
+| Gateway to cloud | TLS over LTE | Gateway certificate | Traffic stays encrypted over the backhaul |
+| Carrier application to API | HTTPS with TLS 1.2 or later | Cognito token | |
+| Ground station to API and S3 | HTTPS with TLS 1.2 or later | Cognito token and presigned URL | |
+| Center to VPC | IPsec site-to-site VPN | Pre-shared keys | Two tunnels per connection |
+| Browser to public query | HTTPS through CloudFront | None, read by code | |
+| Function to AWS services | HTTPS with TLS 1.2 or later | IAM role | |
+| Pipeline to AWS | HTTPS | OIDC role | |
+
+IoT Core applies by default the policy `IoTSecurityPolicy_TLS13_1_2_2022_10`, which accepts both versions. Requiring TLS 1.3 alone would be possible, and it would exclude constrained modems with no gain, since TLS 1.2 with the current ciphers meets the need.
+
+## 3. Encryption at rest
+
+| Store | Key | Why |
 |---|---|---|
-| VPN pre-shared keys | Secrets Manager | Center firewall, at installation |
-| Third-party API keys | Secrets Manager | Functions, read at run time |
-| Pipeline credentials | None, replaced by OIDC federation | Pipeline |
+| DynamoDB tables | Data key | Holds sacks, cases, readings and personal data |
+| S3 flight objects and archive | Objects key | Separate key, so that access to objects can be cut without touching the data |
+| S3 restricted prefix | Objects key, tighter policy | Objects with a person |
+| Terraform state | Platform key | Readable by the pipeline only |
+| Secrets | Platform key | |
+| Audit logs | Key in the log archive account | A workload cannot decrypt or erase its trail |
+| Node flash | Flash encryption of the microcontroller | A stolen node exposes no readings |
+| Drone storage | Encrypted storage on the ground station | Depends on the chosen drone |
 
-Terraform receives the secret's name or ARN, and functions read the value at run time. Variables that could carry sensitive values are marked sensitive, and a repository scanner blocks credentials in pull requests.
+S3 uses bucket keys, which reduce calls to KMS and the related cost.
 
-## Revocation
+## 4. Keys
 
-When a node or drone is lost, the platform revokes its identity and the device stops publishing. The target is one hour from the report.
+| Key | Encrypts | Who can use it |
+|---|---|---|
+| Data | Tables | Functions that write or read them |
+| Objects | Buckets | Upload path and inference functions |
+| Platform | Terraform state and secrets | Pipeline |
+| Audit | Log archive | Trail service, read by the security role |
 
-1. The operator reports the device in the support channel, with its identifier.
-2. A platform operator marks the certificate as revoked in IoT Core and detaches its policy.
-3. The platform closes active connections, and the next attempt fails at the TLS handshake.
-4. The operator marks the device inactive, which raises no missing-telemetry alarm for it.
-5. The audit log keeps who revoked what, and when.
+Yearly automatic rotation is on for every key. Rotation keeps older data readable, because KMS retains the previous key material. Deleting a key waits at least 7 days, and a service control policy limits who can schedule it.
 
-Readings already stored stay in place. Messages that arrive from a revoked identity are rejected and appear in the connection failure metric.
+Three customer managed keys in each workload account would be enough. Using one key for everything was discarded, because it would join what the design wants to separate. A key per table was also discarded, since at USD 1 per key per month it would add cost with no real isolation.
 
-For a replacement, the installer provisions a new certificate. Certificates are never reused.
+## 5. Secrets
+
+| Secret | Location | Consumed by | Rotation |
+|---|---|---|---|
+| VPN pre-shared keys | Secrets Manager | Center firewall, at installation | On change of device or staff |
+| Third-party API keys | Secrets Manager | Functions, read at run time | Per provider |
+| Pipeline credentials | None | OIDC federation replaces them | Not applicable |
+| Function credentials | None | IAM role | Not applicable |
+
+The best secret is the one that does not exist, so the design removes as many as it can. Only two kinds of stored secrets remain.
+
+## 6. Revocation of a node or a drone
+
+A lost device must stop publishing. The target is one hour from the report, which is a design target to confirm with the Federation.
+
+| Step | Who | Action |
+|---|---|---|
+| 1 | Farmer or operator | Reports the device by phone or in the application |
+| 2 | Platform operator | Marks the certificate as `REVOKED` and detaches its policy |
+| 3 | Platform | Closes the active connection, and the next attempt fails at TLS |
+| 4 | Platform operator | Marks the thing as inactive, so that no silent-node alarm fires |
+| 5 | Audit | Records who revoked what and when |
+
+For LoRa nodes, the device is removed from the network server, and its session keys stop working.
+
+For a drone, the certificate and the user session of the ground station are revoked. The drone itself holds no platform credential, so a lost airframe cannot publish.
+
+Readings already stored stay in place. Messages from a revoked identity are rejected and appear in the failed connection metric. A replacement device receives a new certificate, and certificates are never reused.
+
+## 7. Secrets in the infrastructure code
+
+| Rule | How it is met |
+|---|---|
+| No secret in the repository | Scanner in the pull request, variables with no values |
+| No secret in state | Terraform receives the name or ARN of a secret, and the value stays in Secrets Manager |
+| State is encrypted | S3 backend with KMS and native lock file |
+| Sensitive variables are marked | `sensitive = true` |
+| No static credentials in the pipeline | OIDC roles |
+
+## 8. Cost
+
+| Item | Monthly cost, USD |
+|---|---|
+| Three customer managed keys | 3.00 |
+| KMS requests at this load | Under 0.10 |
+| Four secrets at USD 0.40 each | 1.60 |
+
+Encryption adds under USD 5 a month, so it never competes with the budget.
+
+## 9. Assumptions and pending confirmations
+
+| Item | Who confirms | Effect if it fails |
+|---|---|---|
+| One hour is an acceptable revocation target | Federation | The on-call procedure changes |
+| The chosen drone encrypts its storage | Drone supplier | Flights hold only the objects of the mission, and the mission is deleted on return |
+| Nodes support flash encryption | Node supplier | The node keeps only encrypted payloads |
+
+## Sources
+
+- AWS IoT Core transport security documentation.
+- AWS Price List API for KMS and Secrets Manager in us-east-1.
