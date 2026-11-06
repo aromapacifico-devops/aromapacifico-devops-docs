@@ -37,7 +37,7 @@ This document justifies AWS in us-east-1 as the primary cloud and Azure East US 
 | Five-year retention at low cost | Readings, photos, flights, sack history | Lifecycle rules toward cold storage |
 | Sack events losing at most 15 minutes | Recovery objective | Continuous backup of the database |
 | Low monthly cost | The farmer invests little | Pay per use with no provisioned minimum |
-| 100 hours of infrastructure code | Hard limit | Standards that apply with no adaptation |
+| 100 hours of infrastructure code | Hard limit | Standards already written for that cloud |
 
 ## 2. Options evaluated
 
@@ -62,7 +62,7 @@ This document justifies AWS in us-east-1 as the primary cloud and Azure East US 
 | Region in Colombia | None | None |
 | Team standards | The 26 infrastructure rules are written for AWS | All 26 rules need adapting |
 
-The last row weighs more than it seems. Adapting 26 rules would consume hours from the code budget, which is the one limit of the project that cannot move.
+The last row weighs more than it seems. Adapting 26 rules would consume hours from the code budget, which is the one limit of the project that cannot move. Those rules date from December 2025, so each one is checked against current documentation before the code relies on it. That check applies on either cloud, and it takes far less time than rewriting the rules for another provider.
 
 ## 4. Cost compared on the pilot load
 
