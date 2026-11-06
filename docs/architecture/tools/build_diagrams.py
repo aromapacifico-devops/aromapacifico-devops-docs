@@ -813,8 +813,51 @@ def farm_sequence():
     return p
 
 
+def sack_states():
+    p = Page("08 Sack state model", 1560, 830, "Sack states and transitions: from the farm to the port, and what a rejection does")
+    zones = [("Farm", 40, 260, "#EAF6EC", "#2E7D32"), ("Road to the center", 310, 280, "#F2F3F4", "#566573"), ("Collection center", 600, 310, "#EAF2F8", "#147EBA"),
+             ("Road to the port", 920, 280, "#F2F3F4", "#566573"), ("Port of Buenaventura", 1210, 310, "#FDF2E9", "#E65100")]
+    for name, x, w, fill, stroke in zones:
+        p.zone(name, x, 70, w, 480, fill, stroke, size=13)
+    state = dict(w=190, h=70, size=12)
+    p.step("<b>in_preparation</b><br>Farmer holds the sack", 55, 280, cid="prep", **state)
+    p.step("<b>in_transit_to_center</b><br>Carrier holds the sack", 385, 280, cid="toc", **state)
+    p.step("<b>at_center_accepted</b><br>Center holds the sack", 650, 170, fill="#E8F5E9", stroke="#2E7D32", cid="acc", **state)
+    p.step("<b>at_center_rejected</b><br>Resting state", 650, 400, fill="#FDEDEC", stroke="#C62828", cid="rej", **state)
+    p.step("<b>in_transit_to_port</b><br>Carrier holds the sack", 985, 170, cid="top", **state)
+    p.step("<b>delivered_accepted</b><br>End of the record", 1285, 110, fill="#E8F5E9", stroke="#2E7D32", cid="ok", **state)
+    p.step("<b>delivered_rejected</b><br>End of the record", 1285, 240, fill="#FDEDEC", stroke="#C62828", cid="no", **state)
+    p.step("Start at the farm", 52, 120, w=105, h=56, fill="#FFFFFF", cid="s1", size=11)
+    p.step("Start at the center, no code", 175, 120, w=115, h=56, fill="#FFFFFF", cid="s2", size=11)
+    p.edge("s1", "prep", "registered", TEL, exit=(0.5, 1), entry=(0.2, 0))
+    p.edge("s2", "prep", "registered_at_center", OBJ, dashed=True, exit=(0.5, 1), entry=(0.8, 0))
+    p.edge("prep", "toc", "handed_to_carrier", TEL)
+    p.edge("toc", "acc", "received_accepted", TEL, exit=(1, 0.3), entry=(0, 0.5), points=[(615, 301), (615, 205)])
+    p.edge("toc", "rej", "received_rejected", FAIL, exit=(1, 0.7), entry=(0, 0.5), points=[(615, 329), (615, 435)])
+    p.edge("prep", "acc", "reception, sack with no code", OBJ, dashed=True, exit=(1, 0.15), entry=(0.5, 0), points=[(305, 290), (305, 145), (745, 145)])
+    p.edge("prep", "rej", "reception, sack with no code", OBJ, dashed=True, exit=(1, 0.85), entry=(0.2, 1), points=[(305, 340), (305, 490), (688, 490)])
+    p.edge("acc", "rej", "", CTRL, exit=(0.3, 1), entry=(0.3, 0))
+    p.edge("rej", "acc", "", CTRL, exit=(0.7, 0), entry=(0.7, 1))
+    p.text("Correct to rejected, with reason", 620, 290, 84, 60, size=11, align="right")
+    p.text("Correct to accepted, with reason", 792, 290, 100, 60, size=11)
+    p.edge("acc", "top", "dispatched_to_port", TEL)
+    p.edge("top", "ok", "", TEL, exit=(1, 0.3), entry=(0, 0.5), points=[(1235, 191), (1235, 145)])
+    p.text("delivered_accepted", 1090, 150, 130, 22, size=11, align="right")
+    p.edge("top", "no", "", FAIL, exit=(1, 0.7), entry=(0, 0.5), points=[(1235, 219), (1235, 275)])
+    p.text("delivered_rejected", 1090, 250, 130, 22, size=11, align="right")
+    p.edge("rej", "prep", "returned_to_farm, same code and same history", FAIL, exit=(0.5, 1), entry=(0.5, 1), points=[(745, 520), (150, 520)])
+    p.note("<b>The history keeps every event.</b> Arrival, pickup, reweighing, label reprint and a missing report change no state.", 1225, 400, 280, 66)
+    p.legend(40, 566, 560, [(TEL, False, "Normal path"), (FAIL, False, "Rejection and return"), (CTRL, False, "Correction, before the sack leaves the center"),
+                             (OBJ, True, "Only a sack registered at the center")])
+    p.note("<b>Applied.</b> The event fits the history, and the state moves.", 620, 566, 280, 66)
+    p.note("<b>Gap.</b> An earlier event is missing. The state moves, and the late event closes the gap.", 920, 566, 280, 66)
+    p.note("<b>Anomaly.</b> The event contradicts the history. It is kept for review, and the state stays.", 1220, 566, 280, 66)
+    p.note("<b>Order.</b> The state comes from replaying the history by time of capture, so any arrival order gives the same result.", 620, 646, 880, 44)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

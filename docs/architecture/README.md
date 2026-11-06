@@ -12,6 +12,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Landing zone](diagrams/05-landing-zone.drawio.png) | Which accounts exist, and what applies from the root |
 | [Environments](diagrams/06-environments.drawio.png) | How does a change reach production, and how do environments go up and down |
 | [Farm connection sequence](diagrams/07-farm-connection-sequence.drawio.png) | How does a farm node connect, lose its link and recover |
+| [Sack state model](diagrams/08-sack-state-model.drawio.png) | Which states can a sack pass through, and what does a rejection do |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 

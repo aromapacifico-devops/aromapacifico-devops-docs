@@ -98,6 +98,8 @@ Arrival is an event with no change of state, because a center can receive 400 sa
 
 Eleven of the 42 possible movements are valid.
 
+![States and transitions of a sack](../architecture/diagrams/08-sack-state-model.drawio.png)
+
 | From | To | Event | Recorded by |
 |---|---|---|---|
 | `in_preparation` | `in_transit_to_center` | `handed_to_carrier` | Carrier |
@@ -211,12 +213,12 @@ Calculated from the AWS price list for us-east-1, for 252,000 events in a harves
 | Item | Rate | One request per event, USD | Grouped by truck, USD |
 |---|---|---|---|
 | API Gateway HTTP API | USD 1.00 per million | 0.25 | 0.01 |
-| Lambda, 0.2 s at 256 MB | USD 0.20 per million and USD 0.0000166667 per GB-second | 0.26 | 0.01 |
+| Lambda at 256 MB, 0.2 s per event or 1 s per group | USD 0.20 per million and USD 0.0000166667 per GB-second | 0.26 | 0.04 |
 | DynamoDB transactional writes | USD 0.625 per million | 0.63 | 0.63 |
 | DynamoDB history reads | USD 0.125 per million | 0.03 | 0.03 |
-| **Total** | | **About 1.17** | **About 0.68** |
+| **Total** | | **About 1.17** | **About 0.71** |
 
-Grouping assumes about 30 sacks in a request, which the event endpoint allows. Each sack still gets its own transaction, as DynamoDB advises keeping transactions small.
+Grouping assumes about 30 sacks in a request, which the event endpoint allows. Each sack still gets its own transaction, as DynamoDB advises keeping transactions small. The grouped figure fits the line for APIs in the monthly cost of the platform, and one request per event would add about USD 0.41 to a harvest month. The cost analysis settles that line with the volume of public queries.
 
 ## 11. Assumptions and pending confirmations
 
