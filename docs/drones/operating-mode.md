@@ -89,7 +89,17 @@ The farmer neither buys nor flies a drone. The Federation runs the service.
 | Farmer | Receives the visit and sees the case |
 | Center | Receives the harvest estimate |
 
-Fumigation is authorized with a human identity, and no trigger can execute it. Flights must follow the rules of the Colombian civil aviation authority, and the exact permit each brigade needs must be confirmed before operating.
+Fumigation is authorized with a human identity, and no trigger can execute it.
+
+Flights fall under RAC 100, the Colombian regulation for unmanned aircraft. Spraying as a service is a commercial activity, so it belongs to the [specific category](https://www.aerocivil.gov.co/preguntas-frecuentes/18/drones-y-movilidad-urbana-aerea/), which covers aircraft up to 250 kg and needs a flight authorization from Aerocivil. The open category allows no commercial work, so a farmer cannot fly these missions with a personal drone. The authorization rests on three documents.
+
+| Document | Held by |
+|---|---|
+| Registration certificate of the aircraft | Brigade operator, one per drone |
+| UAS operator certificate, specific category | Brigade operator |
+| Pilot certificate of competence, with the spraying addition | Each pilot |
+
+Aerocivil issued its [first operator certificate for spraying](https://x.com/AerocivilCol/status/2051378340129394763) in 2026, so few companies hold one yet. The Federation should expect to contract a certified operator or to allow lead time for certifying its own.
 
 ## 6. Cadence
 
@@ -143,5 +153,6 @@ Cloud cost for inference is small next to flight cost. At about USD 1.75 per 1,0
 |---|---|---|
 | Three brigades cover the three departments | Federation | Fleet and cost change |
 | A supervisor can authorize remotely in time | Federation | Authorization moves to the brigade lead |
-| Flight permits for spraying drones | Civil aviation rules, legal review | Operating model changes |
+| Who holds the operator certificate, the Federation or a contractor | Federation | Hiring and brigade cost change |
+| Spraying addition of the pilot and liability insurance, taken from secondary sources | Current text of RAC 100, legal review | Training time and brigade cost change |
 | Yearly harvest of four months | Federation | Cadence and cost change |
