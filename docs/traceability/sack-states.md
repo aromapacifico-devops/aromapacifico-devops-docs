@@ -37,10 +37,11 @@ The pilot names seven states and leaves open what happens between them. The sack
 | Topic | Where it is defined |
 |---|---|
 | Sack code and the values of `state` | [Sack identity](sack-identity.md) |
+| Event fields, tables and the write path | [Custody chain](custody-chain.md) |
 | How events travel from a phone with no data | [Carrier tracking](../network/carrier-tracking.md) |
 | Roles and their permissions | [Identity and access](../security/identity-and-access.md) |
 
-Event fields, the idempotency key and the tables belong to the design of the custody chain. The operating flow at a center and the reasons for a rejection belong to the design of the centers, and the fields each actor reads belong to the design of the views.
+The operating flow at a center and the reasons for a rejection belong to the design of the centers, and the fields each actor reads belong to the design of the views.
 
 ## 2. Volumes
 
@@ -133,7 +134,8 @@ A gap still open after 48 hours appears on the list of the platform operator, an
 | Case | Why it does not fit | Outcome |
 |---|---|---|
 | Reception before the handover arrives | Normal with a carrier out of data | Gap, closes on its own |
-| Handover of a sack whose registration has not arrived | Normal when the farm also lacks data | Gap, closes on its own |
+| Handover of an issued code whose registration has not arrived | Normal when the farm also lacks data | Gap, closes on its own |
+| Any event on a well-formed code that was never issued | Forged, or a copying error that passed the check | Anomaly |
 | Delivery with no dispatch recorded | A step is missing | Gap, reviewed if it stays open |
 | Delivery of a sack that never passed through a center | The route always includes a center | Gap that never closes, reviewed |
 | Dispatch of a rejected sack | Only an accepted sack leaves for the port | Anomaly |
@@ -144,7 +146,7 @@ A gap still open after 48 hours appears on the list of the platform operator, an
 | Any transition after a delivery | The record has ended | Anomaly |
 | Code that fails its check symbol | The event is malformed | Rejected by the API, and shown to the person as a task |
 
-A well-formed code that the platform does not know yet is treated as a gap. The farm may still hold its registration in a queue, so refusing that event would punish lateness.
+An issued code with no registration yet is treated as a gap. The farm may still hold its registration in a queue, so refusing that event would punish lateness. The platform knows every code it issued, as the [custody chain](custody-chain.md) explains, so a code outside that set never waits.
 
 The application prevents most of these at the moment of capture, when it has the data to do so. The platform applies the same rules on its own, because a phone with no data decides with an old view.
 
@@ -218,7 +220,7 @@ Calculated from the AWS price list for us-east-1, for 252,000 events in a harves
 | DynamoDB history reads | USD 0.125 per million | 0.03 | 0.03 |
 | **Total** | | **About 1.17** | **About 0.71** |
 
-Grouping assumes about 30 sacks in a request, which the event endpoint allows. Each sack still gets its own transaction, as DynamoDB advises keeping transactions small. The grouped figure fits the line for APIs in the monthly cost of the platform, and one request per event would add about USD 0.41 to a harvest month. The cost analysis settles that line with the volume of public queries.
+Grouping assumes about 30 sacks in a request, which the event endpoint allows. Each sack still gets its own transaction, as DynamoDB advises keeping transactions small. The [custody chain](custody-chain.md) completes this calculation with the strong reads, the trip index and the issued codes.
 
 ## 11. Assumptions and pending confirmations
 

@@ -36,7 +36,7 @@ Carriers have a smartphone with data in municipal seats and on main roads. Farm 
 
 | Topic | Where it is defined |
 |---|---|
-| Sack events, their states and valid transitions | [Sack states](../traceability/sack-states.md) |
+| Sack events, their states and valid transitions | [Sack states](../traceability/sack-states.md) and [custody chain](../traceability/custody-chain.md) |
 | Application flows and screens | Carrier application contract. The pilot does not build the application |
 | Identity and session of a carrier | [Identity and access](../security/identity-and-access.md) |
 | Retention of positions | [Personal data and retention](../security/personal-data-and-retention.md) |
@@ -179,7 +179,7 @@ The platform adds `received_at`, so the delay of a record needs no trust in the 
 
 ## 8. Duplicates and order
 
-**Duplicates.** A lost answer makes the phone send a record again, so repeats are normal. The positions table has the partition `trip_id` and the sort key `captured_at#record_id`, and custody events use `record_id` in the same way. A conditional write stores the first copy and answers `repeated` for the rest.
+**Duplicates.** A lost answer makes the phone send a record again, so repeats are normal. The positions table has the partition `trip_id` and the sort key `captured_at#record_id`, and custody events use the same value as their `event_id`. A conditional write stores the first copy and answers `repeated` for the rest.
 
 **Order of positions.** Order on the path does not matter, because the sort key orders the route by time of capture. The latest position of a trip comes from a query on that key, with no separate item to maintain, so a late arrival cannot replace a newer position.
 
@@ -223,7 +223,8 @@ The loss rate reflects outages far longer than the route should produce. As on t
 | Application closed by the system | Tracking stops | The notification disappears, and a break in the times of the route shows the missing period |
 | Battery runs out | Tracking stops | The queue survives on the phone and syncs after charging |
 | Sack code that fails its check symbol | The event is malformed | Rejected with a reason, and shown to the carrier as a task |
-| Well-formed code the platform does not know yet | The registration may still be queued at the farm | Stored as a gap, and it closes when the registration arrives |
+| Issued code with no registration yet | The registration may still be queued at the farm | Stored as a gap, and it closes when the registration arrives |
+| Well-formed code that was never issued | Forged, or a copying error | Stored as an anomaly for review |
 | Phone lost or broken | Records not yet sent are lost | The next event, such as the arrival at the center, shows the gap, and the operator completes the history |
 | Phone stolen | Risk to the stored data | The operator ends the session, and the store on the phone stays encrypted |
 | API or function down | Requests fail | Records stay on the phone, with no loss on the platform side |

@@ -30,7 +30,7 @@ A buyer trusts a sack only if each hand it passed through left a record that nob
 | Source | The trip of a carrier or the device of a center, each with its own counter |
 | Projection | The current state of a sack, computed from its events and stored for fast reads |
 | Version | A counter on the sack that detects two writes at the same moment |
-| Issued code | A code the platform has drawn and printed, not yet attached to a sack |
+| Issued code | A code the platform has drawn and printed, which no sack uses yet |
 
 ---
 
@@ -124,7 +124,14 @@ The five facts the pilot names map to these events. Registration with weight and
 
 ## 5. Responsible person and evidence
 
-Each event names one responsible person, taken from the token and never from the body of the request. `captured_by` must match `recorded_by`, so a queue can only be sent by the person who captured it. This rule comes from the carrier application, which refuses a sign-in by anyone else while a queue is pending.
+Each event names the person who captured it, and the platform checks that person against the token of the request, which the body cannot change.
+
+| Who sends | Rule | Reason |
+|---|---|---|
+| Carrier | `captured_by` must equal `recorded_by` | A phone belongs to one person, so only that person can send its queue |
+| Center operator | `recorded_by` must belong to the same center as `captured_by` | Stations are shared, so a queue from a WAN outage can be sent by the next shift |
+
+The event keeps both identities, so the responsible person stays `captured_by` even when a colleague sends the queue.
 
 A handover rests on a scan by the carrier, with its location and time.
 
