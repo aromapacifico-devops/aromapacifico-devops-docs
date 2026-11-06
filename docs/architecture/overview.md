@@ -116,10 +116,10 @@ The buyer flow deserves a note. A buyer does not sign in, so the sack code works
 | Measure | 200 farms | 1,000 farms | What changes |
 |---|---|---|---|
 | Device messages a harvest month | 108,000 | 540,000 | Nothing, all services scale by themselves |
-| Telemetry cost a harvest month | About USD 0.50 | About USD 2.50 | Linear |
+| Telemetry cost a harvest month | About USD 1 | About USD 5 | Linear |
 | Addresses in the cloud plan | Same | Same | Nothing, farms hold no VPC addresses |
 | Ingestion endpoint | One | One | Nothing |
-| Connections open at once | Up to 200 | Up to 1,000 | Inside IoT Core defaults, to be confirmed against quotas |
+| Node connections an hour | 200 | 1,000 | Nothing, each node keeps its own minute, far below the quota of 3,000 a second |
 
 The stress point at scale sits in the field. A larger pilot needs more shared gateways and more brigades, and neither one changes the cloud.
 
@@ -129,7 +129,7 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 
 | Item | Normal month, USD | Harvest month, USD |
 |---|---|---|
-| Telemetry ingestion | 0.24 | 0.50 |
+| Telemetry ingestion | 0.72 | 0.98 |
 | APIs for positions, sacks and queries | 0.64 | 1.34 |
 | Inference | 2.63 | 15.75 |
 | New objects in S3, for that month | 0.11 | 0.65 |
@@ -139,7 +139,7 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 | Secrets, four | 1.60 | 1.60 |
 | WAF, web ACL and three rules | 8.00 | 8.00 |
 | CloudWatch, alarms and logs | 2.20 | 2.20 |
-| **Total** | **171.72** | **186.35** |
+| **Total** | **172.20** | **186.83** |
 
 About 89 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. Removing the endpoints would save about USD 44 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
 
@@ -170,7 +170,7 @@ Development, test and production come from the same code with different variable
 |---|---|
 | Governance | Landing zone, cloud selection, requirement matrix |
 | Security | Identity and access, encryption and revocation, personal data and retention |
-| Network and connectivity | Collection center LAN, cloud addressing |
+| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity |
 | Automation and change | Implementation scope, environments and promotion |
 | Workloads | Sensors, telemetry ingestion, drone operating mode, sack identity |
 | Decisions and assumptions | Decision records and assumption register |
