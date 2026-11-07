@@ -107,7 +107,7 @@ A rejected sack ends its record at the port. What happens to that coffee afterwa
 
 ## 7. End of the trip
 
-A trip closes when each of its sacks has a delivery or a `reported_missing`. Tracking stops at that moment, so the phone reports no position after the work ends. A sack marked as missing keeps its state and appears on the review list, so one lost sack cannot keep a person under tracking.
+The trip to the port closes when each of its sacks has a delivery or a `reported_missing`. Tracking stops at that moment, so the phone reports no position after the work ends. A sack marked as missing keeps its state and appears on the review list, so one lost sack cannot keep a person under tracking.
 
 ## 8. Where the record stops
 

@@ -45,7 +45,7 @@ The platform collects the personal data it needs to operate the pilot, keeps ope
 | Name, national ID, phone, address | Farmer | Personal | User pool and farm table |
 | Name, national ID, phone, vehicle plate | Carrier | Personal | User pool and carrier table |
 | Farm location and lot polygon | Farmer | Personal when tied to the farmer | Farm table and object storage |
-| Carrier position in transit | Carrier | Personal | Position table and archive |
+| Carrier position during an open trip, paused outside the working day | Carrier | Personal | Position table and archive |
 | Farm readings | Farm | Operational | Readings table and archive |
 | Sack identifier and states | Sack | Operational | Sack table |
 | Drone photos and flight logs | Farm | Operational, personal if a person appears | Object storage |

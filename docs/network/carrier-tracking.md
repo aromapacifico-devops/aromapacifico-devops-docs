@@ -20,7 +20,7 @@ A carrier drives through stretches with no data, with sacks in custody and a tri
 
 | Term | Meaning in this document |
 |---|---|
-| Trip | The journey of one carrier from the first handover to the final delivery |
+| Trip | One leg of the journey of a carrier, to a center or to the port |
 | Position | One location of the phone, with the time it was captured |
 | Custody event | A record that a sack changed hands or arrived, such as a handover or an arrival |
 | Record | A position or a custody event in the local queue |
@@ -79,7 +79,7 @@ The answer comes after both writes, so a record leaves the phone only when it is
 
 ## 4. Capture on the phone
 
-The interval is fixed at 5 minutes during an open trip. A trip opens with the first handover and closes when each of its sacks has a delivery or a missing report, so the phone reports nothing outside a trip. The position of a person is personal data, and this limit keeps tracking to what the pilot needs.
+The interval is fixed at 5 minutes during an open trip. Each leg is a trip. The trip to a center opens with the first handover and closes when each of its sacks has an arrival or a missing report. The trip to the port opens with the first pickup and closes when each sack has a delivery or a missing report. The phone reports nothing outside a trip, and the carrier pauses tracking outside the working day, as the [application contract](../traceability/carrier-application-contract.md) defines. The position of a person is personal data, and this limit keeps tracking to what the pilot needs.
 
 | Option for the rate | For | Against | Result |
 |---|---|---|---|
@@ -158,6 +158,7 @@ The request goes to `POST /trips/{trip_id}/positions`, and custody events use `P
 | `captured_at` | Time of the record, correct when it arrives hours later |
 | `time_source` | `fix`, `corrected` or `device`, which says how far to trust the time |
 | `buffered` | Tells that the record waited in the queue |
+| `kind` | Absent on a position, `pause` or `resume` on a record that marks a break in tracking |
 | `lat`, `lon`, `accuracy_m` | Location, absent on a cycle with no fix |
 
 The platform adds `received_at`, so the delay of a record needs no trust in the phone. The answer lists one result per record.
