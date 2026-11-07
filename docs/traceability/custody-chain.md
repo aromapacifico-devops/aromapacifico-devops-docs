@@ -42,6 +42,7 @@ A buyer trusts a sack only if each hand it passed through left a record that nob
 | Format of the code and the label | [Sack identity](sack-identity.md) |
 | How records travel from a phone with no data | [Carrier tracking](../network/carrier-tracking.md) |
 | Queue at a center with no WAN | [Collection center LAN](../network/collection-center-lan.md) |
+| Delivery at the port and its evidence | [Port delivery](../network/port-delivery.md) |
 
 This document supplies the fields, the storage and the write. Recovery and the five-year deletion belong to the designs of recovery and persistence, and the fields each actor reads belong to the design of the views.
 
@@ -112,8 +113,8 @@ A center uses `POST /centers/{center_id}/events`, and a carrier uses `POST /trip
 | `returned_to_farm` | `center_id`, `reason` |
 | `dispatched_to_port` | `center_id`, `carrier_id` |
 | `picked_up` | `trip_id`, `center_id` |
-| `delivered_accepted` | `trip_id`, `received_by` |
-| `delivered_rejected` | `trip_id`, `received_by`, `reason` |
+| `delivered_accepted` | `trip_id`, `received_by_org`, `receipt_ref` |
+| `delivered_rejected` | `trip_id`, `received_by_org`, `receipt_ref`, `reason` |
 | `reweighed` | `weight_kg` |
 | `label_reprinted` | `center_id` |
 | `reported_missing` | `trip_id`, `note` |

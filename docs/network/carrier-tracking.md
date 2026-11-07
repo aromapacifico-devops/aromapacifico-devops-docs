@@ -79,7 +79,7 @@ The answer comes after both writes, so a record leaves the phone only when it is
 
 ## 4. Capture on the phone
 
-The interval is fixed at 5 minutes during an open trip. A trip opens with the first handover and closes with the final delivery, so the phone reports nothing outside a trip. The position of a person is personal data, and this limit keeps tracking to what the pilot needs.
+The interval is fixed at 5 minutes during an open trip. A trip opens with the first handover and closes when each of its sacks has a delivery or a missing report, so the phone reports nothing outside a trip. The position of a person is personal data, and this limit keeps tracking to what the pilot needs.
 
 | Option for the rate | For | Against | Result |
 |---|---|---|---|
@@ -190,7 +190,7 @@ The platform adds `received_at`, so the delay of a record needs no trust in the 
 - Lateness alone never rejects an event. A valid event that arrives late is stored and takes its place in the history.
 - Logical order sorts by `captured_at`, then by the position of the event along the route, then by `seq`, with `received_at` kept as evidence.
 
-**Clock.** A record more than 5 minutes ahead of `received_at`, or with `time_source` set to `device`, is stored and flagged. A custody event is never refused over its clock, because refusing it would lose proof of custody. An operator reviews flagged records.
+**Clock.** A record more than 5 minutes ahead of `received_at`, or with `time_source` set to `device`, is stored and flagged. A custody event is never refused over its clock, because refusing it would lose proof of custody. The center operator reviews flagged records.
 
 **Model of the rules.** The queue and the API ran in a simulation of one phone, over 5,000 runs of 2 to 6 days. The rates are hostile by choice and come from no field measurement, with outages of up to 33 hours, 10 percent of requests lost, 10 percent of answers lost, 5 percent of custody events invalid, and sessions that expire during a trip.
 
@@ -225,7 +225,7 @@ The loss rate reflects outages far longer than the route should produce. As on t
 | Sack code that fails its check symbol | The event is malformed | Rejected with a reason, and shown to the carrier as a task |
 | Issued code with no registration yet | The registration may still be queued at the farm | Stored as a gap, and it closes when the registration arrives |
 | Well-formed code that was never issued | Forged, or a copying error | Stored as an anomaly for review |
-| Phone lost or broken | Records not yet sent are lost | The next event, such as the arrival at the center, shows the gap, and the operator completes the history |
+| Phone lost or broken | Records not yet sent are lost | The next event, such as the arrival at the center, shows the gap, and the center operator completes the history |
 | Phone stolen | Risk to the stored data | The operator ends the session, and the store on the phone stays encrypted |
 | API or function down | Requests fail | Records stay on the phone, with no loss on the platform side |
 
