@@ -86,7 +86,7 @@ Each event stores the date, the time and the responsible person. Some events cha
 | `reception_corrected_to_accepted`, `reception_corrected_to_rejected` | Center operator | Changes a decision, with a reason |
 | `returned_to_farm` | Center operator | Sends a rejected sack back to `in_preparation` |
 | `dispatched_to_port` | Center operator | Moves it to `in_transit_to_port` |
-| `delivered_accepted`, `delivered_rejected` | Carrier, naming who received | Ends the record |
+| `delivered_accepted`, `delivered_rejected` | Carrier, with the receiver and its receipt | Ends the record |
 | `arrived_at_center` | Carrier | No change of state |
 | `picked_up` | Carrier | No change of state, opens the trip to the port |
 | `reweighed` | Farmer | No change of state, records a new weight on re-entry |
@@ -129,7 +129,7 @@ An event that does not fit the history is never lost. Each event ends in one of 
 
 A gap moves the state because the person who records the later step has seen the sack. A center that received a sack must be able to dispatch it while the handover waits on a phone with no data. The late event then takes its place, and the gap closes with no action from anyone.
 
-A gap still open after 48 hours appears on the list of the platform operator, and so does every anomaly. The operator resolves them with the people involved, and any change is a new event, so the anomaly remains in the history.
+A gap still open after 48 hours appears on the review list of the center operator, and so does every anomaly. The list belongs to the center that handled the sack, or to the center that printed its label if none has handled it. The operator resolves them with the people involved, and any change is a new event, so the anomaly remains in the history.
 
 | Case | Why it does not fit | Outcome |
 |---|---|---|
@@ -162,7 +162,7 @@ The application prevents most of these at the moment of capture, when it has the
 | Terminal, re-entry as a new sack | States only move forward | Two codes for one sack, and the buyer may lose sight of the rejection | Discarded |
 | Terminal, no re-entry | Simplest | Coffee that returns to the farm leaves the platform with no record | Discarded |
 
-**After a rejection at the port.** The record ends, as with an accepted delivery. A sack that travels back does so outside the platform, as a commercial claim.
+**After a rejection at the port.** The record ends, as with an accepted delivery. A sack that travels back does so outside the platform, as a commercial claim. [Port delivery](../network/port-delivery.md) defines the flow and its evidence.
 
 **Correction.** A center operator can reverse a reception decision while the sack is still at the center, with a mandatory reason. The correction is a new event, so both the first decision and the change remain visible, along with who made each. Once the sack leaves the center, its reception can no longer change.
 
@@ -199,13 +199,13 @@ The test covers the rules and comes from no field data.
 | Failure | Effect | Response |
 |---|---|---|
 | Carrier with no data at the handover | The center sees a sack it was not expecting | Reception applies with a gap, and the handover closes it on return |
-| Wrong clock on a phone | A handover sorts after the reception | Anomaly, the state stays correct, and the operator reviews it |
+| Wrong clock on a phone | A handover sorts after the reception | Anomaly, the state stays correct, and the center operator reviews it |
 | Two carriers claim one sack | Second handover | Anomaly, kept with both identities |
 | Sack lost on the road | No more events | Stays in transit, with `reported_missing` for review. The state keeps saying where it was last known |
 | Operator accepts by mistake | A wrong decision | Correction with a reason, before dispatch |
-| Operator dispatches the wrong sack | A wrong record | Operator review, since the reception can no longer change |
+| Operator dispatches the wrong sack | A wrong record | Review by the center operator, since the reception can no longer change |
 | Two events on one sack at the same moment | The version condition fails | The function replays and writes again |
-| Phone lost with queued events | Those events never arrive | Gaps remain open, and the operator completes the history |
+| Phone lost with queued events | Those events never arrive | Gaps remain open, and the center operator completes the history |
 | Function fails | The event is not stored | The sender keeps it and retries |
 
 ## 10. Cost
@@ -227,7 +227,7 @@ Grouping assumes about 30 sacks in a request, which the event endpoint allows. E
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
 | A sack rejected at a center physically returns to its farm | Federation | The return event changes, and a new code per attempt may fit better |
-| The carrier can record the delivery at the port, naming who received it | Federation | The port needs another role or a record from a third party |
+| The carrier can record the delivery at the port, with the receiver and its receipt | Federation | The port needs another role or a record from a third party |
 | Inspection at a center happens after arrival, in the same place | Center operation | Arrival and reception may merge into one event |
 | A window of 48 hours fits how long a gap usually lasts | First harvest | The review list grows or misses cases |
 | A history rarely exceeds 20 events | First harvest | Replay reads more, with a small effect on cost |

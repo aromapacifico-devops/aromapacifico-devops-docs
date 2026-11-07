@@ -48,7 +48,6 @@ The platform collects the personal data it needs to operate the pilot, keeps ope
 | Carrier position in transit | Carrier | Personal | Position table and archive |
 | Farm readings | Farm | Operational | Readings table and archive |
 | Sack identifier and states | Sack | Operational | Sack table |
-| Name of who received a sack at the port | Port receiver | Personal | Sack event table |
 | Drone photos and flight logs | Farm | Operational, personal if a person appears | Object storage |
 | Operator accounts and logs | Staff | Personal | User pool and audit logs |
 

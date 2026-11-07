@@ -10,6 +10,7 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Carrier data on the phone](carrier-data-on-phone.md) | Positions for 24 hours, custody events until confirmed |
 | [Sack event history](sack-event-history.md) | State derived from events, return after a center rejection, port rejection ends the record |
 | [Custody chain storage](custody-chain-storage.md) | Pre-printed labels, two tables, handover by scan with location |
+| [Port delivery evidence](port-delivery-evidence.md) | Receiver and receipt reference, delivery stays final |
 | [Drone operating mode](drone-operating-mode.md) | Combination of area and precision work |
 | [pH measurement](ph-measurement.md) | Soil probe, with a manual reading as a fallback |
 | [Flight log and fumigation](flight-log-and-fumigation.md) | Two logs, one before authorization and one before closure |
