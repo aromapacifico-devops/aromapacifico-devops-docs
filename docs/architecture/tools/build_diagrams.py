@@ -277,7 +277,7 @@ def overview():
 
     # Delivery
     p.zone("E. Infrastructure delivery", 570, 1436, 1620, 150, *G["dlv"])
-    p.card("Terraform modules", "Versioned with Git tags", 590, 1474, 190, 66, "rep", net="server", impl=True)
+    p.card("Terraform modules", "One repository per module", 590, 1474, 190, 66, "rep", net="server", impl=True)
     p.card("Infrastructure repository", "Root, environments, no secrets", 800, 1474, 200, 66, "root", net="server", impl=True)
     p.code("C01", 966, 1468)
     p.card("Pull request", "fmt, validate, security scan", 1020, 1474, 180, 66, "pr", icon="organizations", color=CTRL, impl=True)
@@ -287,7 +287,7 @@ def overview():
     p.card("Apply", "OIDC role, no static keys", 1590, 1474, 170, 66, "app", icon="organizations", color=CTRL, impl=True)
     p.card("Remote state", "S3, KMS, native lock file", 1780, 1474, 190, 66, "st", icon="s3", color=STORAGE, impl=True)
     p.code("C02", 1936, 1468)
-    p.card("Destroy", "On demand, nightly outside production", 1990, 1474, 180, 66, "des", icon="organizations", color=CTRL, impl=True)
+    p.card("Destroy", "On demand and each night", 1990, 1474, 180, 66, "des", icon="organizations", color=CTRL, impl=True)
     p.text("No production change between 05:00 and 18:00 in harvest week, except during an incident. The pipeline can bring an environment up and down, so credits are spent only while it is in use.", 590, 1546, 1580, 30, size=11)
     for a, b in (("rep", "root"), ("root", "pr"), ("pr", "plan"), ("plan", "ok"), ("ok", "app"), ("app", "st"), ("st", "des")):
         p.edge(a, b, "", CTRL)
@@ -561,7 +561,7 @@ def cloud_deployment():
     p.step("Person approves<br>protected environment", 760, 824, 170, 58, cid="ok", stroke=FAIL)
     p.step("Apply<br>OIDC deployment role", 970, 824, 170, 58, cid="apply")
     p.group("Bring down", 1230, 796, 210, 96, stroke="#0B3D91", sw=2)
-    p.step("Destroy, on demand<br>and nightly outside prod", 1244, 824, 182, 58, cid="dst")
+    p.step("Destroy, on demand<br>and each night", 1244, 824, 182, 58, cid="dst")
     p.badge("C01", 240, 800)
     p.badge("C09", 1160, 800)
     p.note("Validation evidence stays with each pull request. No production change between 05:00 and 18:00 in a harvest week, except during an incident.", 1460, 804, 344, 80)
@@ -727,10 +727,10 @@ def landing_zone():
 
 
 def environments():
-    p = Page("06 Environments", 1860, 1040, "Environments and controlled promotion: same code, separate accounts, ranges and data")
-    envs = [("Development", 40, "#F2F3F4", [("Purpose", "Try changes"), ("Target account", "Development"), ("Lab account", "Optional, one member's credits"), ("Range", "10.50.0.0/16"), ("Zones", "One"), ("Data", "Simulated nodes"), ("In code", "Designed, variables can follow"), ("Stays up", "Only while in use")]),
-            ("Test", 640, "#EBF5FB", [("Purpose", "Validate before production, first plan"), ("Target account", "Test"), ("Lab account", "One member's credits"), ("Range", "10.60.0.0/16"), ("Zones", "One"), ("Data", "Synthetic readings, one sample farm"), ("In code", "Variables and plan, applied in the lab"), ("Stays up", "Hours, destroyed every night")]),
-            ("Production", 1240, "#FDEDEC", [("Purpose", "The pilot"), ("Target account", "Production"), ("Lab account", "Another member's credits, short demo"), ("Range", "10.70.0.0/16"), ("Zones", "Two"), ("Data", "Real, after the pilot starts"), ("In code", "Variables and plan, apply needs approval"), ("Stays up", "Short demo in the lab, always in the pilot")])]
+    p = Page("06 Environments", 1860, 1040, "Environments and controlled promotion: same code, separate ranges, state and data")
+    envs = [("Development", 40, "#F2F3F4", [("Purpose", "Try changes"), ("Target account", "Development"), ("Lab account", "Shared credit account, optional"), ("Range", "10.50.0.0/16"), ("Zones", "One"), ("Data", "Simulated nodes"), ("In code", "Designed, variables can follow"), ("Stays up", "Only while in use")]),
+            ("Test", 640, "#EBF5FB", [("Purpose", "Validate before production, first plan"), ("Target account", "Test"), ("Lab account", "Shared credit account"), ("Range", "10.60.0.0/16"), ("Zones", "One"), ("Data", "Synthetic readings, one sample farm"), ("In code", "Variables and plan, applied in the lab"), ("Stays up", "Hours, destroyed every night")]),
+            ("Production", 1240, "#FDEDEC", [("Purpose", "The pilot"), ("Target account", "Production"), ("Lab account", "Shared credit account"), ("Range", "10.70.0.0/16"), ("Zones", "Two"), ("Data", "Real, after the pilot starts"), ("In code", "Variables and plan, apply needs approval"), ("Stays up", "Hours in the lab, always in the pilot")])]
     for name, x, fill, rows in envs:
         p.zone(name, x, 70, 580, 330, fill, "#566573")
         y = 104
@@ -739,14 +739,14 @@ def environments():
             p.text(v, x + 170, y, 400, 30, size=12)
             y += 35
     p.zone("Controlled promotion: a change moves through the same pipeline", 40, 416, 1780, 200, "#FFFFFF", "#0B3D91")
-    steps = [("Pull request", "fmt, validate, security scan, cross review", "s1"), ("Merge to main", "Version tag on the module", "s2"), ("Plan and apply test", "Automatic, evidence kept", "s3"), ("Validation", "Checks on test", "s4"), ("Plan production", "Output for the approver", "s5"), ("Person approves", "Protected environment", "s6"), ("Apply production", "OIDC role, outside the freeze", "s7")]
+    steps = [("Pull request", "fmt, validate, security scan, cross review", "s1"), ("Merge to main", "Version tag on the module", "s2"), ("Plan and apply test", "Tag updated in envs/test", "s3"), ("Validation", "Smoke test on test", "s4"), ("Plan production", "Tag updated in envs/prod", "s5"), ("Person approves", "Protected environment", "s6"), ("Apply production", "OIDC role, outside the freeze", "s7")]
     for i, (t, sub, cid) in enumerate(steps):
         p.card(t, sub, 60 + i * 250, 462, 218, 84, cid, stroke=FAIL if cid == "s6" else "#7F8C8D")
     for a, b in zip(steps, steps[1:]):
         p.edge(a[2], b[2], "", CTRL, width=2)
-    p.text("Rollback: revert the version in the environment variables and run the same pipeline. The state and the Git history keep what was deployed. No production change between 05:00 and 18:00 in a harvest week, except during an incident.", 60, 560, 1740, 40, size=12)
+    p.text("Rollback: point the root of the environment to the previous module tag and run the same pipeline. The state and the Git history keep what was deployed. No production change between 05:00 and 18:00 in a harvest week, except during an incident.", 60, 560, 1740, 40, size=12)
     p.zone("Bring up and down: credits are spent only while an environment is in use", 40, 632, 1780, 230, "#FFFFFF", "#0B3D91")
-    ups = [("Bootstrap, once", "State bucket and OIDC role, never destroyed", "u1"), ("Deploy workflow", "Manual, choose the environment", "u2"), ("Environment up", "About USD 0.09 an hour with VPN and endpoints", "u3"), ("Destroy workflow", "Manual, or nightly outside production", "u4"), ("Environment down", "Only the state bucket remains, near zero", "u5")]
+    ups = [("Bootstrap, once", "State buckets and OIDC roles, never destroyed", "u1"), ("Deploy workflow", "Manual, choose the environment", "u2"), ("Environment up", "About USD 0.09 an hour with VPN and endpoints", "u3"), ("Destroy workflow", "Manual, or each night", "u4"), ("Environment down", "Only bootstrap remains, near zero", "u5")]
     for i, (t, sub, cid) in enumerate(ups):
         p.card(t, sub, 60 + i * 352, 676, 310, 84, cid)
     for a, b in zip(ups, ups[1:]):
@@ -754,7 +754,7 @@ def environments():
     p.edge("u5", "u2", "next session", CTRL, dashed=True, exit=(0.5, 1), entry=(0.5, 1), points=[(1604, 790), (567, 790)], width=2)
     p.text("Switches turn off the VPN and the interface endpoints when a session does not need them. Forgotten for a month, a full environment would burn about USD 60, which is why the nightly destroy exists.", 60, 806, 1740, 44, size=12)
     p.legend(40, 878, 700, [(CTRL, False, "Pipeline step"), (CTRL, True, "Next session starts again")])
-    p.note("The lab uses separate credit accounts for test and production, with no AWS Organization, because joining one moves a free account to the paid plan. The target design keeps the seven accounts. Azure stays undeployed.", 760, 878, 1060, 74)
+    p.note("The lab uses one credit account for every environment, with no AWS Organization, because joining one moves a free account to the paid plan. The target design keeps the seven accounts. Azure stays undeployed.", 760, 878, 1060, 74)
     return p
 
 
