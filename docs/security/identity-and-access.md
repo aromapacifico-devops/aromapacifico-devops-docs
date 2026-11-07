@@ -121,8 +121,9 @@ No function role holds the permission to write an authorization, so a compromise
 | Verification and estimation functions | Same pattern | Own prefix |
 | Domain functions | One role per domain, sacks, trips and drones | Own tables |
 | IoT rule | Send to one queue and one delivery stream | Named resources |
-| Pipeline, plan stage | Read-only | One role per account |
-| Pipeline, apply stage | Deploy, limited to the protected environment | One role per account |
+| Firehose delivery | Write to the telemetry archive | Named bucket and key |
+| Pipeline, plan stage | Read-only | One role per environment |
+| Pipeline, apply stage | Deploy, limited to the protected environment | One role per environment |
 
 GitHub OIDC replaces stored keys. AWS trusts tokens issued for this organization and repository, and the apply role also requires the protected production environment, so a branch cannot deploy to production by itself.
 
@@ -167,8 +168,9 @@ The infrastructure code creates the identities of the patterns it implements. Hu
 | Ingestion function role | Ingestion module |
 | Focus confirmation function role | Function module |
 | IoT rule role | Ingestion module |
-| Pipeline plan and apply roles | Pipeline |
-| KMS keys | All modules |
+| Firehose delivery role | Ingestion module |
+| Pipeline plan and apply roles, created in bootstrap | Pipeline |
+| KMS keys, with the platform key created in bootstrap | All modules |
 
 ## 12. Assumptions and pending confirmations
 

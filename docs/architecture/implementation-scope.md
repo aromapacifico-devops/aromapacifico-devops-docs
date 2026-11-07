@@ -57,15 +57,17 @@ The project asks for three deployment pipelines, one each for the platform, the 
 | Code | Box | Main resources | Reused by |
 |---|---|---|---|
 | C01 | Repository, root and environments | Root per environment, providers, tags, variables with no secrets | Each environment |
-| C02 | Remote state | S3 bucket with KMS and native lock file | Each environment |
+| C02 | Remote state | One S3 bucket per environment, platform KMS key and native lock file | Each environment |
 | C03 | VPC, subnets and routes | VPC, seven subnets, route tables, gateway endpoints, three interface endpoints for IoT Core, S3 and the private API | Development, test, production |
 | C04 | Link to one collection center | Virtual private gateway, customer gateway, VPN with its keys in Secrets Manager, routes to logistics and local servers | Cauca now, Huila and Tolima by variables |
-| C05 | Platform identities and encryption | KMS keys, function roles, pipeline OIDC roles | All modules |
+| C05 | Platform identities and encryption | Data and objects KMS keys, function, IoT rule and Firehose roles, plus the pipeline roles created in bootstrap | All modules |
 | C06 | Permanent cloud firewall rules | Security groups of the interface endpoints, default deny | Each environment |
 | C07 | Telemetry ingestion pattern | IoT rule, SQS and dead letter queue, Firehose, ingestion function, DynamoDB, S3 archive | Each environment |
 | C08 | Inference function pattern | S3 bucket, EventBridge rule, function, dead letter queue, alarm, case table, permissions | Other triggers |
-| C09 | Pipeline, approval and evidence | Workflows for plan, deploy and destroy, protected environment | Each environment |
+| C09 | Pipeline, approval and evidence | Workflows for plan, deploy, destroy and drift, shared checks, protected environment | Each environment |
 | C10 | Reusable module of one farm | IoT thing, group membership, certificate, policy attachment | Each farm |
+
+Two resources of C05 live in bootstrap, because they must exist before the first run. The platform key encrypts the state, and the pipeline roles are what the pipeline needs in order to start.
 
 The function pattern shows the four pieces asked of it, namely the trigger, the read permission on the object, the write permission on the result and the invoke permission on the inference service. Rekognition and Bedrock are called and never created, since they are managed services.
 
@@ -105,6 +107,8 @@ Changing environment means changing variables. The same code then gives a VPC in
 
 Network, security and functional resources stay in separate modules, so a functional module creates no network or identity. Each one receives what it needs as inputs.
 
+The modules of an environment reference each other, since interface endpoints need security groups and security groups need the VPC. One root with one state resolves those references per resource, and a plan of the whole environment works from nothing, even after a destroy. Separate states per domain were discarded for that reason. Their data sources would fail on an environment that comes down every night, and the mutual references could not cross two states.
+
 ## 6. Reusable module of one farm
 
 The platform has no per-farm network. A farm exists in the cloud as an identity, so its module is small and repeats with no effort.
@@ -118,14 +122,23 @@ The platform has no per-farm network. A farm exists in the cloud as an identity,
 
 ```hcl
 module "farm" {
-  source = "git::https://github.com/aromapacifico-devops/aromapacifico-devops-infra.git//modules/farm?ref=v1.0.0"
+  source = "git::https://github.com/aromapacifico-devops/terraform-aws-farm.git?ref=v1.0.0"
 
-  environment    = "test"
-  farm_id        = "f-41-0137"
-  department     = "cauca"
-  node_id        = "node-41-00137"
-  csr_pem        = var.farm_csr_pem
-  iot_policy_name = module.ingestion.iot_policy_name
+  providers = {
+    aws.project = aws.principal
+  }
+
+  client      = var.client
+  project     = var.project
+  environment = var.environment
+
+  iot_policy_name  = module.telemetry_ingestion.iot_policy_name
+  thing_group_name = module.telemetry_ingestion.thing_group_names["cauca"]
+
+  farm_id    = "f-41-0137"
+  department = "cauca"
+  node_id    = "node-41-00137"
+  csr_pem    = var.farm_csr_pem
 }
 ```
 
@@ -135,25 +148,47 @@ module "farm" {
 
 ## 7. Module and repository layout
 
-The code lives in the infrastructure repository for now, with modules separated from the roots of each environment.
+Modules are products and the infrastructure repository is their consumer, so the two stay apart. Each module lives at the root of its own repository, with its own owner, tests and version.
+
+| Repository | Holds | Boxes |
+|---|---|---|
+| `terraform-aws-network` | VPC, subnets, routes, endpoints and the link to one center | C03, C04 |
+| `terraform-aws-security` | Platform identities, keys and permanent firewall rules | C05, C06 |
+| `terraform-aws-telemetry-ingestion` | Ingestion path | C07 |
+| `terraform-aws-inference-function` | Inference function pattern | C08 |
+| `terraform-aws-farm` | Identity of one farm | C10 |
+| `terraform-aws-module-template` | Skeleton that starts a new module, copied and never consumed | |
+| `aromapacifico-devops-infra` | Roots, bootstrap and deployment workflows | C01, C02, C09 |
+| `.github` | Organization profile and shared workflows | C09 |
+
+The infrastructure repository has this layout.
 
 | Path | Holds |
 |---|---|
-| `modules/` | Network, security, telemetry ingestion, inference function, farm |
-| `envs/` | Root and variables of each environment |
-| `.github/workflows/` | Plan, deploy and destroy workflows |
+| `bootstrap/` | State buckets, platform keys, OIDC provider, pipeline roles and budget |
+| `envs/dev`, `envs/test`, `envs/prod` | Root, backend and variables of each environment |
+| `.github/workflows/` | Plan, deploy, destroy, drift and bootstrap workflows |
 
-Each module carries its own `sample/` and `README`, with inputs, outputs and the box it implements. Modules are consumed by version tag, so moving them to other repositories later changes only the `source` of each call.
+Each module carries its own `sample/`, `examples/`, `tests/` and `README`, with inputs, outputs and the box it implements. A root consumes a module through an exact `vX.Y.Z` tag. Each environment has its own root, so test and production can pin different versions, which is what promotion moves between them.
+
+A change that crosses modules takes more steps here than in one shared repository, since each one passes through its own review and tag. The team accepts that cost in exchange for independent releases, clean version tags and a layout that the Terraform Registry accepts with no change. The interface of each module is agreed in its README first, which keeps those crossings few. During development, a root in `envs/dev` may point to a branch to try a change before it is released.
 
 ## 8. Evidence
 
 | Evidence | Where |
 |---|---|
 | `terraform fmt -check` and `terraform validate` | Each pull request |
-| Security scan | Each pull request |
-| `terraform plan` of the environment | Pipeline output, attached to the pull request |
+| `terraform test` with a mocked provider | Each pull request of a module |
+| TFLint and the check of the project rules | Each pull request |
+| Security scan with Checkov | Each pull request |
+| Review of the workflows with zizmor and actionlint | Each pull request |
+| Cost difference from Infracost, for the resources it can price | Each pull request of a root |
+| `terraform plan` of the environment | Readable summary in the pull request, and the saved plan in the private state bucket |
+| Smoke test with a simulated reading | Pipeline, after applying test |
 | Approval before production | Protected environment history |
-| No secrets in repository or state | Scanner and review of the state |
+| No secrets in repository or state | gitleaks, GitHub push protection and review of the state |
+
+Repositories are public and a saved plan file can hold sensitive values, so the binary plan never reaches a public artifact. Third-party actions are pinned to a full commit SHA, and tools install by exact version with a verified checksum.
 
 ## 9. Assumptions and pending confirmations
 
@@ -161,4 +196,3 @@ Each module carries its own `sample/` and `README`, with inputs, outputs and the
 |---|---|---|
 | The farm module fits inside the 14 hours of the workload pattern | Team | Hours move from another box, the total stays at 100 |
 | Destroy fits inside the pipeline hours | Team | Same |
-| Repository layout, to be reviewed later | Team | The `source` of each module changes, the boxes stay |

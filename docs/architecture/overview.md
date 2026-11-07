@@ -162,7 +162,7 @@ The infrastructure code implements the pattern of network, security and one envi
 
 ## 9. Environments
 
-Development, test and production come from the same code with different variables, accounts and address ranges. A change moves from development to test to production through the pipeline, and production needs a person's approval. The environments document explains promotion, rollback, the change window and how the demonstration runs on credit accounts.
+Development, test and production come from the same code with different variables, accounts and address ranges. A change moves from development to test to production through the pipeline, and production needs a person's approval. The environments document explains promotion, rollback, the change window and how the demonstration runs on one credit account.
 
 ## 10. Where each subject is developed
 

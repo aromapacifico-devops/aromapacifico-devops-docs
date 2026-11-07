@@ -22,4 +22,7 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Object storage access](object-storage-access.md) | Gateway endpoints for S3 and DynamoDB |
 | [Center WAN capacity](center-wan-capacity.md) | Priority for logistics, visitors capped at 10 percent |
 | [Farm module](farm-module.md) | One reusable module, certificate from a CSR |
-| [Demonstration accounts](demonstration-accounts.md) | Standalone credit accounts, environments that go up and down |
+| [Demonstration account](demonstration-accounts.md) | One standalone credit account, environments that go up and down |
+| [Repository structure](repository-structure.md) | One repository per module, separate from the infrastructure repository |
+| [State per environment](state-per-environment.md) | One root, one state and one bucket per environment |
+| [Infrastructure checks](infrastructure-checks.md) | Automatic checks on each pull request, with pinned tools |
