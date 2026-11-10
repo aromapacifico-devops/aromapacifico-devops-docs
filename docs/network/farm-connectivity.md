@@ -42,6 +42,7 @@ The node lives on a solar kit and sleeps almost all the time. Coverage on a coff
 | What the node measures, its energy and installation | [Sensors and operation](../iot/sensors-and-operation.md) |
 | What happens to a reading after IoT Core | [Telemetry ingestion](../iot/telemetry-ingestion.md) |
 | Farms with no coverage at all | [Out-of-coverage farms](../adr/out-of-coverage-connectivity.md) |
+| Hardware, energy, environment and firmware of the node | [Autonomous farm node specification](../iot/autonomous-node.md) |
 | Device identity and revocation | [Encryption, secrets and revocation](../security/encryption-secrets-revocation.md) |
 
 This document covers a node on the cellular path, with signal and without it. The node keeps the same buffer and the same rules on the LoRa path, while its radio, frames and configuration path belong to the design of out-of-coverage farms. The generation of the modem stays open until coverage in Cauca, Huila and Tolima is confirmed, and nothing here depends on one in particular.
@@ -117,7 +118,7 @@ Energy assumes 1.5 W on average, 45 seconds for a good connection and 120 second
 
 One rule covers reading, retry and configuration. A failed attempt needs no retry logic of its own, because the next hour is the retry, and a node whose certificate was revoked simply fails each hour with no special case. Short windows of signal are also caught, which a node on a 4-hour rhythm would miss. Grain above 40 °C is the most urgent alert of the design, so a farmer who starts drying should wait one hour at most for the node to begin measuring.
 
-The cost is small. In the worst case, with every attempt failing, the modem uses 1.2 Wh a day, 4 percent of the 30.7 Wh daily budget of the node. A node already drying connects hourly under any of the three rules. For a node with crop readings only, the monthly data grows from about 1.4 MB to about 5.1 MB.
+The cost is small. In the worst case, with every attempt failing, the modem uses 1.2 Wh a day, 5 percent of the 24.6 Wh daily ceiling of the node. A node already drying connects hourly under any of the three rules. For a node with crop readings only, the monthly data grows from about 1.4 MB to about 5.1 MB.
 
 The fixed minute also removes the rush that follows an outage. Nodes on one shared schedule would all wake together, and all drain together when a tower returns. Each node keeps its own minute, so the load spreads evenly across the hour with no random delay and no wait added to the alert.
 
@@ -333,7 +334,7 @@ The larger cost of this design falls on the farm. About 5.5 MB a month per node 
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
-| A connection attempt averages 1.5 W, 45 seconds with signal and 120 seconds at most without | Field measurement with the chosen modem | The share of the energy budget scales linearly, from 4 percent at the worst case |
+| A connection attempt averages 1.5 W, 45 seconds with signal and 120 seconds at most without | Field measurement with the chosen modem | The share of the energy ceiling scales linearly, from 5 percent at the worst case |
 | One connection costs about 6 KB in TLS and MQTT overhead | First nodes | The data plan scales linearly |
 | The carrier gives network time, or UDP port 123 is reachable | Carrier and first nodes | The node needs another time source, since with no time it cannot open TLS |
 | The node has a real-time clock on backup power | Node specification | Readings wait for a correction from elapsed time, and a full power loss costs their time |
