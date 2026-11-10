@@ -2,7 +2,7 @@
 
 This document sizes the link of a collection center and the demand on its access points. It takes the 100 Mbps symmetric link of the center, the reference rate per active client and the zones of the LAN, and it shows the load of the approved design scenario, a stress scenario and the case in which every client is active. It separates what the clients request from what the traffic classes allow, validates each direction of the link, sizes the reserve for the operation, calculates the synchronization of a drone on the uplink, defines the guarantees, caps and priority of each class by direction, and states the demand that each access point must serve. Each figure carries its origin, and every assumption has a sensitivity or an owner who confirms it.
 
-The decision on the capacity of the center WAN is not changed. This document refines it with values and calculations that agree with it.
+The link stays at 100 Mbps, with priority for logistics and drone synchronization and a cap on visitors, as the decision on center WAN capacity sets. This document gives the values behind that decision and requires the link to be dedicated, with a committed rate, so that the guarantees of the traffic classes hold.
 
 ## Contents
 
@@ -15,6 +15,8 @@ The decision on the capacity of the center WAN is not changed. This document ref
 7. Traffic classes by zone
 8. Wi-Fi demand for each access point
 9. Assumptions and pending confirmations
+10. Cost of the link
+11. Sources
 
 ### Terms used
 
@@ -36,26 +38,28 @@ The decision on the capacity of the center WAN is not changed. This document ref
 
 | Figure | Value | Origin |
 |---|---|---|
-| Link | 100 Mbps symmetric per center, shared with the operation | Statement of the case |
-| Reference rate | 2 Mbps down and 0.5 Mbps up for each active client | Statement of the case |
-| Clients by zone | Management 7, Support 7, Logistics 22, Transport 20, Visitors 10, total 66 | Earlier decision, LAN document |
-| Simultaneous clients of the design | 40 | Earlier decision, record on center WAN capacity |
-| Priority | Logistics and drone synchronization first | Earlier decision, same record |
-| Cap of visitors | 10 percent of the link, 10 Mbps. The record does not name a direction, and this document applies it to both | Earlier decision, same record, with the direction as an assumption |
-| Sacks | Up to 400 a day in harvest | Statement of the case |
-| Drone batch | 500 photos of 3 MB, 1.5 GB or 12,000 megabits, about 10 minutes at 20 Mbps | Earlier decision, LAN document, as an ideal calculation |
-| Mission download of the drone station before departure | Done at the center | Earlier decision, drone operating mode |
-| Split of the 40 active clients by zone | See section 2 | New assumption |
-| Stress scenario of 50 clients | See section 2 | New assumption |
-| System traffic | 1 Mbps in each direction | New assumption |
-| Mission download burst | 10 Mbps | New assumption |
-| Events for each sack and size of an event | 5 events of 2 KB with their responses | New assumption, with sensitivity in section 5 |
-| Efficiency of a transfer and of Wi-Fi | Ranges in sections 6 and 8 | New assumptions, to measure |
-| Guarantees and caps by class | Section 7 | New values derived from the figures above |
+| Link | 100 Mbps symmetric per center, shared with the operation | Pilot definition |
+| Type of link | Dedicated, with a committed rate in each direction | Requirement of this design, section 7 |
+| Reference rate | 2 Mbps down and 0.5 Mbps up for each active client | Pilot definition |
+| Clients by zone | Management 7, Support 7, Logistics 22, Transport 20, Visitors 10, total 66 | Collection center LAN |
+| Simultaneous clients of the design | 40 | Decision on center WAN capacity |
+| Priority | Logistics and drone synchronization first | Same decision |
+| Cap of visitors | 10 percent of the link, 10 Mbps. The record does not name a direction, and this document applies it to both | Same decision, with the direction as an assumption |
+| Sacks | Up to 400 a day in harvest | Pilot definition |
+| Drone batch | 500 photos of 3 MB, 1.5 GB or 12,000 megabits, about 10 minutes at 20 Mbps | Collection center LAN, as an ideal calculation |
+| Mission download of the drone station before departure | Done at the center | Drone operating mode |
+| Tunnel packet size | Inner MTU of 1,446 bytes and TCP segment of 1,406 bytes | AWS Site-to-Site VPN documentation |
+| Split of the 40 active clients by zone | See section 2 | Assumption |
+| Stress scenario of 50 clients | See section 2 | Assumption |
+| System traffic | 1 Mbps in each direction | Assumption |
+| Mission download burst | 10 Mbps | Assumption |
+| Events for each sack and size of an event | 5 events of 2 KB with their responses | Assumption, with sensitivity in section 5 |
+| Efficiency of a transfer and of Wi-Fi | Ranges in sections 6 and 8 | Assumptions, to measure |
+| Guarantees and caps by class | Section 7 | Derived from the figures above |
 
 ## 2. Scenarios
 
-The design scenario is the 40 simultaneous clients of the accepted decision. The stress scenario of 50 clients is used only to test the design and is not a service that the design promises. The case in which all 66 clients are active shows what the link cannot do. Whole clients are used in every zone.
+The design scenario is the 40 simultaneous clients of the decision on center WAN capacity. The stress scenario of 50 clients only tests the design, and the design promises no service at that load. The case in which all 66 clients are active shows what the link cannot do. Whole clients are used in every zone.
 
 Demand if every client is active, from the clients of the LAN and the reference rate.
 
@@ -126,7 +130,7 @@ Requested demand is what the active clients ask for at the reference rate, plus 
 | All active, 66 | up | Business | 17.0 | 17.0 |  |  |
 | All active, 66 | up | Guest | 5.0 | 5.0 | 66.0 | 0.50 Mbps of 0.5 |
 
-The stress scenario does not meet the reference service for every client. Its visitors receive less than the reference rate because they share the cap, and with the drone running the visitors share even less, since the link is full. This scenario is not offered as compliance with the reference service. It shows that operation and business traffic are protected when the link is under pressure.
+The stress scenario does not meet the reference service for every client. Its visitors receive less than the reference rate because they share the cap, and with the drone running the visitors share even less, since the link is full. What the scenario shows is that operation and business traffic stay protected when the link is under pressure.
 
 ## 4. Validation against the link
 
@@ -142,7 +146,7 @@ Validation in each direction, with the sum of requested demand and the sum of al
 
 The design scenario fits in both directions and meets the reference service for every active client, with and without the drone. The sums include the system traffic of 1 Mbps in each direction, so the design scenario asks 81 Mbps down and 21 Mbps up, and 19 Mbps down and 79 Mbps up remain before any other traffic. Without the system traffic, the 40 clients demand 80 Mbps down and 20 Mbps up, and 20 Mbps down and 80 Mbps up remain. Down is the direction that is closer to the limit, and the drone upload uses the up direction, where the reserve is larger.
 
-In the stress scenario the requested demand is 101 Mbps down, above the link, and the cap on visitors brings the allowed bandwidth to 91 Mbps. With the drone the requested demand is 111 Mbps down and the link is full, so the visitors lose part of their cap. When all 66 clients are active the requested demand is 133 Mbps down. The operation keeps what it asks for, the business class receives the remaining capacity, and the visitors receive nothing, which agrees with the accepted decision that non operational traffic gives way under load.
+In the stress scenario the requested demand is 101 Mbps down, above the link, and the cap on visitors brings the allowed bandwidth to 91 Mbps. With the drone the requested demand is 111 Mbps down and the link is full, so the visitors lose part of their cap. When all 66 clients are active the requested demand is 133 Mbps down. The operation keeps what it asks for, the business class receives the remaining capacity, and the visitors receive nothing, as the decision on center WAN capacity sets for non-operational traffic under load.
 
 ## 5. Traffic of the operation and the reserve
 
@@ -156,7 +160,7 @@ Traffic of the operation in the logistics zone, calculated from 400 sacks a day,
 | 20 KB | 0.00379 Mbps | 0.0341 Mbps |
 | 200 KB | 0.03793 Mbps | 0.3413 Mbps |
 
-Even if an event were a hundred times larger than assumed, the peak is a fraction of 1 Mbps. The reserve that the accepted decision leaves for the operation is therefore not justified by the events of the sacks. It is justified by two bursts that the center must absorb and by headroom. The first is the upload of the drone batch, which goes up and needs a rate that finishes in a time the brigade accepts, see section 6. The second is the download of the mission, the polygon and the no-fly zones by the drone station before departure, which goes down and is assumed to take 10 Mbps for a short time. The rest is headroom for system traffic and for the overhead of the encrypted tunnel, which is not yet estimated.
+Even if an event were a hundred times larger than assumed, the peak is a fraction of 1 Mbps. The reserve that the decision leaves for the operation therefore exists for two bursts that the center must absorb and for headroom. The first is the upload of the drone batch, which goes up and needs a rate that finishes in a time the brigade accepts, see section 6. The second is the download of the mission, the polygon and the no-fly zones by the drone station before departure, which goes down and is assumed to take 10 Mbps for a short time. The rest is headroom for system traffic and for the overhead of the encrypted tunnel, which section 6 estimates.
 
 ## 6. Synchronization of the drone
 
@@ -171,11 +175,11 @@ Time to upload the batch of 12,000 megabits, by allocated rate and by efficiency
 | 40 Mbps | 5.0 min | 5.6 min | 6.2 min | 7.1 min |
 | 80 Mbps | 2.5 min | 2.8 min | 3.1 min | 3.6 min |
 
-The calculation of 10 minutes for 1.5 GB at 20 Mbps is kept as the ideal calculation, with an efficiency of 1.0. The overheads that lower it are not estimated and are pending. They are the headers of TCP, TLS and HTTP, the encapsulation of the tunnel, retransmissions after loss, the link between the drone station and the firewall, and the behavior of the provider. A measurement on a real center replaces the efficiency. At the allocated 20 Mbps, an efficiency of 0.7 would give about 14 minutes, which a brigade can still use during a visit. Because 80 Mbps of the up direction remain before other traffic, the synchronization can use more than 20 Mbps when the link is free, which is lending and is not a guarantee.
+The calculation of 10 minutes for 1.5 GB at 20 Mbps is the ideal calculation, with an efficiency of 1.0. The tunnel sets the first bound. AWS Site-to-Site VPN carries an inner MTU of 1,446 bytes and a TCP segment of 1,406 bytes, so a full packet of 1,500 bytes on the link carries at most 1,406 bytes of data, an efficiency of about 0.94, and the batch takes at least 10.7 minutes at 20 Mbps. TLS records and HTTP headers take well under 1 percent more. Retransmissions after loss, the link between the drone station and the firewall, and the behavior of the provider lower it further, and a measurement on a real center replaces the estimate. An upload from a municipal seat goes over the internet with no tunnel, so only the other overheads apply there. At the allocated 20 Mbps, an efficiency of 0.7 would give about 14 minutes, which a brigade can still use during a visit. Because 80 Mbps of the up direction remain before other traffic, the synchronization can use more than 20 Mbps when the link is free, which is lending, with no guarantee behind it.
 
 ## 7. Traffic classes by zone
 
-The classes keep the accepted decision, with priority for logistics and drone synchronization and a cap for visitors, and they add the values. A guarantee is first served, a cap is a ceiling, and the capacity that a class does not use can be lent to the others.
+The classes keep the decision on center WAN capacity, with priority for logistics and drone synchronization and a cap for visitors, and they add the values. A guarantee is first served, a cap is a ceiling, and the capacity that a class does not use can be lent to the others.
 
 | Class | Zones and traffic | Priority | Guarantee down | Guarantee up | Cap down | Cap up |
 |---|---|---|---|---|---|---|
@@ -191,7 +195,7 @@ How each guarantee is built.
 | Operation, up | 32 Mbps | 22 Logistics clients at 0.5 Mbps = 11, plus 1 for system traffic, plus 20 for the drone synchronization at the ideal rate |
 | Business, down | 28 Mbps | The 14 Business clients of the design scenario at 2.0 Mbps = 28 |
 | Business, up | 9 Mbps | The 18 Business clients of the stress scenario at 0.5 Mbps = 9.0 |
-| Guest, both | 0 and a cap of 10 Mbps | The accepted decision caps visitors at 10 percent of the link and gives them no guarantee |
+| Guest, both | 0 and a cap of 10 Mbps | The decision on center WAN capacity caps visitors at 10 percent of the link and gives them no guarantee |
 
 The guarantees fit. In the down direction they add up to 83 Mbps of 100, and in the up direction to 41 Mbps of 100, so even if every class asks for its guarantee at once, the link holds them, and 17 Mbps down and 59 Mbps up remain free.
 
@@ -199,7 +203,7 @@ Three different amounts are involved for each class. The guarantee is the minimu
 
 When logistics and the drone coincide, both belong to the operation class, whose guarantee covers both at once. Logistics traffic is interactive and small, so it is served first inside the class, and the drone synchronization takes the rest of the guarantee and whatever the link has free. If logistics is idle, the drone can use more than its 20 Mbps. In the design scenario with the drone, the operation class asks for 55 Mbps down and 32 Mbps up and receives all of it.
 
-What the local firewall can and cannot control. Shaping on the upload interface limits what the center sends, and shaping on the zone interfaces limits what each class receives from the link. Congestion of the download that happens in the network of the provider, before the traffic reaches the firewall, is not under the control of the firewall, and a local configuration does not guarantee that the download will have the allocated bandwidth. Whether the 100 Mbps of the contract are committed or best effort is not known and is a pending confirmation.
+What the local firewall can and cannot control. Shaping on the upload interface limits what the center sends, and shaping on the zone interfaces limits what each class receives from the link. Congestion of the download that happens in the network of the provider, before the traffic reaches the firewall, is not under the control of the firewall, and a local configuration does not guarantee that the download will have the allocated bandwidth. The design therefore requires a dedicated link with a committed rate of 100 Mbps in each direction, which keeps the provider network from taking the download guarantees away. Where a municipality offers only shared fiber, the center takes it as a fallback. The upload classes and the local sharing still hold, and the download guarantees become best effort, with logistics still protected by the reception queue that works with no link.
 
 Functions that the equipment must have. They are requirements. None of them is shown to be configured or verified, and no firewall is selected.
 
@@ -210,6 +214,7 @@ Functions that the equipment must have. They are requirements. None of them is s
 | A separate shaping inside the operation class that serves interactive traffic before bulk traffic | Serves logistics before the drone when they coincide |
 | A cap for the visitor class with fair sharing among its clients | Keeps one visitor from using the cap |
 | Marking of the traffic of the tunnel before it is encrypted, kept in the outer header | Keeps the priority of the tunnel traffic against internet traffic on the same link |
+| Clamping of the TCP segment to 1,406 bytes or less on the tunnel | The tunnel does not support path MTU discovery, and larger segments would fragment |
 | Counters of each class | Shows whether the values hold, and feeds the measurement of the first harvest |
 
 ## 8. Wi-Fi demand for each access point
@@ -229,13 +234,32 @@ A real access point model, its radios and the site survey decide whether it can 
 
 | Item | Origin | Who confirms | Effect if it fails |
 |---|---|---|---|
-| Split of the 40 active clients by zone | New assumption | Federation, with the first harvest | The guarantees of the business class and the visitor demand change |
-| Stress scenario of 50 clients | New assumption | Federation | It is only a test of the design, and the classes still hold |
-| Visitor cap applies to each direction | Assumption on the accepted decision | Team | If it applies to one direction only, the other direction has no cap and visitors use more of the link |
-| System traffic of 1 Mbps and mission download of 10 Mbps | New assumptions | Measurement at the first center | The guarantee of the operation class changes by the difference |
-| Events for each sack and their size | New assumption | Measurement at the first center | Section 5 shows that a hundred times more still leaves the reserve unchanged |
-| Efficiency of the drone transfer and the tunnel overhead | New assumptions that are not yet estimated | Measurement at the first center | The time of the drone synchronization lengthens, see section 6 |
-| Efficiency of Wi-Fi | New assumption | Access point model and site survey | The PHY rate that an access point needs changes |
-| Whether the 100 Mbps are committed or best effort | Not known | Provider | The guarantees cannot be assumed to hold under congestion of the provider |
+| Split of the 40 active clients by zone | Assumption | Federation, with the first harvest | The guarantees of the business class and the visitor demand change |
+| Stress scenario of 50 clients | Assumption | Federation | It is only a test of the design, and the classes still hold |
+| Visitor cap applies to each direction | Assumption on the decision | Team | If it applies to one direction only, the other direction has no cap and visitors use more of the link |
+| System traffic of 1 Mbps and mission download of 10 Mbps | Assumptions | Measurement at the first center | The guarantee of the operation class changes by the difference |
+| Events for each sack and their size | Assumption | Measurement at the first center | Section 5 shows that a hundred times more still leaves the reserve unchanged |
+| Efficiency of the drone transfer beyond the tunnel bound of 0.94 | Assumption | Measurement at the first center | The time of the drone synchronization lengthens, see section 6 |
+| Efficiency of Wi-Fi | Assumption | Access point model and site survey | The PHY rate that an access point needs changes |
+| A dedicated 100 Mbps symmetric link is available in the municipality of each center | Requirement | Federation, with operator quotes | The center takes shared fiber, and the download guarantees become best effort |
+| Price of the link | Secondary source | Operator quotes for each municipality | The cost of section 10 changes |
 | Shaping functions of the firewall, in both directions | Not verified | Equipment selection | The classes may need another mechanism |
 | Real number of active clients at the peak of harvest | Not measured | First harvest | The scenarios are replaced by measured values |
+
+## 10. Cost of the link
+
+The prices below are references published by a Colombian operator, converted at COP 4,150 per USD, the rate of the planning workbook. Quotes from operators with coverage in each municipality replace them.
+
+| Link | Monthly price per center, COP | Per center, USD | Three centers, USD |
+|---|---|---|---|
+| Dedicated, 80 to 120 Mbps, committed rate | From 250,000 to 350,000 | 60 to 84 | 181 to 253 |
+| Shared business fiber, best effort | 70,000 to 150,000 | 17 to 36 | 51 to 108 |
+
+The platform cost so far counts USD 45 a month per center, USD 135 for the three, which falls in the shared range. The dedicated link this design requires adds about USD 46 to 118 a month for the three centers over that figure. The VPN connections and the cloud side of the tunnel are in the platform cost of the overview, and the firewall and access points are equipment of the center.
+
+## 11. Sources
+
+- [Collection center LAN](collection-center-lan.md), [center WLAN](center-wlan.md), [decision on center WAN capacity](../adr/center-wan-capacity.md), [drone operating mode](../drones/operating-mode.md) and [drone mission link](drone-mission-link.md) of this platform.
+- `tools/wan_sizing.py`, which prints every calculated table of this document and checks itself against the figures of the LAN document.
+- AWS, [Site-to-Site VPN quotas](https://docs.aws.amazon.com/vpn/latest/s2svpn/vpn-limits.html), for the maximum transmission unit, the segment size and the absence of path MTU discovery.
+- Edatel, [dedicated and shared business internet, differences and prices](https://edatel.net.co/internet-dedicado-vs-internet-empresarial-compartido-diferencias-precios-y-cual-conviene/), an operator reference to replace with quotes.
