@@ -54,7 +54,7 @@ Each zone is a /24, as the reserved inventory defines, with one VLAN and one SSI
 | Local servers | Printing and network control | To be sized | 10.X.10.0/24 | 10 | Wired only |
 | Cloud link | Edge of the center | Firewall | 10.X.20.0/24 | 20 | Wired only |
 
-VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception.
+VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception. The [center WLAN](center-wlan.md) defines the security of each SSID, the trunks, the management of the equipment and the policy between zones. [Collection center operations](collection-center-operations.md) defines what the logistics zone does in a day, the label printing and the work with no internet.
 
 Addresses inside each zone follow one rule. The first usable address is the gateway on the firewall, addresses 2 to 20 stay fixed for infrastructure, and DHCP serves from 21 upward. Every /24 offers 254 usable addresses, far more than the largest zone needs, so the plan leaves room with no rework.
 
@@ -83,9 +83,9 @@ The reference capacity per active client is 2 Mbps down and 0.5 Mbps up.
 | Visitors | 10 | 20 | 5 |
 | **Total** | **66** | **132** | **33** |
 
-If all 66 clients were active at once, down traffic would need 132 Mbps on a 100 Mbps link. Not all clients are active together, and the design controls the rest. Up to 40 active clients fit at the reference rate, leaving 20 Mbps for system traffic. Logistics and drone synchronization go first, and visitors are capped at 10 percent of the link. Up traffic of 33 Mbps fits with room to spare, which matters because drone objects travel up.
+If all 66 clients were active at once, down traffic would need 132 Mbps on a 100 Mbps link. Not all clients are active together, and the design controls the rest. Up to 40 active clients fit at the reference rate. They demand 80 Mbps down and 20 Mbps up, so before other traffic 20 Mbps down and 80 Mbps up remain. Logistics and drone synchronization go first, and visitors are capped at 10 percent of the link. Up traffic of 33 Mbps fits with room to spare, which matters because drone objects travel up. The [center WAN sizing](center-wan-sizing.md) calculates the scenarios, the reserve and the traffic classes by zone, and requires a dedicated link with a committed rate so that the classes hold in the download.
 
-Drone upload time follows from that margin. A batch of 500 photos of 3 MB is 1.5 GB, or 12,000 Mb. At 20 Mbps it takes about 10 minutes, so a brigade can sync on a center visit.
+Drone upload goes up, where 80 Mbps remain before other traffic. A batch of 500 photos of 3 MB is 1.5 GB, or 12,000 Mb. At an allocated 20 Mbps it takes about 10 minutes as an ideal calculation, which leaves out the overhead of the protocols and of the tunnel, so a brigade can sync on a center visit. The effective time is in the center WAN sizing.
 
 ## 5. Equipment
 
@@ -104,16 +104,17 @@ The firewall must support IKEv2 and two tunnels, since AWS provides two endpoint
 |---|---|---|
 | Logistics | Cloud API and S3 | IPsec tunnel to private endpoints |
 | Local servers | Cloud API | IPsec tunnel |
+| Logistics | Label printer | Pending until the printer address, protocol and port are confirmed |
 | Management, Support | Web reports | Internet, HTTPS |
 | Transport | Carrier API | Internet, HTTPS |
 | Visitors | Internet only | Isolated, capped |
 | Cloud link | Tunnel endpoint | Carries no client traffic |
 
-Only logistics and local servers route through the tunnel, with the routes 10.X.3.0/24 and 10.X.10.0/24. The tunnel is a privilege, and giving it to fewer zones reduces what a compromised phone can reach.
+Only logistics and local servers route through the tunnel, with the routes 10.X.3.0/24 and 10.X.10.0/24. The tunnel is a privilege, and giving it to fewer zones reduces what a compromised phone can reach. Visitors are denied every private range, and only DHCP and DNS reach the gateway of their VLAN.
 
 ## 7. A center with no WAN
 
-A cut in the link must not stop reception. Staff keep registering sacks on the logistics application, which queues events on the device, and the printer keeps working on the local network. Events synchronize when the link returns. The application keeps the local time of each event, so that the history stays correct.
+A cut in the link must not stop reception. Staff keep registering sacks on the logistics application, which queues events on the device, and the printer, once its rule is enabled, keeps working on the local network. Events synchronize when the link returns. The application keeps the local time of each event, so that the history stays correct.
 
 ## 8. Installation
 
@@ -123,7 +124,7 @@ A cut in the link must not stop reception. Staff keep registering sacks on the l
 | 2 | Load the firewall template with the octet of the department |
 | 3 | Load the VPN parameters and the pre-shared keys |
 | 4 | Install the switch and access points |
-| 5 | Check each SSID against the policy, including that visitors cannot reach logistics |
+| 5 | Check each SSID against the policy, including that visitors cannot reach logistics. The checks are listed in the center WLAN document |
 | 6 | Run a test reception and print one sheet |
 
 ## 9. Assumptions and pending confirmations
@@ -133,3 +134,4 @@ A cut in the link must not stop reception. Staff keep registering sacks on the l
 | The WAN provider gives a static public address | Provider | The VPN needs a dynamic setup or another provider |
 | Local servers can be sized after the printing need is known | Team | The zone stays with room to grow |
 | The building layout allows 2 to 3 access points | Site survey | Quantity changes |
+| The label printer model gives its protocol and port | Team | The printing rule stays closed until they are known |
