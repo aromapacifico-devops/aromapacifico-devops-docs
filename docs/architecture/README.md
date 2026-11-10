@@ -14,7 +14,10 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Farm connection sequence](diagrams/07-farm-connection-sequence.drawio.png) | How does a farm node connect, lose its link and recover |
 | [Sack state model](diagrams/08-sack-state-model.drawio.png) | Which states can a sack pass through, and what does a rejection do |
 | [Center WLAN](diagrams/09-center-wlan.drawio.png) | Which SSID lands on which VLAN, and what can each zone reach |
-| [Center operation](diagrams/10-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
+| [Drone mission link](diagrams/10-drone-mission-link.drawio.png) | How is a drone mission preloaded, flown with no signal and published |
+| [Audit evidence path](diagrams/11-audit-evidence-path.drawio.png) | How does evidence of a sensitive event reach a store that no account can alter |
+| [Lot geometry lifecycle](diagrams/12-lot-geometry-lifecycle.drawio.png) | Which states can a lot polygon pass through, and which strips keep spraying away |
+| [Center operation](diagrams/13-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
@@ -31,7 +34,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 
 ## Related documents
 
-[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, the [center WLAN](../network/center-wlan.md) details the segmentation of a collection center, with the sequences of connection, disconnection and recovery, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
+[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, with the sequences of connection, disconnection and recovery, the [drone mission link](../network/drone-mission-link.md) details the drone row, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [center WLAN](../network/center-wlan.md) details the segmentation of a collection center, and the [center WAN sizing](../network/center-wan-sizing.md) sizes its link and its traffic classes. The [audit of sensitive events](../security/audit.md) shows how sack reads, threshold changes, telemetry and flight objects leave evidence. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
 
 The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
 
