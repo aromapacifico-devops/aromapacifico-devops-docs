@@ -41,13 +41,13 @@ Prices in pesos convert at the TRM of the retrieval date.
 | Measure | COP per USD |
 |---|---|
 | TRM on 10 November 2026 | 3,269.88 |
-| Lowest of the last 120 days | 3,048.12 |
-| Highest of the last 120 days | 3,796.87 |
-| Average of the last 120 days | 3,307.40 |
+| Lowest of the last 120 published rates | 3,048.12 |
+| Highest of the last 120 published rates | 3,796.87 |
+| Average of the last 120 published rates | 3,307.40 |
 
-The 120 days run from 8 May to 10 November 2026. The source is the open data set of the Superintendencia Financiera de Colombia on the national open data portal. Fixing the rate is a decision of the Federation, so the estimate carries the sensitivity too. A stronger peso raises the dollar cost of every price quoted in pesos.
+The 120 published rates run from 8 May to 10 November 2026, about six months, since one rate covers each weekend and holiday. The highest value dates from May, and over the last 120 calendar days the rate stayed between 3,048.12 and 3,349.63. The source is the open data set of the Superintendencia Financiera de Colombia on the national open data portal. Fixing the rate is a decision of the Federation, so the estimate carries the sensitivity too. A stronger peso raises the dollar cost of every price quoted in pesos.
 
-| Link, three centers | Monthly price per center, COP | At 3,048.12, USD | At 3,269.88, USD | At 3,796.87, USD |
+| Link | Monthly price per center, COP | Three centers at 3,048.12, USD | Three centers at 3,269.88, USD | Three centers at 3,796.87, USD |
 |---|---|---|---|---|
 | Dedicated, 80 to 120 Mbps | 250,000 to 350,000 | 246 to 345 | 229 to 321 | 198 to 277 |
 | Shared business fiber | 70,000 to 150,000 | 69 to 148 | 64 to 138 | 55 to 119 |
@@ -74,7 +74,7 @@ Prices come from the AWS Price List API, in files of the form `https://pricing.u
 | KMS | `awskms` | 8 November 2026 | 1.00 a month per customer managed key |
 | Secrets Manager | `AWSSecretsManager` | 11 September 2026 | 0.40 a month per secret |
 | WAF | `awswaf` | 14 September 2026 | Web ACL 5.00 a month, rule 1.00 a month |
-| CloudWatch | `AmazonCloudWatch` | 4 November 2026 | |
+| CloudWatch | `AmazonCloudWatch` | 4 November 2026 | Standard alarm 0.10 a month, log ingestion 0.50 per GB, log storage 0.03 per GB a month |
 | DynamoDB | `AmazonDynamoDB` | 5 November 2026 | Writes 0.625 per million, reads 0.125 per million, storage 0.25 per GB a month after 25 GB |
 | S3 | `AmazonS3` | 9 November 2026 | Standard 0.023 per GB a month, Glacier Instant Retrieval 0.004 per GB a month and 0.03 per GB retrieved |
 | Athena | `AmazonAthena` | 11 September 2026 | 5.00 per TB scanned |
@@ -83,7 +83,7 @@ Prices come from the AWS Price List API, in files of the form `https://pricing.u
 | Bedrock | `AmazonBedrock` | 6 November 2026 | |
 | Rekognition | `AmazonRekognition` | 11 September 2026 | |
 
-Every rate re-read matches the one used in the platform documents. Bedrock bills by model, so the inference estimate reads the rate of its model and records it.
+Every rate re-read matches the one used in the platform documents. Bedrock bills by model, so the inference estimate reads the rate of its model and records it. SMS bills by destination country, and the alert delivery design records the rate for Colombia.
 
 ## 5. Connectivity prices
 

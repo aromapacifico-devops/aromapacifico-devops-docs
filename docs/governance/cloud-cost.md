@@ -56,7 +56,7 @@ Rates are the on-demand prices of `us-east-1` read on the retrieval date of the 
 | KMS | 5 keys × USD 1.00, four platform keys and one to sign drone packages | 5.00 | 5.00 |
 | Secrets Manager | 4 secrets × USD 0.40 | 1.60 | 1.60 |
 | Web firewall | 1 web ACL at USD 5.00 and 3 rules at USD 1.00 | 8.00 | 8.00 |
-| CloudWatch | Alarms and logs | 2.20 | 2.20 |
+| CloudWatch | Allowance for alarms at USD 0.10 each and platform logs at USD 0.50 per GB ingested | 2.20 | 2.20 |
 | Cognito | Within the free allowance of 10,000 monthly users with direct sign-in | 0.00 | 0.00 |
 | **Fixed lines** | | **170.10** | **170.10** |
 | **Cloud platform, production** | | **177.23** | **201.11** |
@@ -73,11 +73,13 @@ Serverless resources cost almost nothing while idle, so an environment costs wha
 
 | Environment | Pieces billed by the hour | USD an hour | A session of 8 hours | 80 hours in a month |
 |---|---|---|---|---|
-| Development | 3 interface endpoints in one zone, 3 KMS keys | 0.034 | 0.27 | 2.72 |
-| Test | 1 VPN connection, 3 interface endpoints in one zone, 3 KMS keys | 0.084 | 0.67 | 6.72 |
-| Production, always on | 3 VPN connections, 3 endpoints in two zones, 3 KMS keys | 0.214 | 1.71 | 17.12 |
+| Development | 3 interface endpoints in one zone, data and objects keys | 0.033 | 0.26 | 2.62 |
+| Test | 1 VPN connection, 3 interface endpoints in one zone, data and objects keys | 0.083 | 0.66 | 6.62 |
+| Production, always on | 3 VPN connections, 3 endpoints in two zones, data and objects keys | 0.213 | 1.70 | 17.02 |
 
-Production runs all month in the pilot, so its monthly cost is the one in section 2. The row above shows the cost of an environment that comes up for a session, as the demonstration does. A test environment forgotten for a month at 24 hours a day costs USD 61.32, and a production environment forgotten the same way costs USD 156.22.
+Production runs all month in the pilot, so its monthly cost is the one in section 2. The row above shows the cost of an environment that comes up for a session, as the demonstration does. A test environment forgotten for a month at 24 hours a day costs USD 60.40, and a production environment forgotten the same way costs USD 155.30.
+
+The platform key of each environment encrypts its state, so the bootstrap creates it once and it stays when the environment comes down. The keys of shared, development and test therefore bill all month, USD 3.00, whether or not those environments are up. The production platform key is one of the five keys of section 2.
 
 ## 4. Totals
 
@@ -86,10 +88,11 @@ Production runs all month in the pilot, so its monthly cost is the one in sectio
 | Cloud platform, production | 177.23 | 201.11 |
 | Dedicated links of three centers, at the exchange rate of the price basis | 229 to 321 | 229 to 321 |
 | **Platform with links** | **407 to 498** | **431 to 522** |
-| Development and test, 80 hours each in a month | 9.44 | 9.44 |
-| Stored history, added at the end of year five | About 7.7 | About 7.7 |
+| Development and test, 80 hours each in a month | 9.24 | 9.24 |
+| Platform keys of shared, development and test, kept by the bootstrap | 3.00 | 3.00 |
+| Stored history and its backup, added at the end of year five | About 10.2 | About 10.2 |
 
-The stored history is the cost of keeping five years of records, and it grows from nothing in the first month. The [persistence and archive](../architecture/persistence-and-archive.md) document shows its calculation. The links are priced from an operator reference in pesos, so a quote changes them. Every figure is before IVA, which adds up to 19 percent if it applies.
+The stored history is the cost of keeping five years of records, and it grows from nothing in the first month. It adds about USD 7.0 of storage, which the [persistence and archive](../architecture/persistence-and-archive.md) document calculates, and USD 3.24 of continuous backup of the sack tables, which the [recovery](../architecture/recovery.md) design calculates. The links are priced from an operator reference in pesos, so a quote changes them. Every figure is before IVA, which adds up to 19 percent if it applies.
 
 ## 5. Sensitivity
 
@@ -99,7 +102,7 @@ The stored history is the cost of keeping five years of records, and it grows fr
 | No SMS, every urgent alert confirmed on the phone | 10.17 less |
 | Images double | 15.75 more for inference, 0.65 more for storage |
 | Sack events not grouped by truck, one request per event | 0.46 more |
-| Peso at its strongest in the last 120 days | Links 246 to 345 |
+| Peso at its strongest in the last 120 published rates | Links 246 to 345 |
 | IVA on every line | Up to 19 percent more |
 
 ## 6. Assumptions and pending confirmations
@@ -112,6 +115,7 @@ The stored history is the cost of keeping five years of records, and it grows fr
 | SMS reaches the phone only for urgent alerts | Federation | The SMS line changes, up to its upper bound |
 | Users who sign in directly stay under 10,000 a month | Federation | Cognito costs USD 0.015 per user above the allowance |
 | Cost of the dedicated links | Operator quotes | The totals with links change |
+| CloudWatch alarms and platform logs stay within USD 2.20 a month | Team, when the operational alarms are defined | Each extra alarm adds USD 0.10 and each extra GB of logs USD 0.50 |
 
 ## Sources
 
