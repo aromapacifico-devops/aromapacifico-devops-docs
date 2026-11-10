@@ -54,7 +54,7 @@ Each zone is a /24, as the reserved inventory defines, with one VLAN and one SSI
 | Local servers | Printing and network control | To be sized | 10.X.10.0/24 | 10 | Wired only |
 | Cloud link | Edge of the center | Firewall | 10.X.20.0/24 | 20 | Wired only |
 
-VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception. The [center WLAN](center-wlan.md) defines the security of each SSID, the trunks, the management of the equipment and the policy between zones.
+VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception. The [center WLAN](center-wlan.md) defines the security of each SSID, the trunks, the management of the equipment and the policy between zones. [Collection center operations](collection-center-operations.md) defines what the logistics zone does in a day, the label printing and the work with no internet.
 
 Addresses inside each zone follow one rule. The first usable address is the gateway on the firewall, addresses 2 to 20 stay fixed for infrastructure, and DHCP serves from 21 upward. Every /24 offers 254 usable addresses, far more than the largest zone needs, so the plan leaves room with no rework.
 

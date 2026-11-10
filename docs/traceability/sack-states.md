@@ -41,7 +41,7 @@ The pilot names seven states and leaves open what happens between them. The sack
 | How events travel from a phone with no data | [Carrier tracking](../network/carrier-tracking.md) |
 | Roles and their permissions | [Identity and access](../security/identity-and-access.md) |
 
-The operating flow at a center and the reasons for a rejection belong to the design of the centers, and the fields each actor reads belong to the design of the views.
+The [collection center operations](../network/collection-center-operations.md) define the operating flow at a center and the provisional reasons for a rejection, and the fields each actor reads belong to the design of the views.
 
 ## 2. Volumes
 

@@ -42,6 +42,7 @@ A buyer trusts a sack only if each hand it passed through left a record that nob
 | Format of the code and the label | [Sack identity](sack-identity.md) |
 | How records travel from a phone with no data | [Carrier tracking](../network/carrier-tracking.md) |
 | Queue at a center with no WAN | [Collection center LAN](../network/collection-center-lan.md) |
+| Reception, labels for sacks with no code and the reserve of codes at a center | [Collection center operations](../network/collection-center-operations.md) |
 | Delivery at the port and its evidence | [Port delivery](../network/port-delivery.md) |
 
 This document supplies the fields, the storage and the write. Recovery and the five-year deletion belong to the designs of recovery and persistence, and the fields each actor reads belong to the design of the views.
