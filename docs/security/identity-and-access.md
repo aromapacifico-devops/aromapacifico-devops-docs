@@ -49,8 +49,10 @@ This document defines who and what can act on the platform. Each actor has a sep
 | Carrier | Driver | Phone in transit | Handover, position, arrival and delivery |
 | Center operator | Logistics staff | Station or phone on the center LAN | Reception, dispatch, code issuing |
 | Buyer | Coffee buyer | Any browser | Read one sack |
-| Drone operator | Brigade member | Ground application | Missions, objects, flight logs |
+| Drone operator | Pilot of the contracted operator, or Federation drone supervisor | Ground application, or any browser for the supervisor | Missions, objects, flight logs, and for the supervisor polygons and authorizations |
 | Platform operator | Federation technical staff | Console | Operating the platform, no business data |
+
+The drone operator role holds two groups. The brigade group holds the pilots of the contracted operator, and the supervisor group holds one Federation supervisor per department. No account belongs to both, so the company that flies never authorizes its own fumigation. The [drone roles and permits](../drones/roles-permits-and-campaigns.md) explain why.
 
 ## 3. Identity providers
 
@@ -67,20 +69,20 @@ Federation staff could later sign in with a corporate directory by adding a fede
 
 ## 4. Access matrix
 
-| Resource | Farmer | Carrier | Center operator | Buyer | Drone operator | Platform operator |
-|---|---|---|---|---|---|---|
-| Readings and alerts of own farms | Read | None | None | None | Read, for the assigned focus | None |
-| Alert ranges | None | None | None | None | None | Change, on Federation request |
-| Sack registration | Create, own farms | None | Create, when issuing a code | None | None | None |
-| Sack events | Read own, create reweighing | Create handover, arrival, pickup, delivery and missing report | Read those of its center, create reception, correction, return, dispatch, label reprint and missing report | None | None | None |
-| Buyer view of a sack | Read | Read | Read | Read | None | None |
-| Trip of a sack | None | Read own | Read | None | None | None |
-| Farm and lot polygon | Read own | None | None | None | Create, read | None |
-| No-fly zones | Read own | None | None | None | Create, read | None |
-| Fumigation order | Read own | None | None | None | Create, and authorize as supervisor | None |
-| Flight objects and logs | Read own case | None | Read harvest estimate | None | Create, read assigned | None |
-| Audit logs | None | None | None | None | None | Read |
-| Platform configuration | None | None | None | None | None | Change through the pipeline |
+| Resource | Farmer | Carrier | Center operator | Buyer | Drone brigade | Drone supervisor | Platform operator |
+|---|---|---|---|---|---|---|---|
+| Readings and alerts of own farms | Read | None | None | None | Read, for the assigned focus | Read, farms of the department | None |
+| Alert ranges | None | None | None | None | None | None | Change, on Federation request |
+| Sack registration | Create, own farms | None | Create, when issuing a code | None | None | None | None |
+| Sack events | Read own, create reweighing | Create handover, arrival, pickup, delivery and missing report | Read those of its center, create reception, correction, return, dispatch, label reprint and missing report | None | None | None | None |
+| Buyer view of a sack | Read | Read | Read | Read | None | None | None |
+| Trip of a sack | None | Read own | Read | None | None | None | None |
+| Farm and lot polygon | Read own | None | None | None | Read published, assigned | Create, publish, read | None |
+| No-fly zones | Read own | None | None | None | Read, assigned | Create, read | None |
+| Fumigation order | Read own, accept the visit | None | None | None | Create, read assigned | Read, authorize, suspend | None |
+| Flight objects and logs | Read own case | None | Read harvest estimate | None | Create, read assigned | Read, department | None |
+| Audit logs | None | None | None | None | None | None | Read |
+| Platform configuration | None | None | None | None | None | None | Change through the pipeline |
 
 A Federation analyst reads only the aggregated files of the pilot report and none of the resources above, as the [farmer history](../iot/farmer-history.md) defines.
 
@@ -95,7 +97,7 @@ MFA is required for center operators, drone operators and platform operators, th
 | Role | Factor | Why |
 |---|---|---|
 | Center operator | Authenticator application | Works with no SMS coverage on the center LAN |
-| Drone operator | Authenticator application | Works offline in the field, where SMS may not arrive |
+| Drone brigade and supervisor | Authenticator application | Works offline in the field, where SMS may not arrive |
 | Platform operator | Security key or authenticator | Highest privilege |
 
 Farmers and carriers sign in with their phone number and keep a session of 30 days with refresh token rotation, since a code at every use would be a barrier on a phone with intermittent data. A session that ends during a trip stops only synchronization, and capture continues on the phone. Their worst case is limited, because they act only on their own records.
@@ -109,6 +111,8 @@ The authorization of a fumigation is a human identity, and no automated trigger 
 | Rule | Enforcement |
 |---|---|
 | Only the supervisor group can authorize | Group claim checked by the function |
+| No account belongs to both the brigade and the supervisor groups | The function rejects a token that carries both groups, and the group assignment process refuses it |
+| The authorizer is the supervisor of the farm's department or its named backup | Department of the supervisor checked against the farm |
 | The authorizer differs from the assigned pilot | The function rejects equal identities |
 | The order needs a polygon and a closed flight log | Conditional write on the case |
 | Each authorization records who, when and which order | Transaction with the audit event |
@@ -182,6 +186,6 @@ The infrastructure code creates the identities of the patterns it implements. Hu
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
-| A drone supervisor exists and differs from the pilot | Federation | The authorizer moves to another role |
+| The Federation names one drone supervisor per department, outside the contracted operator, and a backup | Federation | Authorization slows down, and the brigade can never stand in |
 | Farmers accept phone sign-in | Federation | A simpler flow is designed |
 | Staff can use an authenticator application | Federation | Hardware tokens are added |
