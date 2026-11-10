@@ -65,13 +65,13 @@ The probe measures pH, and the application accepts a manual reading as a fallbac
 
 ## 4. Alert ranges
 
-The Federation configures ranges on the platform and the node holds none. A change reaches the next evaluation with no visit and no firmware update.
+The Federation configures ranges on the platform and the node holds none. A change reaches the next evaluation with no visit and no firmware update. The [alert ranges](configurable-thresholds.md) define the versions, why humidity binds to the soil and temperature to the air, and how a change is published.
 
 | Variable | Cultivation alert | Drying |
 |---|---|---|
 | pH | Outside 4.5 to 6.0, recommended 4.9 to 5.6 | Not applicable |
-| Humidity | Outside 40 to 80 percent | Lot closes near 12 percent |
-| Temperature | Outside 14 to 30 °C, recommended 17 to 23 °C | Grain above 40 °C |
+| Humidity | Soil humidity outside 40 to 80 percent | Lot closes near 12 percent |
+| Temperature | Air temperature outside 14 to 30 °C, recommended 17 to 23 °C | Grain above 40 °C |
 | Nitrogen, phosphorus, potassium | Outside the range the Federation publishes | Not applicable |
 
 ## 5. Hourly cycle

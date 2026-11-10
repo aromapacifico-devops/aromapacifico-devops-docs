@@ -18,6 +18,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Audit evidence path](diagrams/11-audit-evidence-path.drawio.png) | How does evidence of a sensitive event reach a store that no account can alter |
 | [Lot geometry lifecycle](diagrams/12-lot-geometry-lifecycle.drawio.png) | Which states can a lot polygon pass through, and which strips keep spraying away |
 | [Center operation](diagrams/13-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
+| [Crop case states](diagrams/14-crop-case-states.drawio.png) | How does a cultivation alert become a focus confirmed or discarded by a person |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 

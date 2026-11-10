@@ -1106,8 +1106,49 @@ def center_operation():
     return p
 
 
+def crop_case():
+    p = Page("14 Crop case states", 1800, 800, "Crop case states: from a cultivation alert to a focus confirmed or discarded by a person")
+    zones = [("Case opens and the focus is built", 40, 520, "#EAF2F8", "#147EBA"), ("Drone flight, with no connection", 580, 520, "#FEF9E7", "#B7950B"),
+             ("Decision of a person", 1120, 640, "#EAF6EC", "#2E7D32")]
+    for name, x, w, fill, stroke in zones:
+        p.zone(name, x, 70, w, 500, fill, stroke, size=13)
+    st = dict(w=170, h=76, size=12)
+    p.step("<b>open</b><br>alert or reported<br>symptom", 60, 260, cid="open", **st)
+    p.step("<b>focus_ready</b><br>50 m around the node,<br>cut to the lot", 330, 260, cid="focus", **st)
+    p.step("<b>location_pending</b><br>no position, lot<br>or flyable area", 60, 110, fill="#FDEDEC", stroke=FAIL, cid="loc", **st)
+    p.step("<b>geometry_blocked</b><br>polygon missing<br>or suspended", 60, 420, fill="#FDEDEC", stroke=FAIL, cid="geo", **st)
+    p.step("<b>mission_requested</b><br>exact polygon and<br>zone versions", 600, 260, cid="mreq", **st)
+    p.step("<b>flight_published</b><br>log and evidence<br>verified", 870, 260, cid="fpub", **st)
+    p.step("<b>mission_stale</b><br>package can no longer<br>fly, rebuilt as a new attempt", 600, 420, fill="#FDEDEC", stroke=FAIL, cid="stale", **st)
+    p.step("<b>pending_review</b><br>evidence and<br>inference ready", 1140, 260, cid="rev", **st)
+    p.step("<b>retry</b><br>inconclusive,<br>evidence kept", 1140, 420, fill="#FDEDEC", stroke=FAIL, cid="retry", **st)
+    p.step("<b>confirmed</b><br>a fumigation order<br>may follow", 1440, 190, fill="#E8F5E9", stroke=TEL, cid="conf", **st)
+    p.step("<b>discarded</b><br>a later alert<br>opens a new case", 1440, 330, fill="#F2F3F4", stroke=CTRL, cid="disc", **st)
+    p.edge("open", "focus", "focus built", TEL)
+    p.edge("focus", "mreq", "requested", TEL)
+    p.edge("mreq", "fpub", "flight published", TEL)
+    p.edge("fpub", "rev", "inference done", TEL)
+    p.edge("rev", "conf", "confirmed", TEL, exit=(1, 0.3), entry=(0, 0.5), points=[(1380, 283), (1380, 228)])
+    p.edge("rev", "disc", "discarded", CTRL, exit=(1, 0.7), entry=(0, 0.5), points=[(1380, 313), (1380, 368)])
+    p.edge("open", "loc", "", FAIL, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("open", "geo", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("loc", "focus", "supervisor records it", BIZ, exit=(1, 0.5), entry=(0.5, 0), points=[(415, 148)])
+    p.edge("geo", "focus", "polygon published", BIZ, exit=(1, 0.5), entry=(0.5, 1), points=[(415, 458)])
+    p.edge("mreq", "stale", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("stale", "focus", "", BIZ, exit=(0, 0.3), entry=(0.735, 1), points=[(455, 443)])
+    p.edge("rev", "retry", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("retry", "focus", "new attempt", BIZ, exit=(0.5, 1), entry=(0.618, 1), points=[(1225, 540), (435, 540)])
+    p.text("polygon, focus or window changed", 690, 350, 200, 40, size=11, color=FAIL)
+    p.text("reviewer finds it inconclusive", 1230, 350, 150, 40, size=11, color=FAIL)
+    p.legend(40, 600, 520, [(TEL, False, "Normal path, conditional write"), (FAIL, False, "Blocked or failed"), (BIZ, False, "Recovery by a person or an event"), (CTRL, False, "Discarded by the reviewer")])
+    p.note("<b>Drying alerts</b> only notify the farmer. Guidance ranges and references open no case. One node keeps one open case, and new alerts attach to it.", 580, 600, 560, 70)
+    p.note("<b>No fumigation here.</b> A confirmed focus lets a supervisor create an order, which needs its own authorization by a named person.", 1160, 600, 600, 70, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Events.</b> alert.raised, case.opened, focus.versioned, confirmation.requested, flight.record.published, inference.completed, confirmation.completed.", 580, 686, 1180, 50)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

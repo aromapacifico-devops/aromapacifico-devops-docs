@@ -21,7 +21,7 @@ The drone service combines area work and precision work. This document explains 
 |---|---|
 | Precision agriculture | Working on one focus: confirm, fumigate, verify |
 | Area agriculture | Working on a whole lot or farm: delimit, estimate |
-| Focus | The place a sensor reading marked |
+| Focus | The area around the node whose reading raised the alert, or around a reported symptom |
 | Polygon | The geographic outline of a lot |
 | No-fly zone | Houses, the processing facility, roads and water sources, loaded before the first flight |
 | No-spray strip | A band around those places where the drone may fly with the sprayer off |
