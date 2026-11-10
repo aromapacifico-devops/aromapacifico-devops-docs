@@ -83,9 +83,9 @@ The reference capacity per active client is 2 Mbps down and 0.5 Mbps up.
 | Visitors | 10 | 20 | 5 |
 | **Total** | **66** | **132** | **33** |
 
-If all 66 clients were active at once, down traffic would need 132 Mbps on a 100 Mbps link. Not all clients are active together, and the design controls the rest. Up to 40 active clients fit at the reference rate, leaving 20 Mbps for system traffic. Logistics and drone synchronization go first, and visitors are capped at 10 percent of the link. Up traffic of 33 Mbps fits with room to spare, which matters because drone objects travel up.
+If all 66 clients were active at once, down traffic would need 132 Mbps on a 100 Mbps link. Not all clients are active together, and the design controls the rest. Up to 40 active clients fit at the reference rate. They demand 80 Mbps down and 20 Mbps up, so before other traffic 20 Mbps down and 80 Mbps up remain. Logistics and drone synchronization go first, and visitors are capped at 10 percent of the link. Up traffic of 33 Mbps fits with room to spare, which matters because drone objects travel up. The [center WAN sizing](center-wan-sizing.md) calculates the scenarios, the reserve and the traffic classes by zone.
 
-Drone upload time follows from that margin. A batch of 500 photos of 3 MB is 1.5 GB, or 12,000 Mb. At 20 Mbps it takes about 10 minutes, so a brigade can sync on a center visit.
+Drone upload goes up, where 80 Mbps remain before other traffic. A batch of 500 photos of 3 MB is 1.5 GB, or 12,000 Mb. At an allocated 20 Mbps it takes about 10 minutes as an ideal calculation, which leaves out the overhead of the protocols and of the tunnel, so a brigade can sync on a center visit. The effective time is in the center WAN sizing.
 
 ## 5. Equipment
 
