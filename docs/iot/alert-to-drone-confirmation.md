@@ -79,7 +79,7 @@ The supervisor can move the focus or change its radius when a symptom shows else
 1. The ingestion function evaluates a cultivation reading out of range and raises the alert. SNS notifies the farmer.
 2. The case function receives `alert.raised` from EventBridge, opens the case with a conditional write, or attaches the alert to the open case of the node.
 3. It builds the focus and checks the polygon and the zones.
-4. It emits `confirmation.requested`. The mission service creates a precision confirmation mission for that focus with the exact polygon and zone versions.
+4. It emits `confirmation.requested`. The mission service creates a precision confirmation mission for that focus with the exact polygon and zone versions, as the [focus confirmation mission](../drones/focus-confirmation-mission.md) defines.
 5. The brigade preloads the mission and flies it with no connection, as the mission link defines.
 6. When the platform publishes the flight record with `flight.record.published`, the case moves on. A raw object upload never moves it.
 7. The inference function screens each image for people, sends the clean images to the managed model, and stores the result with its confidence, model and source object.
@@ -98,7 +98,7 @@ Every event carries `event_id`, `event_type`, `schema_version`, `occurred_at` in
 | `focus.versioned` | Case function or supervisor | `focus_version`, `origin`, `radius_m`, `geometry_version`, `zone_versions`, `reason` | `case_id` and `focus_version` |
 | `confirmation.requested` | Case function | `attempt`, `focus_version`, `geometry_version`, `mission_id` | `case_id`, `attempt` and `focus_version` |
 | `flight.record.published` | Mission link | `mission_execution_id`, `flight_record_id`, outcome | Defined by the mission link |
-| `inference.completed` | Inference function | `source_object`, `model_id`, `result`, `confidence`, `restricted` | Source object and its version |
+| `inference.completed` | Inference function | `source_object`, `model_id`, `prompt_version`, `label`, `confidence`, `restricted` | Source object and its version |
 | `confirmation.completed` | Reviewer through the API | `attempt`, `decision`, `review_revision`, reviewer reference | `case_id`, `attempt` and `review_revision` |
 
 Example of the opening of a case, with invented identifiers.
