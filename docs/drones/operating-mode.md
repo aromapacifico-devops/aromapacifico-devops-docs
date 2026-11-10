@@ -130,7 +130,7 @@ The drone operates far from the farmer's phone, so a mission never depends on si
 
 If the link falls at the lot, the mission stays in the buffer of the drone. The fumigation does not close until its flight log is stored on the platform.
 
-The [drone mission link design](../network/drone-mission-link.md) defines the signed package, exact geometry and exclusion versions, offline validity, aircraft/station acknowledgements, resumable S3 upload and mission-level completion rules. Presigned upload URLs are requested only after connectivity returns; they are not stored for the offline period.
+The [drone mission link](../network/drone-mission-link.md) defines the signed package, the exact polygon and exclusion versions, how long a package stays valid offline, the acknowledgements of the station and the drone, the resumable upload and when a flight counts as complete. Presigned URLs are requested after the connection returns, so none has to last through the trip.
 
 ## 8. Flight logs
 
