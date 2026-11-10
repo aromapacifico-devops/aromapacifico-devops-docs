@@ -164,7 +164,7 @@ The LoRa variant is not complete. Its frame and its size limit, its transmission
 
 ## 7. Modem and radio alternatives
 
-The decision on mobile networks applies. The design does not depend on 2G or 3G. LTE-M and NB-IoT are candidates once an operator confirms availability, coverage, the contracted service and the compatibility of the device. A conventional LTE category may be evaluated. No modem is approved by default and no model is selected here. The shared gateway follows the same rule for its backhaul, and the LoRa path of the farms out of coverage stays as approved.
+The decision on mobile networks applies, and the [mobile network validity](../network/mobile-network-validity.md) and its [decision record](../adr/mobile-network-generation.md) hold its sources and its limits. The design does not depend on 2G or 3G. LTE-M and NB-IoT are candidates once an operator confirms availability, coverage, the contracted service and the compatibility of the device. A conventional LTE category may be evaluated. No modem is approved by default and no model is selected here. The shared gateway follows the same rule for its backhaul, and the LoRa path of the farms out of coverage stays as approved.
 
 | Criterion | LTE-M class | NB-IoT class | Conventional LTE class, such as a low category module | LoRa module |
 |---|---|---|---|---|
@@ -188,7 +188,7 @@ What a supplier must show for a modem to be evaluated.
 | Firmware update of the module itself | Section 10 |
 | Antenna interface and the antenna that the supplier recommends | Site and mast |
 
-The power saving modes of NB-IoT and LTE-M need the network to accept the timers that the device requests, and each operator decides what it offers. The sources found describe this, and the operators of the pilot have not confirmed their settings.
+The power saving modes of NB-IoT and LTE-M need the network to accept the timers that the device requests, and each operator decides what it offers. The operator settings sheets of the mobile IoT association show that operators of other countries set their own values and some offer none. The operators of the pilot have not confirmed their settings.
 
 ## 8. Energy balance and solar sizing
 
@@ -556,7 +556,7 @@ Two fields would help the platform and are proposed here, with nothing changed u
 | Where the secure connection is built, in the controller or in the cellular module | Module supplier | Memory, key storage and energy change |
 | Extremes of temperature and the humidity of the sites, and the rise inside the enclosure | Weather data and the enclosure supplier | The enclosure and component ranges change |
 | Battery level below which an update does not start | Measurements of the first nodes | The update window shrinks |
-| Provisioning in a controlled place before shipment | Team | The installer needs a tool and a connection |
+| Fleet provisioning with a temporary claim, named in the farm module design for the real rollout, aligned with provisioning in a controlled place | Owners of the farm module design | A shared claim credential would enter the nodes, which this specification avoids |
 | Firmware version and battery measurement added to the reported data | Owners of the ingestion design | The update and the energy monitoring have less data |
 | Frame, transmission limits, configuration and update of the LoRa variant | Design of the farms out of coverage | The LoRa variant stays incomplete |
 
