@@ -209,7 +209,7 @@ The selection of the hardware belongs to the specification of the autonomous nod
 
 ## 9. Check of the design documents
 
-The design documents contain no requirement of 2G, 3G, GSM, UMTS, GPRS or EDGE, and no fallback to them. The documents mention LTE for the node modem, the gateway backhaul and the phones, the wired WAN for the centers, and LTE-M and NB-IoT only in the assumptions register. Optional SMS fallback for alerts and network time at each connection depend on the operator service and not on a named generation, and the modem selection must keep them working on 4G.
+The design documents contain no requirement of 2G, 3G, GSM, UMTS, GPRS or EDGE, and no fallback to them. The documents mention LTE for the node modem, the gateway backhaul and the phones, the wired WAN for the centers, and LTE-M and NB-IoT only in the assumptions register. Optional SMS fallback for alerts and network time at each connection depend on the operator service with no named generation, and the modem selection must keep them working on 4G.
 
 ## 10. Pending confirmations
 
