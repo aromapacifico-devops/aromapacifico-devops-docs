@@ -108,7 +108,7 @@ The buyer flow deserves a note. A buyer does not sign in, so the sack code works
 | Person in a photo | The object moves to a restricted prefix and skips inference | The capture is repeated |
 | Verification never arrives | The fumigation stays open and appears on the dashboard | Nothing |
 | Bad deployment | Pipeline rollback to the previous version | Nothing. Events wait in queues |
-| Table corrupted | Point-in-time restore to a new table | At most about 5 minutes, inside the 15-minute objective |
+| Table corrupted | Point-in-time restore to a new table, as the [recovery](recovery.md) design details | At most about 5 minutes, inside the 15-minute objective |
 | Region lost | Rebuild from code and the archive, in a planned effort | Outside the recovery objectives of the pilot |
 
 ## 6. Scale from 200 to 1,000 farms
