@@ -122,7 +122,7 @@ A package is an immutable folder or archive. Its canonical `manifest.json` lists
 | Origin | Creation time, issuing service, source case or order, schema version and correlation identifier |
 | Polygon | Reference to the published polygon object, its `geometry_version`, SHA-256 and coordinate reference system |
 | First delimitation | `geometry_status` set to `PROVISIONAL_SURVEY_EXTENT`, with the reviewed survey extent, since the lot has no published polygon yet |
-| Exclusions | Each exclusion object with its version, its restriction, `NO_FLY`, `NO_SPRAY` or both, and its SHA-256. An empty set is valid only when it is stated explicitly |
+| Exclusions | Each no-fly zone and each no-spray strip with its version and SHA-256, as the [lot boundaries](../drones/lot-boundaries-and-exclusions.md) define them. An empty set of no-fly zones is valid only when it is stated explicitly |
 | Window | `not_before` and `not_after` in UTC, with the local time zone for display. UTC decides |
 | Flight plan | Area or precision mode, the route in a supplier-neutral format, safety limits and expected outputs |
 | Fumigation only | Order reference, reference to the human authorization, treated area, product lot and limits |

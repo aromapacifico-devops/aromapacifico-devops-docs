@@ -172,5 +172,5 @@ Development, test and production come from the same code with different variable
 | Security | Identity and access, encryption and revocation, personal data and retention |
 | Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
 | Automation and change | Implementation scope, environments and promotion |
-| Workloads | Sensors, telemetry ingestion, drone operating mode, sack identity, sack states, custody chain, carrier application contract |
+| Workloads | Sensors, telemetry ingestion, drone operating mode, lot boundaries, harvest estimation, sack identity, sack states, custody chain, carrier application contract |
 | Decisions and assumptions | Decision records and assumption register |
