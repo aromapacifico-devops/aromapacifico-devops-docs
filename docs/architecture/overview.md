@@ -121,6 +121,8 @@ The buyer flow deserves a note. A buyer does not sign in, so the sack code works
 | Ingestion endpoint | One | One | Nothing |
 | Node connections an hour | 200 | 1,000 | Nothing, each node keeps its own minute, far below the quota of 3,000 a second |
 
+The [ingestion sizing](../iot/ingestion-sizing.md) document shows the calculation behind these figures and the margin against each service quota.
+
 The stress point at scale sits in the field. A larger pilot needs more shared gateways and more brigades, and neither one changes the cloud.
 
 ## 7. Monthly cost of the cloud platform
