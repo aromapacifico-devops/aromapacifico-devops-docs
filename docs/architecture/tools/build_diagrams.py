@@ -905,8 +905,62 @@ def center_wlan():
     return p
 
 
+def drone_link():
+    p = Page("10 Drone mission link", 1700, 1460, "How a drone mission is preloaded, flown with no signal and published, with no evidence lost or counted twice")
+    drone, gs, api, kms, s3, case = 230, 520, 820, 1060, 1300, 1530
+    top, bottom = 70, 1270
+    bands = [("Preload at the municipal seat or collection center, online", 140, 404, "#EAF2F8", "#147EBA"),
+             ("At the lot, no signal needed", 560, 262, "#FEF9E7", "#B7950B"),
+             ("Synchronization on return, municipal seat or collection center", 838, 432, "#EAF6EC", "#2E7D32")]
+    for _, y, h, fill, stroke in bands:
+        p.zone("", 40, y, 1620, h, fill, stroke)
+    p.lifeline("Drone and controller", "Native log and evidence storage", drone, top, bottom, net="wireless_modem")
+    p.lifeline("Ground station", "Brigade laptop, encrypted store, journal", gs, top, bottom, net="pc")
+    p.lifeline("Mission API", "API Gateway and mission functions", api, top, bottom, icon="api_gateway", color=APP)
+    p.lifeline("AWS KMS", "Asymmetric signing key", kms, top, bottom, icon="key_management_service", color=SEC)
+    p.lifeline("Amazon S3", "Encrypted, versioned objects", s3, top, bottom, icon="s3", color=STORAGE)
+    p.lifeline("Case table", "DynamoDB, records and keys", case, top, bottom, icon="dynamodb", color=DATA)
+    for label, y, _, fill, _ in bands:
+        p._v(label, f"text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor={INK};fillColor={fill};strokeColor=none;spacingLeft=6;", 50, y + 6, 560, 24)
+
+    p.message(gs, api, 190, "Sign in, Cognito with second factor", BIZ)
+    p.message(api, kms, 224, "Sign manifest digest", CTRL)
+    p.message(kms, api, 258, "ECDSA signature", CTRL, dashed=True)
+    p.message(api, gs, 292, "Signed manifest, download links", BIZ, dashed=True)
+    p.message(gs, s3, 326, "Download package files", OBJ)
+    p.message(s3, gs, 360, "Polygon, exclusions, route", OBJ, dashed=True)
+    p.note("<b>Check and store.</b> Signature with the pinned public key, every SHA-256, then one atomic move into the mission store", 70, 378, 400, 44)
+    p.message(gs, api, 444, "Station acknowledgement, package digest", BIZ)
+    p.message(gs, drone, 478, "Load mission, local link", BIZ)
+    p.message(drone, gs, 512, "Loaded digest read back", BIZ, dashed=True)
+
+    p.note("<b>Preflight.</b> Inside the window, highest revision, not suspended, same polygon and exclusion versions, free storage, and for a fumigation a human authorization for this revision", 70, 596, 400, 58)
+    p.note("<b>Flight.</b> The drone flies the loaded mission and writes its log, photos and evidence to its own storage", 70, 664, 400, 40)
+    p.message(drone, gs, 726, "Log and evidence, file by file", OBJ)
+    p.note("<b>Journal.</b> Each file copied, hashed and journaled. The drone copy stays until the station copy matches", 70, 744, 400, 44)
+    p.message(gs, 780, 804, "No path, upload waits", FAIL, dashed=True)
+
+    p.message(gs, api, 888, "Sign in again, object list with sizes and SHA-256", BIZ)
+    p.message(api, gs, 922, "Missing objects, fresh presigned URLs", BIZ, dashed=True)
+    p.message(gs, s3, 956, "PUT with SHA-256 checksum, one URL per object", OBJ)
+    p.message(s3, gs, 990, "Version ID, or rejected and retried", OBJ, dashed=True)
+    p.message(gs, api, 1024, "Completion, manifest signed by the station key", BIZ)
+    p.note("<b>Station identity.</b> Signature checked against the station certificate in the IoT registry. A revoked station cannot publish", 860, 1042, 400, 44)
+    p.message(api, s3, 1108, "Read checksum and version", CTRL)
+    p.message(s3, api, 1142, "Stored checksum, version ID", CTRL, dashed=True)
+    p.message(api, case, 1176, "Conditional write, flight record", BIZ)
+    p.message(api, gs, 1210, "Publication receipt", BIZ, dashed=True)
+    p.note("<b>Delete.</b> The station deletes its copy only after the receipt. A repeated request returns the same receipt", 70, 1226, 400, 36)
+
+    p.legend(40, 1286, 560, [(BIZ, False, "Mission, acknowledgement and record"), (OBJ, False, "Package files and flight evidence"),
+                             (CTRL, False, "Signing and verification"), (FAIL, False, "Failure, data stays local"), (CTRL, True, "Dashed line, an answer to a request")])
+    p.note("<b>Fumigation.</b> A fumigation package exists only after the prerequisite flight is published and a supervisor, distinct from the pilot, authorizes it. Inference never authorizes.", 620, 1286, 1040, 50)
+    p.note("<b>Large files.</b> Above 100 MB the station uses a multipart upload with a full-object CRC checksum, keeps its upload ID, and resends only missing parts. Verification then computes the SHA-256.", 620, 1350, 1040, 50)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
