@@ -54,7 +54,7 @@ Each zone is a /24, as the reserved inventory defines, with one VLAN and one SSI
 | Local servers | Printing and network control | To be sized | 10.X.10.0/24 | 10 | Wired only |
 | Cloud link | Edge of the center | Firewall | 10.X.20.0/24 | 20 | Wired only |
 
-VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception.
+VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception. The [center WLAN](center-wlan.md) defines the security of each SSID, the trunks, the management of the equipment and the policy between zones.
 
 Addresses inside each zone follow one rule. The first usable address is the gateway on the firewall, addresses 2 to 20 stay fixed for infrastructure, and DHCP serves from 21 upward. Every /24 offers 254 usable addresses, far more than the largest zone needs, so the plan leaves room with no rework.
 
@@ -104,16 +104,17 @@ The firewall must support IKEv2 and two tunnels, since AWS provides two endpoint
 |---|---|---|
 | Logistics | Cloud API and S3 | IPsec tunnel to private endpoints |
 | Local servers | Cloud API | IPsec tunnel |
+| Logistics | Label printer | Pending until the printer address, protocol and port are confirmed |
 | Management, Support | Web reports | Internet, HTTPS |
 | Transport | Carrier API | Internet, HTTPS |
 | Visitors | Internet only | Isolated, capped |
 | Cloud link | Tunnel endpoint | Carries no client traffic |
 
-Only logistics and local servers route through the tunnel, with the routes 10.X.3.0/24 and 10.X.10.0/24. The tunnel is a privilege, and giving it to fewer zones reduces what a compromised phone can reach.
+Only logistics and local servers route through the tunnel, with the routes 10.X.3.0/24 and 10.X.10.0/24. The tunnel is a privilege, and giving it to fewer zones reduces what a compromised phone can reach. Visitors are denied every private range, and only DHCP and DNS reach the gateway of their VLAN.
 
 ## 7. A center with no WAN
 
-A cut in the link must not stop reception. Staff keep registering sacks on the logistics application, which queues events on the device, and the printer keeps working on the local network. Events synchronize when the link returns. The application keeps the local time of each event, so that the history stays correct.
+A cut in the link must not stop reception. Staff keep registering sacks on the logistics application, which queues events on the device, and the printer, once its rule is enabled, keeps working on the local network. Events synchronize when the link returns. The application keeps the local time of each event, so that the history stays correct.
 
 ## 8. Installation
 
@@ -123,7 +124,7 @@ A cut in the link must not stop reception. Staff keep registering sacks on the l
 | 2 | Load the firewall template with the octet of the department |
 | 3 | Load the VPN parameters and the pre-shared keys |
 | 4 | Install the switch and access points |
-| 5 | Check each SSID against the policy, including that visitors cannot reach logistics |
+| 5 | Check each SSID against the policy, including that visitors cannot reach logistics. The checks are listed in the center WLAN document |
 | 6 | Run a test reception and print one sheet |
 
 ## 9. Assumptions and pending confirmations
@@ -133,3 +134,4 @@ A cut in the link must not stop reception. Staff keep registering sacks on the l
 | The WAN provider gives a static public address | Provider | The VPN needs a dynamic setup or another provider |
 | Local servers can be sized after the printing need is known | Team | The zone stays with room to grow |
 | The building layout allows 2 to 3 access points | Site survey | Quantity changes |
+| The label printer model gives its protocol and port | Team | The printing rule stays closed until they are known |
