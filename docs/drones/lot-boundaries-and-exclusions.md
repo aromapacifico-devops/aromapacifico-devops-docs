@@ -123,7 +123,7 @@ The example uses invented coordinates and identifiers.
 
 ## 6. Life of a lot polygon
 
-![Lot polygon states](../architecture/diagrams/11-lot-geometry-lifecycle.drawio.png)
+![Lot polygon states](../architecture/diagrams/12-lot-geometry-lifecycle.drawio.png)
 
 | State | Means | Next state and what it needs |
 |---|---|---|
