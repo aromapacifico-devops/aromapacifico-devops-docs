@@ -620,7 +620,7 @@ def connectivity():
     table = ("<table style='font-size:11px' cellpadding='4'><tr><td><b>Source</b></td><td><b>Destination</b></td><td><b>Port</b></td><td><b>Action</b></td></tr>"
              "<tr><td>Logistics</td><td>Cloud API</td><td>443</td><td>Allow</td></tr>"
              "<tr><td>Local servers</td><td>Cloud API</td><td>443</td><td>Allow</td></tr>"
-             "<tr><td>Logistics</td><td>Label printer</td><td>To confirm</td><td>Allow</td></tr>"
+             "<tr><td>Logistics</td><td>Label printer</td><td>To confirm</td><td>Pending</td></tr>"
              "<tr><td>Transport</td><td>Internet</td><td>443</td><td>Allow</td></tr>"
              "<tr><td>Management</td><td>Internet</td><td>443</td><td>Allow</td></tr>"
              "<tr><td>Support</td><td>Internet</td><td>443</td><td>Allow</td></tr>"
@@ -884,7 +884,7 @@ def center_wlan():
     p.edge("adm", "swm", "admin only", CTRL, exit=(0.5, 0), entry=(0.5, 1))
     p.edge("adm", "apm", "admin only", CTRL, exit=(1, 0.5), entry=(0.5, 1), points=[(1570, 285)])
     p.net("Internet", 1290, 358, "cloud", "net", w=80, h=52)
-    p.edge("fw", "prt", "Printer only", OBJ, exit=(1, 0.1), entry=(0, 0.5), points=[(1125, 363), (1125, 165)])
+    p.edge("fw", "prt", "Printing rule, pending", OBJ, dashed=True, exit=(1, 0.1), entry=(0, 0.5), points=[(1125, 363), (1125, 165)])
     p.edge("fw", "net", "HTTPS 443, visitors 80 and 443", OBJ, exit=(1, 0.5), entry=(0, 0.5))
 
     p.group("Cloud, us-east-1", 1160, 480, 500, 210, stroke=INK, sw=2)
@@ -900,8 +900,8 @@ def center_wlan():
               ("<b>4. Tunnel and cloud.</b> No route for 10.X.5.0/24, and endpoint security groups accept only logistics and local servers.")]
     for i, text in enumerate(layers):
         p.note(text, 480 + i * 290, 770, 270, 110, fill="#FDEDEC", stroke="#DD344C")
-    p.legend(40, 730, 400, [(BIZ, False, "Wi-Fi association, named by SSID"), (CTRL, False, "Wired trunk or administration"), (OBJ, False, "Path the firewall allows")])
-    p.note("<b>X is 41 Cauca, 42 Huila or 43 Tolima.</b> Only logistics and local servers reach the cloud. No zone reaches another, except logistics to the label printer.", 40, 850, 400, 70)
+    p.legend(40, 730, 400, [(BIZ, False, "Wi-Fi association, named by SSID"), (CTRL, False, "Wired trunk or administration"), (OBJ, False, "Path the firewall allows"), (OBJ, True, "Rule defined, not enabled")])
+    p.note("<b>X is 41 Cauca, 42 Huila or 43 Tolima.</b> Only logistics and local servers reach the cloud. No zone reaches another. The printing rule from logistics stays pending until address, protocol and port are confirmed.", 40, 858, 400, 70)
     return p
 
 

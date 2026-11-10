@@ -104,7 +104,7 @@ The firewall must support IKEv2 and two tunnels, since AWS provides two endpoint
 |---|---|---|
 | Logistics | Cloud API and S3 | IPsec tunnel to private endpoints |
 | Local servers | Cloud API | IPsec tunnel |
-| Logistics | Label printer, one address | Local network, through the firewall |
+| Logistics | Label printer | Pending until the printer address, protocol and port are confirmed |
 | Management, Support | Web reports | Internet, HTTPS |
 | Transport | Carrier API | Internet, HTTPS |
 | Visitors | Internet only | Isolated, capped |
@@ -114,7 +114,7 @@ Only logistics and local servers route through the tunnel, with the routes 10.X.
 
 ## 7. A center with no WAN
 
-A cut in the link must not stop reception. Staff keep registering sacks on the logistics application, which queues events on the device, and the printer keeps working on the local network. Events synchronize when the link returns. The application keeps the local time of each event, so that the history stays correct.
+A cut in the link must not stop reception. Staff keep registering sacks on the logistics application, which queues events on the device, and the printer, once its rule is enabled, keeps working on the local network. Events synchronize when the link returns. The application keeps the local time of each event, so that the history stays correct.
 
 ## 8. Installation
 

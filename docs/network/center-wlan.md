@@ -42,7 +42,7 @@ Each collection center serves staff, drivers and visitors over Wi-Fi. This docum
 |---|---|
 | Each zone has its own network | One VLAN, one subnet and one SSID per zone |
 | A visitor never reaches logistics or management | Four layers that fail independently, described in section 7 |
-| A compromised phone reaches as little as possible | Only logistics and local servers have a path to the cloud, and no zone reaches another except logistics to the label printer |
+| A compromised phone reaches as little as possible | Only logistics and local servers have a path to the cloud, and no zone reaches another. A printing rule from logistics to the label printer is defined and stays pending |
 | The equipment cannot be administered from the Wi-Fi | Management addresses live in the wired local servers VLAN, with their own access list |
 | A center with no WAN keeps working | Zones and policies live in the firewall and switch of the center, so the cut link changes nothing here |
 
@@ -56,7 +56,7 @@ The firewall holds the gateway of every zone, the first usable address of each /
 |---|---|---|---|---|---|
 | Management | 101 | AP-GER | 10.X.1.0/24 | 2 desktops, 5 phones | Internet, HTTPS |
 | Support | 2 | AP-SOP | 10.X.2.0/24 | 2 desktops, 5 phones | Internet, HTTPS |
-| Logistics | 3 | AP-LOG | 10.X.3.0/24 | 2 desktops, 20 phones | Cloud API through the tunnel, and the label printer |
+| Logistics | 3 | AP-LOG | 10.X.3.0/24 | 2 desktops, 20 phones | Cloud API through the tunnel. The label printer rule is pending |
 | Transport | 4 | AP-TRA | 10.X.4.0/24 | 20 phones | Internet, HTTPS |
 | Visitors | 5 | AP-VIS | 10.X.5.0/24 | 10 phones | Internet only, isolated and capped |
 | Local servers | 10 | Wired only | 10.X.10.0/24 | Printer, equipment management | Cloud API through the tunnel |
@@ -64,7 +64,7 @@ The firewall holds the gateway of every zone, the first usable address of each /
 
 The three departments use the same table with X set to 41, 42 or 43, and the [collection center LAN](collection-center-lan.md) lists the resulting subnets. Management uses VLAN 101 because VLAN 1 is the default on most equipment and should carry no traffic. The other VLAN numbers match the third octet of their subnet, which makes a mistaken port easy to see.
 
-Five SSIDs run on two or three access points. Section 12 explains what that costs in airtime.
+The center has seven VLANs, six zones plus the cloud link. Five of them carry wireless clients and each of those is tied to one SSID, so the center has five SSIDs. VLAN 10 and VLAN 20 are wired. The access point trunks carry six VLANs, the five client VLANs and the management VLAN 10. The number of VLANs and the number of SSIDs are different quantities, and only the SSIDs share airtime. Section 12 lists what must be validated before the five SSIDs are confirmed on a given access point model.
 
 ## 3. Wi-Fi security per SSID
 
@@ -116,7 +116,7 @@ The access points and the switch take their management addresses from the local 
 | 10.X.10.1 | Firewall, gateway of the VLAN |
 | 10.X.10.2 | Switch |
 | 10.X.10.3 to 10.X.10.5 | Access points, up to three |
-| 10.X.10.6 | Label printer |
+| 10.X.10.6 | Reserved for the label printer, to confirm with the printer model |
 | 10.X.10.11 to 10.X.10.20 | Administration host and local servers |
 | 10.X.10.21 and above | Served by DHCP, if the zone needs it |
 
@@ -124,7 +124,7 @@ Sharing a VLAN does not give general access, so management is limited in four wa
 
 1. The VLAN holds wired equipment only, and no phone or desktop belongs to it.
 2. Each access point and the switch accept administration only from the administration host addresses, through the access list of the device, and ignore requests from any other address of the VLAN.
-3. The firewall denies every zone toward VLAN 10 except logistics to the printer. A visitor, staff phone or driver cannot open the page of an access point.
+3. The firewall denies every zone toward VLAN 10, and the printing rule of section 6 stays pending. A visitor, staff phone or driver cannot open the page of an access point.
 4. Administration uses its own account with a strong credential on each device, the default credentials are changed at installation, and the credentials follow the secrets rule of the project.
 
 The firewall accepts its own administration only from VLAN 10, and every client zone can reach the firewall only for DHCP and DNS.
@@ -137,7 +137,7 @@ The perimeter firewall decides every path between zones. Rules are listed from t
 |---|---|---|---|
 | Logistics | Cloud API | 443 | Allow |
 | Local servers | Cloud API | 443 | Allow |
-| Logistics | Label printer address | Confirmed with the printer model | Allow |
+| Logistics | Label printer address | Protocol and port to confirm | Pending, not loaded until address, protocol and port are confirmed |
 | Transport | Internet | 443 | Allow |
 | Management | Internet | 443 | Allow |
 | Support | Internet | 443 | Allow |
@@ -155,12 +155,12 @@ Result for each pair of client zones.
 |---|---|---|---|---|---|---|---|---|
 | Management | Same VLAN | Deny | Deny | Deny | Deny | Deny | 443 | Deny |
 | Support | Deny | Same VLAN | Deny | Deny | Deny | Deny | 443 | Deny |
-| Logistics | Deny | Deny | Same VLAN | Deny | Deny | Printer only | Deny | 443 |
+| Logistics | Deny | Deny | Same VLAN | Deny | Deny | Pending | Deny | 443 |
 | Transport | Deny | Deny | Deny | Same VLAN | Deny | Deny | 443 | Deny |
 | Visitors | Deny | Deny | Deny | Deny | Same VLAN | Deny | 80, 443 | Deny |
 | Local servers | Deny | Deny | Deny | Deny | Deny | Same VLAN | Deny | 443 |
 
-The printing rule opens one address and one port. The printer model is not chosen yet, so its protocol and port stay as a pending confirmation, and the rule is not loaded with a broad range while that is open. The drone ground station uploads through the logistics zone, so it follows the logistics row.
+The printing rule is defined and not active. It is enabled only for one printer address, one protocol and one port, and only after the team confirms all three with the printer model. Until then the firewall denies logistics toward local servers like every other pair, no port range is opened as a placeholder, and the pending cell in the matrix reads as deny. A center cannot print sack code sheets from the logistics zone until the rule is enabled, so the installation step that prints a sheet waits for it. The drone ground station uploads through the logistics zone, so it follows the logistics row.
 
 The routes toward the cloud follow the same rows. Only 10.X.3.0/24 and 10.X.10.0/24 are announced into the tunnel, and the security groups of the cloud endpoints accept those two ranges only. A rule written by mistake at a center would still meet a second barrier in the cloud.
 
@@ -200,7 +200,8 @@ These checks extend the step of the installation procedure that checks each SSID
 | From a visitor phone, reach the private range of another center and the cloud range of production | Every attempt fails |
 | From a visitor phone, reach another visitor phone | It fails |
 | From a visitor phone, open the administration page of the firewall | It fails |
-| From a logistics phone, print one sheet | It prints on the label printer |
+| After the printing rule is enabled, print one sheet from a logistics device | It prints on the label printer |
+| Before the printing rule is enabled, send a print job from a logistics device | It fails, and the firewall denies it |
 | From a logistics phone, reach the page of an access point and a management address | Both fail |
 | From a management or support device, reach logistics | It fails |
 | From a device outside the administration host, open the administration of the switch | It fails |
@@ -235,13 +236,23 @@ The pilot uses shared passphrases, one per SSID. That choice fits three centers 
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
-| The label printer protocol and port are known once the model is chosen | Team | The printing rule stays closed, and printing waits for that rule |
+| The label printer address, protocol and port are confirmed once the model is chosen | Team | The printing rule stays pending and printing from logistics waits for it |
 | Staff and driver phones support WPA3 | Federation | An SSID with such devices runs transition mode, recorded for that SSID |
 | The selected access points support client isolation, a VLAN per SSID, required PMF and a minimum data rate | Equipment selection | The model is replaced, or the check is moved to the firewall |
-| Five SSIDs on two or three access points keep enough airtime | Site survey | Raise the lowest data rate, and if needed merge management and support under one SSID |
+| Five SSIDs on the selected access point model keep enough airtime for the expected clients | Equipment selection and site survey | The team decides between the options in the text below |
 | The switch supports an access list for its administration | Equipment selection | Administration is restricted at the firewall and by a separate cable |
 
-Vendor guidance commonly cited for the number of SSIDs on one radio is three or four, and the sources disagree about the real airtime cost. Five SSIDs are above that range. The inventory defines five zones with Wi-Fi, so the design keeps five and relies on a higher minimum data rate for beacons and on the site survey. This figure comes from secondary sources and has not been measured.
+The number of SSIDs an access point can broadcast is not a universal limit. It depends on the access point model, the radios and bands it has, the number of clients on each SSID and the airtime that beacons and management traffic take at the planned minimum data rate. Secondary sources give different figures and disagree on the real cost, so this design adopts none of them. The design keeps the five SSIDs of the approved inventory and marks the following as pending validation.
+
+| Validation | What decides it |
+|---|---|
+| SSIDs per radio and per access point that the model supports | The datasheet of the selected model, per band |
+| Bands each SSID uses | The design broadcasts every SSID on every band until validated. Limiting an SSID to one band would change the design and needs a decision |
+| Clients per access point and per SSID | The 66 expected clients of the inventory, spread over two or three access points |
+| Beacon and management airtime | The minimum data rate set on the model, and the number of access points that hear each other |
+| Real channel use | The site survey of each center |
+
+If the validation fails for a model, the options are another model, a higher minimum data rate, fewer bands for an SSID, or fewer SSIDs, such as one shared by management and support. Each of them changes the approved design, so the team decides it with the result in hand.
 
 ## Sources
 
@@ -250,5 +261,5 @@ Vendor guidance commonly cited for the number of SSIDs on one radio is three or 
 | NIST SP 800-153, Guidelines for Securing Wireless Local Area Networks, section 2.1.2 | Separate guest and internal WLANs, and keep guest traffic off internal networks |
 | Wi-Fi Alliance, security page | WPA3 gives added protection against password guessing and is mandatory for Wi-Fi CERTIFIED devices |
 | Vendor and academic papers on WPA3 transition mode | Downgrade of devices through a copied SSID in transition mode. The Wi-Fi Alliance specification text was not consulted |
-| Vendor articles on SSID count and beacon airtime | Commonly cited limit of three or four SSIDs per radio, with disagreement on the real cost |
+| Vendor articles on SSID count and beacon airtime | Background on beacon airtime. They disagree, and no limit is adopted from them |
 | [Collection center LAN](collection-center-lan.md), [cloud addressing](cloud-addressing.md), [center WAN capacity](../adr/center-wan-capacity.md) | Zones, ranges, routes, capacity and cloud endpoint rules |
