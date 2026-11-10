@@ -256,14 +256,15 @@ What the people at reception stations can do in the busiest hour. The day has 8 
 | 4 | 87 | 63 sacks | 1.2 | 43 minutes | 57% |
 | 5 | 109 | 41 sacks | 0.6 | 22 minutes | 46% |
 | 6 | 131 | 19 sacks | 0.2 | 9 minutes | 38% |
-| 7 | 153 | 0 sacks | no backlog | none | 33% |
-| 9 | 196 | 0 sacks | no backlog | none | 25% |
+| 7 | 153 | 0 sacks | not needed in the model | none in the model | 33% |
+| 9 | 196 | 0 sacks | not needed in the model | none in the model | 25% |
 
 How to read the table.
 
 - The 63 sacks are the 150 arrivals of the busiest hour minus the 87 that 4 people serve in that hour. They are in the queue at its end.
 - The queue then clears while the arrivals of the other hours, 35.7 an hour, keep coming. The spare capacity of 4 people is 87.3 minus 35.7, which is 51.6 sacks an hour, so 63 sacks clear in 1.2 hours. An earlier version of this document used the average of 50 an hour for the hours that follow, and that gave 1.7 hours. It counted the busiest hour twice, since the 400 sacks of the day already include its 150. The 1.7 hours holds only if the other hours also brought 50 sacks an hour, which makes 450 sacks and is not the case.
 - The longest wait is that of the last sack that arrives in the busiest hour, the queue divided by the rate of service, 43 minutes with 4 people. It assumes that sacks are served in the order they arrive.
+- The model uses hourly averages and fixed times. A crew whose hourly capacity covers the volume can serve it under these assumptions, and that does not show that nobody waits when sacks arrive in bunches inside the hour or when the time of a step varies. The first harvest must show it.
 - Adding the average station work for sacks with no code and for reprints, 8 seconds a sack, 4 people serve 83 sacks an hour and the backlog is 67.
 
 Four people and the day. The work of the day is 20.9 station hours with every task counted, and 4 people have 32, so they are busy 65 percent of it. Four people at the utilization target of 70 percent are the least that complete the day, since 20.9 divided by 0.7 and by 8 is 3.7. The table below puts the busiest hour at different positions of the day.
@@ -282,7 +283,7 @@ Operating proposal for the design. The numbers are the ones above, and the choic
 |---|---|---|
 | People | 4 for the whole day, who rotate through reception, the dispatch scan and the steps for a sack with no code, and 2 more during the busiest hours, 6 in all | 4 complete the day at 65 percent busy. 6 cut the queue of the busiest hour from 63 to 19 sacks and the longest wait from 43 to 9 minutes |
 | Without the 2 extra people | Accept a queue of up to 63 sacks and a wait of up to 43 minutes in the busiest hour | The Federation decides whether that wait is acceptable. It is pending |
-| To have no queue at all | 7 people at 100 percent busy, 9 at the 85 percent target | The queue stays empty only with these crews. This is the only case that needs nine |
+| To cover the hourly volume of the busiest hour | 7 people at 100 percent busy, 9 at the 85 percent target | Their hourly capacity covers the 150 sacks under the assumptions of the model. It does not show that nobody waits when arrivals bunch up or times vary. This is the only case that needs nine |
 | Reception stations | One for each person at reception, each with a device and a bench for inspection | Inspection is done at the station, so about 55 percent of the reception people, 5 of 9, are inspecting at any moment |
 | Scale | 1, which is busy 83 percent of the busiest hour | A second scale is a spare for a failure and would halve the load. The Federation decides |
 | Dispatch station | 1, for 400 scans of 15 seconds, 1.7 hours a day | Run by the people who rotate |

@@ -948,7 +948,7 @@ def center_operation():
     p.note("<b>Reprint:</b> same code, reason, label_reprinted, old label withdrawn or voided when possible. Review from the third reprint is an operating assumption.", 50, 885, 600, 70, fill="#FFFFFF", stroke=ALERT)
 
     p.group("Capacity at 400 sacks a day, assumed times, not measured", 870, 640, 800, 370, stroke=INK, sw=2)
-    p.step("<b>Busiest hour</b><br>150 sacks, 3 times the average of 50<br>9 stations at 85 percent leave no queue<br>4 people complete the day, 63 sacks queue", 890, 690, 360, 90, fill="#F7FAFC", stroke=INK, cid="cap")
+    p.step("<b>Busiest hour</b><br>150 sacks, 3 times the average of 50<br>9 people cover the hour at 85 percent, in the model<br>4 people complete the day, 63 sacks queue", 890, 690, 360, 90, fill="#F7FAFC", stroke=INK, cid="cap")
     p.step("<b>Bottleneck: inspection</b><br>48 percent of the person time of a sack<br>5 people inspecting in the busiest hour", 1280, 690, 370, 90, fill="#FDEDEC", stroke=FAIL, cid="bot")
     p.note("<b>People, not devices.</b> 2 desktops and 20 phones do not show enough people, scales or inspection pace. With 4 people the backlog is 63 sacks after the busiest hour.", 890, 800, 360, 80)
     p.note("<b>One scale</b> runs at 83 percent in the busiest hour. <b>One printer</b> is busy 19 percent with 10 percent of sacks with no code and 5 percent reprints.", 1280, 800, 370, 80)

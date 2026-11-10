@@ -112,7 +112,7 @@ def main():
         backlog = max(peak_per_hour - full, 0)
         spare = full - rest
         if backlog == 0:
-            clear, wait = "no backlog", "none"
+            clear, wait = "not needed in the model", "none in the model"
         elif spare <= 0:
             clear, wait = "never, below the arrivals", f"{60 * backlog / full:.0f} minutes and growing"
         else:
@@ -124,7 +124,7 @@ def main():
     extra = station_nc * nc + 40 * REPRINT_SHARE
     full4b = 4 * 3600 / (rec + extra)
     print(f"Adding the average station work for sacks with no code and reprints, {extra:.0f} seconds a sack, 4 people serve {full4b:.1f} an hour and the backlog is {peak_per_hour - full4b:.0f} sacks.")
-    print(f"Seven people is the least that serves {peak_per_hour:.0f} sacks in the hour with no backlog, and only if nobody ever waits for work. Nine people keep the utilization at 85 percent, so the queue stays empty when arrivals bunch up inside the hour. The dispatch scan, {DISPATCH_SCAN} seconds, is outside these rows.")
+    print(f"Seven people is the least whose hourly capacity, with every person busy all the time, covers the 150 sacks of the busiest hour. Nine people cover it at the 85 percent target, which leaves room for some variation. Neither crew shows that nobody waits. The model uses hourly averages, so sacks that arrive in bunches inside the hour, or times that vary from sack to sack, can still make a queue. The dispatch scan, {DISPATCH_SCAN} seconds, is outside these rows.")
     print(f"The logistics zone has {LOGISTICS_DEVICES['desktops']} desktops and {LOGISTICS_DEVICES['phones']} phones, {sum(LOGISTICS_DEVICES.values())} devices. Devices do not limit the stations. People, scales and the pace of inspection do, and the number of people at a center is not known.")
 
     print("\n## Where the busiest hour falls")
