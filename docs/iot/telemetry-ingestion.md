@@ -53,7 +53,7 @@ Carrier positions travel through the carrier API and share the storage pattern, 
 | Total device messages | 50,400 | 108,000 |
 | Messages a second, average | 0.02 | 0.04 |
 
-With 0.5 KB per message, a harvest month is 54 MB. The volume is tiny. What demands design is the arrival pattern, since nodes wake on schedule and buffers drain together when a tower returns.
+With 0.5 KB per message, a harvest month is 54 MB. The volume is tiny. What demands design is the arrival pattern, since nodes wake on schedule and buffers drain together when a tower returns. The [ingestion sizing](ingestion-sizing.md) document projects these figures to 1,000 farms and checks them against the service quotas.
 
 ## 3. Ingestion service
 
