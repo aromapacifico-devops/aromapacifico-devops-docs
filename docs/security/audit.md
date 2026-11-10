@@ -100,7 +100,7 @@ CloudWatch Logs keeps platform events and IoT entries for 90 days in each worklo
 
 ## 3. How each event reaches the store
 
-![Audit evidence path](../architecture/diagrams/audit-evidence-path.drawio.png)
+![Audit evidence path](../architecture/diagrams/11-audit-evidence-path.drawio.png)
 
 | Event | Path |
 |---|---|
