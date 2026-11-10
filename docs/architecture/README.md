@@ -31,10 +31,12 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 
 ## Related documents
 
-[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, the [center WLAN](../network/center-wlan.md) details the segmentation of a collection center, with the sequences of connection, disconnection and recovery, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given. The [center operations](../network/collection-center-operations.md) define reception, labels, work with no internet and the capacity of a center.
+[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, the [center WLAN](../network/center-wlan.md) details the segmentation of a collection center, with the sequences of connection, disconnection and recovery, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
 
 The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
 
 ## Regenerating the diagrams
 
 `tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page on Linux, and `tools/export_diagrams.ps1` does the same on Windows with draw.io Desktop.
+
+The [center operations](../network/collection-center-operations.md) define reception, labels, work with no internet and the capacity of a center.
