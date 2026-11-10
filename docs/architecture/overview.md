@@ -93,7 +93,7 @@ Sites at the edge hold their data until a path exists. A serverless platform in 
 | 5. Public query | Browser, WAF, CloudFront, API Gateway, domain function | None, read by code | HTTPS |
 | 6. Infrastructure delivery | Pull request, plan, approval, apply | GitHub OIDC role | HTTPS |
 
-The buyer flow deserves a note. A buyer does not sign in, so the sack code works as a capability to read one sack. The code is random and reveals nothing, and the response holds only the buyer view. Every read is audited.
+The buyer flow deserves a note. A buyer does not sign in, so the sack code works as a capability to read one sack. The code is random and reveals nothing, and the response holds only the buyer view. Every read is [audited](../security/audit.md).
 
 ## 5. What happens when something fails
 
