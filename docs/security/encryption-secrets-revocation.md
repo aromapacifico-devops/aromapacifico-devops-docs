@@ -44,7 +44,7 @@ Telemetry and drone objects never travel or rest in clear text, secrets stay out
 | LoRa node to gateway | LoRaWAN AES-128 session keys | Device keys | The network server cannot be bypassed |
 | Gateway to cloud | TLS over LTE | Gateway certificate | Traffic stays encrypted over the backhaul |
 | Carrier application to API | HTTPS with TLS 1.2 or later | Cognito token | |
-| Ground station to API and S3 | HTTPS with TLS 1.2 or later | Cognito token and presigned URL | |
+| Ground station to API and S3 | HTTPS with TLS 1.2 or later | Cognito token and presigned URL | The station signs each result manifest with its device key |
 | Center to VPC | IPsec site-to-site VPN | Pre-shared keys | Two tunnels per connection |
 | Browser to public query | HTTPS through CloudFront | None, read by code | |
 | Function to AWS services | HTTPS with TLS 1.2 or later | IAM role | |
@@ -75,10 +75,11 @@ S3 uses bucket keys, which reduce calls to KMS and the related cost.
 | Objects | Buckets | Upload path and inference functions |
 | Platform | Terraform state and secrets | Pipeline |
 | Audit | Log archive | Trail service, read by the security role |
+| Mission signing, asymmetric | Signs drone mission packages, encrypts nothing | Mission function signs, ground stations verify offline with the public key |
 
 Yearly automatic rotation is on for every key. Rotation keeps older data readable, because KMS retains the previous key material. Deleting a key waits at least 7 days, and a service control policy limits who can schedule it.
 
-Three customer managed keys in each workload account would be enough. Using one key for everything was discarded, because it would join what the design wants to separate. A key per table was also discarded, since at USD 1 per key per month it would add cost with no real isolation.
+Three encryption keys and one signing key in each workload account are enough. The signing key exists because a mission package sits on a ground station with no connection, where TLS no longer protects it. Using one key for everything was discarded, because it would join what the design wants to separate. A key per table was also discarded, since at USD 1 per key per month it would add cost with no real isolation.
 
 ## 5. Secrets
 
@@ -126,18 +127,18 @@ The VPN row matters because Terraform otherwise stores the tunnel keys in the st
 
 | Item | Monthly cost, USD |
 |---|---|
-| Three customer managed keys | 3.00 |
+| Four customer managed keys | 4.00 |
 | KMS requests at this load | Under 0.10 |
 | Four secrets at USD 0.40 each | 1.60 |
 
-Encryption adds under USD 5 a month, so it never competes with the budget.
+Encryption and signing add under USD 6 a month, so they never compete with the budget.
 
 ## 9. Assumptions and pending confirmations
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
 | One hour is an acceptable revocation target | Federation | The on-call procedure changes |
-| The chosen drone encrypts its storage | Drone supplier | Flights hold only the objects of the mission, and the mission is deleted on return |
+| The chosen drone encrypts its storage | Drone supplier | Flights hold only the objects of the mission, and the drone deletes them once the ground station holds a verified copy |
 | Nodes support flash encryption | Node supplier | The node keeps only encrypted payloads |
 
 ## Sources

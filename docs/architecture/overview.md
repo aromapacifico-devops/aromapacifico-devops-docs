@@ -135,11 +135,11 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 | New objects in S3, for that month | 0.11 | 0.65 |
 | VPN, three connections | 109.50 | 109.50 |
 | Interface endpoints, three in two zones | 43.80 | 43.80 |
-| KMS, three keys | 3.00 | 3.00 |
+| KMS, four keys | 4.00 | 4.00 |
 | Secrets, four | 1.60 | 1.60 |
 | WAF, web ACL and three rules | 8.00 | 8.00 |
 | CloudWatch, alarms and logs | 2.20 | 2.20 |
-| **Total** | **172.20** | **186.83** |
+| **Total** | **173.20** | **187.83** |
 
 About 89 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. Removing the endpoints would save about USD 44 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
 
@@ -170,7 +170,7 @@ Development, test and production come from the same code with different variable
 |---|---|
 | Governance | Landing zone, cloud selection, requirement matrix |
 | Security | Identity and access, encryption and revocation, personal data and retention |
-| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, carrier tracking, port delivery |
+| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
 | Automation and change | Implementation scope, environments and promotion |
 | Workloads | Sensors, telemetry ingestion, drone operating mode, sack identity, sack states, custody chain, carrier application contract |
 | Decisions and assumptions | Decision records and assumption register |

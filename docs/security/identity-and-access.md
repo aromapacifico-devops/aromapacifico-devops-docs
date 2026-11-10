@@ -129,7 +129,7 @@ GitHub OIDC replaces stored keys. AWS trusts tokens issued for this organization
 
 ## 8. Device identities
 
-Each node and each ground station holds an X.509 certificate of its own, tied to one thing. The IoT policy uses the thing name, so a device can only publish on topics that carry its own identifier.
+Each node and each ground station holds an X.509 certificate of its own, tied to one thing. The IoT policy uses the thing name, so a device can only publish on topics that carry its own identifier. A ground station also signs each flight result with the private key of that certificate, and the platform checks the signature against the registry, so revoking the certificate stops both paths.
 
 | Stage | Action |
 |---|---|
