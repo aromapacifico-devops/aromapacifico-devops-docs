@@ -58,6 +58,7 @@ This document defines who and what can act on the platform. Each actor has a sep
 |---|---|---|
 | Farmer, carrier, center operator, drone operator | Cognito user pool, one group per role | Designed for application users, with MFA and phone sign-in |
 | Platform operator | IAM Identity Center | Gives temporary AWS credentials and one place to remove access |
+| Federation analyst | IAM Identity Center | Reads only the files of the monthly pilot report, which are aggregated and name no person or farm |
 | Buyer | None | Read-only access needs no account, and the code is the capability |
 
 A single user pool with groups was preferred over one pool per role, since the applications share one API and the groups already separate permissions. API Gateway validates the token, and each function checks the group.
@@ -80,6 +81,8 @@ Federation staff could later sign in with a corporate directory by adding a fede
 | Flight objects and logs | Read own case | None | Read harvest estimate | None | Create, read assigned | None |
 | Audit logs | None | None | None | None | None | Read |
 | Platform configuration | None | None | None | None | None | Change through the pipeline |
+
+A Federation analyst reads only the aggregated files of the pilot report and none of the resources above, as the [farmer history](../iot/farmer-history.md) defines.
 
 The platform operator holds no read on business data. Operating the platform does not require seeing whose coffee it is, and that separation limits the damage of a stolen operator session.
 
@@ -121,6 +124,7 @@ No function role holds the permission to write an authorization, so a compromise
 | Verification and estimation functions | Same pattern | Own prefix |
 | Domain functions | One role per domain, sacks, trips and drones | Own tables |
 | IoT rule | Send to one queue and one delivery stream | Named resources |
+| Pilot report workflow | Export three tables, run queries in one Athena workgroup, write report files | Named tables, workgroup and reports prefix |
 | Firehose delivery | Write to the telemetry archive | Named bucket and key |
 | Pipeline, plan stage | Read-only | One role per environment |
 | Pipeline, apply stage | Deploy, limited to the protected environment | One role per environment |

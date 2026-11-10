@@ -103,7 +103,7 @@ A center uses `POST /centers/{center_id}/events`, and a carrier uses `POST /trip
 
 | Event | Fields in `data` |
 |---|---|
-| `registered` | `farm_id`, `lot_id`, `weight_kg` |
+| `registered` | `farm_id`, `lot_id`, `weight_kg`, and `drying_lot_id` when the coffee dried under a node |
 | `registered_at_center` | `center_id`, `farm_id`, `weight_kg` |
 | `handed_to_carrier` | `trip_id` |
 | `arrived_at_center` | `trip_id`, `center_id` |
@@ -119,6 +119,8 @@ A center uses `POST /centers/{center_id}/events`, and a carrier uses `POST /trip
 | `reweighed` | `weight_kg` |
 | `label_reprinted` | `center_id`, `reason_code`, `observation` |
 | `reported_missing` | `trip_id`, `note` |
+
+`drying_lot_id` links the sack to the drying lot whose summary gives the buyer the drying variables. The application offers the lots of the farm it already holds, so the field works with no connection, and the [farmer history](../iot/farmer-history.md) defines the lot. A sack registered at a center carries no lot.
 
 The five facts the pilot names map to these events. Registration with weight and identifier is `registered`, the handover is `handed_to_carrier`, arrival is `arrived_at_center` with its reception decision, departure is `dispatched_to_port` with `picked_up`, and delivery is `delivered_accepted` or `delivered_rejected`.
 
@@ -191,7 +193,7 @@ Events are sorted by `captured_at`, then by the position of the event along the 
 | Table | Key | Holds | Written by |
 |---|---|---|---|
 | `sack_events` | Partition `sack_code`, sort `event_id` | Every event, unchanged | Domain function, insert only |
-| `sacks` | Partition `sack_code` | Current state, version, gaps, farm and current trip | Domain function |
+| `sacks` | Partition `sack_code` | Current state, version, gaps, farm, current trip and the date from which the sack may be deleted | Domain function |
 
 A code issued and not yet used exists as an item in `sacks` with version 0 and no state.
 
@@ -246,7 +248,7 @@ No role of the platform can change or delete an event. DynamoDB ties the permiss
 
 One limit remains. A policy cannot forbid `PutItem` from replacing an existing item. That protection comes from the condition `attribute_not_exists` on each insert, so it depends on the code of the function. Deployment controls cover that code, and the audit design covers access to the tables.
 
-The five-year deletion runs through a service process and no application role, under the design of persistence.
+The five-year deletion runs through a service process and no application role, under the [persistence and archive](../architecture/persistence-and-archive.md) design.
 
 ## 12. Sacks of a trip
 

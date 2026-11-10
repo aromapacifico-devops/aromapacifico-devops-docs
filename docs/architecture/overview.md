@@ -125,7 +125,7 @@ The stress point at scale sits in the field. A larger pilot needs more shared ga
 
 ## 7. Monthly cost of the cloud platform
 
-These figures come from the AWS price list for us-east-1 and from the volumes of the pilot. They cover the cloud platform and leave out the WAN links, drones and field hardware, which the cost document covers.
+These figures come from the AWS price list for us-east-1 and from the volumes of the pilot. The [price basis](../governance/price-basis.md) states the date of each price, the exchange rate and the tax treatment. They cover the cloud platform and leave out the WAN links, drones and field hardware, which the cost document covers.
 
 | Item | Normal month, USD | Harvest month, USD |
 |---|---|---|
