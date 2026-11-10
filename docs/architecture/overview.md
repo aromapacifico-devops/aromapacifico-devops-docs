@@ -132,18 +132,20 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 | Item | Normal month, USD | Harvest month, USD |
 |---|---|---|
 | Telemetry ingestion | 0.72 | 0.98 |
-| APIs for positions, sacks and queries | 0.64 | 1.34 |
+| APIs for positions, sacks and queries | 1.19 | 3.01 |
 | Inference | 2.63 | 15.75 |
 | New objects in S3, for that month | 0.11 | 0.65 |
+| Alert delivery, SMS at its upper bound | 2.03 | 10.17 |
+| Audit and the small event-driven pieces | 0.45 | 0.45 |
 | VPN, three connections | 109.50 | 109.50 |
 | Interface endpoints, three in two zones | 43.80 | 43.80 |
-| KMS, four keys | 4.00 | 4.00 |
+| KMS, five keys | 5.00 | 5.00 |
 | Secrets, four | 1.60 | 1.60 |
 | WAF, web ACL and three rules | 8.00 | 8.00 |
 | CloudWatch, alarms and logs | 2.20 | 2.20 |
-| **Total** | **173.20** | **187.83** |
+| **Total** | **177.23** | **201.11** |
 
-About 89 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. Removing the endpoints would save about USD 44 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
+About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links.
 
 ## 8. What the infrastructure code builds
 

@@ -152,14 +152,14 @@ From the AWS price list for us-east-1.
 | Three interface endpoints, one zone | USD 0.01 per hour each | 0.030 |
 | Three KMS keys | USD 1 per key per month | 0.004 |
 | **Full test environment, idle** | | **0.084** |
-| Production adds three more endpoint zones, for two zones in all | USD 0.01 per hour each | 0.030 |
-| **Full production environment, idle** | | **0.114** |
+| Production adds two more VPN connections and three more endpoint zones, for two zones in all | USD 0.05 and USD 0.01 per hour each | 0.130 |
+| **Full production environment, idle** | | **0.214** |
 
 | Use | Test, USD | Test and production, USD |
 |---|---|---|
-| A work session of 8 hours | 0.67 | 1.58 |
-| Two weeks, 8 hours a day, 10 days | 6.72 | 15.84 |
-| Forgotten for a month, 24 hours a day | 61.32 | 144.54 |
+| A work session of 8 hours | 0.67 | 2.38 |
+| Two weeks, 8 hours a day, 10 days | 6.72 | 23.84 |
+| Forgotten for a month, 24 hours a day | 61.32 | 217.54 |
 | Same two weeks with VPN and endpoints off | Under 1 | Under 2 |
 
 The whole implementation fits comfortably in USD 100 if environments come down at night, which is what the nightly destroy guarantees. Bedrock and Rekognition calls in testing add about USD 1.75 per 1,000 images.
