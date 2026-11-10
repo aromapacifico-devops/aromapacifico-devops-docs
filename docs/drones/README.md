@@ -1,11 +1,11 @@
-# Drone service — design documents
+# Drone service
 
-The pilot uses the approved **combined** model: area flights for lot delimitation and harvest estimates; precision flights for focus confirmation, authorized fumigation and verification. A platform publication event allows the transition to precision work. **None of the five services replaces another.**
+The drone service combines area flights, which delimit lots and estimate the harvest, with precision flights, which confirm a focus, fumigate it and verify the result. A lot passes to precision work when its polygon is published on the platform, and none of the five services replaces another.
 
-| Document | Scope | GitHub issue |
-|---|---|---|
-| [Operating mode](operating-mode.md) | Approved ADR-aligned model, services, operators, cadence and budget assumptions | [#75](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/75) |
-| [Lot boundaries and exclusion zones](lot-boundaries-and-exclusions.md) | GeoJSON contract, preflight exclusion review, published lot versions, mission gates | [#31](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/31) |
-| [Harvest estimation](harvest-estimation.md) | One area mission per harvest, evidence and inference flow, read-only estimates for collection centers | [#35](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/35) |
+| Document | What it answers |
+|---|---|
+| [Operating mode](operating-mode.md) | Why the service combines area and precision work, who does what, how often it flies and what it costs |
+| [Lot boundaries and exclusion zones](lot-boundaries-and-exclusions.md) | How lot polygons, no-fly zones and no-spray strips are stored, published and enforced, and which legal distances apply |
+| [Harvest estimation](harvest-estimation.md) | How one area flight per farm and a field sample give the collection center the expected sacks |
 
-These documents are **architecture and design only**: they do not implement business services, firmware, UAV operations or Terraform. See the [platform architecture](../architecture/overview.md) and the [flight-log decision](../adr/flight-log-and-fumigation.md) for shared guardrails.
+The [drone mission link](../network/drone-mission-link.md) explains how missions reach the drone and how flight logs and objects return to the platform. The [platform overview](../architecture/overview.md) places the service in the whole architecture.

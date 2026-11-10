@@ -1,35 +1,107 @@
-# E4-03 — Lot delimitation and exclusion zones
+# Lot boundaries and exclusion zones
 
-- **Issue:** [docs #31](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/31)
-- **Epic:** E4, drones
-- **Status:** Proposed design, pending cross-review
-- **Implementation:** Out of scope; documentation only (not part of the 100-hour IaC budget)
+No drone flies over a house, a processing facility, a road or a water source, and no fumigation order leaves without the polygon of its lot. This document defines how the platform stores lot polygons and the zones around them, when each one must exist, the distances that keep spraying away from people, water and roads, and how a lot passes from no polygon to a published polygon that precision missions can use.
 
-## 1. Purpose and established decisions
+## Contents
 
-The pilot needs the polygon of each agricultural lot and the places that constrain flight or spraying: houses, the wet/dry processing facility (*beneficiadero*), roads and water sources. A spray mission may not be released without an accepted lot polygon and applicable exclusion zones. Area flights delimit lots; precision flights confirm, fumigate and verify a focus. The event that enables precision work is **`lot.geometry.published`**, the machine-readable name used here for **lot polygon published** in [the selected combined operating mode](operating-mode.md) and [its ADR](../adr/drone-operating-mode.md).
+1. Terms
+2. Context and volumes
+3. Two kinds of zones
+4. Distances that apply to spraying
+5. Geographic format
+6. Life of a lot polygon
+7. Checks before publication and before each mission
+8. Fumigation gate
+9. Storage and access
+10. What fails and what the platform does
+11. Cost
+12. Assumptions and pending confirmations
+13. Sources
 
-The design requirement places exclusion zones on the platform **before the first flight**, while the delimitation service creates the definitive lot polygon **during that first area flight**. These are two different artifacts and two different checkpoints. The operator must first load and review provisional exclusion geometry from available maps/site information; a preliminary delimitation flight may then capture the polygon. This provisional data is never treated as proof that the lot boundary is already published.
+## 1. Terms
 
-## 2. Geospatial contract
+| Term | Meaning in this document |
+|---|---|
+| Lot | A part of a farm planted with coffee and managed as one unit |
+| Polygon | The geographic outline of a lot |
+| Processing facility | The farm building where coffee is pulped, washed and dried, known locally as the beneficiadero |
+| No-fly zone | An outline around a house, processing facility, road or water source where the drone never flies |
+| No-spray strip | A band around a sensitive place where the drone may not apply product, wider than the no-fly zone |
+| Survey extent | The reviewed outline a first delimitation flight may cover before a polygon exists |
+| Geometry version | An immutable, numbered version of a polygon and its zones |
+| GeoJSON | The standard text format for geographic shapes defined in RFC 7946 |
+| WGS84 | The global coordinate system of GPS, in longitude and latitude |
+| Ground application | Spraying by the brigade on foot with a backpack or hose sprayer |
 
-**Proposal, not a field measurement:** use [RFC 7946 GeoJSON](https://www.rfc-editor.org/rfc/rfc7946.html) for geometry and versioned metadata in the platform's transactional record. Coordinates are decimal `[longitude, latitude]` in WGS84. The geometry of a lot is `Polygon` or `MultiPolygon`; an exclusion is a separate `Polygon`/`MultiPolygon` feature. No actual lot coordinates are supplied by the case.
+## 2. Context and volumes
+
+The drone service combines area work, which delimits lots and estimates the harvest, with precision work, which confirms a focus, fumigates it and verifies the result. A lot passes to precision work when its polygon is published, as the [drone operating mode](operating-mode.md) explains. Each farm therefore receives one delimitation flight before any precision mission.
+
+| Figure | Value | Origin |
+|---|---|---|
+| Farms in the pilot | 200 | Pilot definition |
+| Delimitation flights | 200 at the start, one per farm, and again only when a lot changes | Operating mode |
+| Lots per farm | Unknown until the first visits | To measure |
+| Size of one lot polygon | About 5 KB with 200 vertices at 6 decimals | GeoJSON text, about 25 bytes per vertex |
+| Size of the zones of one farm | Under 50 KB, counting houses, facility, roads, water and strips | Team estimate |
+| Geometry for the whole pilot | Under 10 MB | 200 farms at 50 KB |
+
+The volumes are small. What matters is that every version stays immutable and traceable, and that no mission ever runs on an outdated outline.
+
+## 3. Two kinds of zones
+
+The pilot names four places where the drone does not fly, houses, the processing facility, roads and water sources, and requires them on the platform before the first flight. The first flight then produces the polygon of the lot and the zones where it may not spray. The platform keeps the two kinds apart.
+
+| | No-fly zone | No-spray strip |
+|---|---|---|
+| What it covers | The outline of each house, processing facility, road and water source, plus any other place the supervisor marks | A band around those places and around main roads and springs, with the distances of section 4 |
+| When it exists | Before the first flight of the farm | When the polygon is published, after the delimitation flight |
+| Who creates it | The drone supervisor, from a site visit, the farmer's sketch or a verified map | The platform, from the no-fly zones and the published polygon, reviewed by the supervisor |
+| Effect | The drone never enters it, in any mission | The drone may fly across it with the sprayer off |
+
+A no-fly zone is always also a no-spray zone. A supervisor who finds none of the four places on a farm records that statement explicitly, so an empty list is never a silent omission.
+
+## 4. Distances that apply to spraying
+
+No Colombian rule sets a safety strip written for drones. The aviation regulation sends drone spraying to the rules of agricultural aviation and to the sanitary decree on pesticides, so the design applies the aerial distances of that decree to the drone and keeps the ground distances for application on foot.
+
+| Place | Drone, no-spray strip | Ground application | Basis |
+|---|---|---|---|
+| Rivers, streams, lakes and reservoirs | 100 m | 10 m | Decree 1843 of 1991, article 87, for water bodies and courses |
+| Springs | 100 m | 100 m | Decree 1076 of 2015, article 2.2.1.1.18.2, protective forest area of 100 m around a spring, where no crop is treated |
+| Houses and groups of houses | 100 m | 10 m | Decree 1843 of 1991, article 87, for human population, and article 102, no application over houses in the treated field |
+| Processing facility | 100 m, treated as part of the house group | 10 m | Same article 87, since people and animals work there |
+| Main roads | 100 m | 10 m | Decree 1843 of 1991, article 87, for trunk roads |
+| Other roads and farm tracks | No-fly over the track, strip pending | Pending | No rule found |
+| People not taking part in the flight | 30 m, no flight | Not applicable | RAC 100, section 100.310, which section 100.410 extends to the specific category of the brigades |
+
+The regulation allows an authority to widen these strips and gives no rule to narrow them. A narrower band for water with live barriers and drift-reducing nozzles, and a band for minor roads, appear in practice and were not found in any rule. They stay out of the design until a legal review confirms them.
+
+The distances are stored as versioned parameters for each type of place. A legal change updates a parameter and creates new strip versions, and every mission package built afterwards uses them.
+
+A strip of 100 m around a single house covers about 3.1 ha, which on a small farm can be most of the coffee. The design keeps such foci treatable. When a confirmed focus falls inside a drone strip and outside the ground strip of 10 m, the fumigation order is created as a ground application by the brigade, with the same human authorization and records. Inside the ground strip no product is applied, and the case moves to a non-chemical treatment decided by the supervisor.
+
+## 5. Geographic format
+
+Geometry uses GeoJSON as defined in RFC 7946. Coordinates are longitude then latitude, in WGS84 degrees, with 6 decimals, about 10 cm, which exceeds the precision of a field GPS. A lot is a `Polygon` or a `MultiPolygon`. Each ring is closed, with the first and last positions identical and at least four positions, and outer rings run counterclockwise with holes clockwise.
+
+Distances and areas are never computed on degrees. Buffers, overlaps and areas are computed in MAGNA-SIRGAS 2018 Origen Nacional, EPSG 9377, the national projected system of Colombia in metres, and the results are stored back in WGS84.
 
 | Field | Meaning | Required |
 |---|---|---|
-| `farm_id`, `lot_id` | Stable, opaque farm/lot identifiers | Yes |
-| `geometry_version` | Immutable published boundary version | Yes once published |
-| `boundary` | GeoJSON lot `Polygon` or `MultiPolygon` | Yes to publish |
-| `exclusions[]` | GeoJSON features with `exclusion_id`, `type`, `restriction`, `geometry` and `version` | Yes; possibly an explicitly attested empty set |
-| `type` | `house`, `beneficiadero`, `road`, `water`, `other` | Each exclusion |
-| `restriction` | `NO_FLY`, `NO_SPRAY`, or both | Each exclusion |
-| `source` | `survey`, `verified_map`, `drone_delimitation` | Each geometry |
-| `status` | `DRAFT`, `EXCLUSIONS_READY`, `SURVEYED`, `VALIDATED`, `PUBLISHED`, `SUSPENDED` | Yes |
-| `reviewed_by`, `reviewed_at` | Authorized reviewer identifier and UTC timestamp | Before first flight / publication |
-| `flight_log_ref`, `object_ref` | Link to persisted delimitation evidence | Before publication |
-| `published_at` | UTC time of accepted version | Once published |
+| `farm_id`, `lot_id` | Stable, opaque identifiers | Always |
+| `geometry_version` | Immutable version of the polygon and its zones | Once published |
+| `boundary` | Lot `Polygon` or `MultiPolygon` | To publish |
+| `no_fly[]` | Features with `zone_id`, `zone_type`, `version` and geometry | Before the first flight, an explicit empty list is valid |
+| `zone_type` | `house`, `processing_facility`, `road`, `water`, `spring`, `other` | Each zone |
+| `no_spray[]` | Strips derived from zones, with `zone_id` of origin, `distance_m`, `parameter_version` and geometry | To publish |
+| `source` | `site_visit`, `verified_map`, `drone_delimitation` | Each geometry |
+| `status` | `DRAFT`, `EXCLUSIONS_READY`, `SURVEYED`, `VALIDATED`, `PUBLISHED`, `SUSPENDED` | Always |
+| `reviewed_by`, `reviewed_at` | Supervisor reference and UTC time | Before the first flight and before publication |
+| `flight_log_ref`, `object_ref` | Delimitation flight log and map objects, with their S3 versions | Before publication |
+| `published_at` | UTC time of publication | Once published |
 
-Illustrative geometry only (synthetic coordinates; **not a real finca**):
+The example uses invented coordinates and identifiers.
 
 ```json
 {
@@ -37,115 +109,125 @@ Illustrative geometry only (synthetic coordinates; **not a real finca**):
   "features": [
     {
       "type": "Feature",
-      "properties": {"kind": "lot", "farm_id": "FARM-DEMO", "lot_id": "LOT-DEMO", "geometry_version": 1},
-      "geometry": {"type": "Polygon", "coordinates": [[[-75.50, 2.40], [-75.498, 2.40], [-75.498, 2.402], [-75.50, 2.402], [-75.50, 2.40]]]}
+      "properties": {"kind": "lot", "farm_id": "farm-demo", "lot_id": "lot-demo-a", "geometry_version": 1},
+      "geometry": {"type": "Polygon", "coordinates": [[[-75.500000, 2.400000], [-75.498000, 2.400000], [-75.498000, 2.402000], [-75.500000, 2.402000], [-75.500000, 2.400000]]]}
     },
     {
       "type": "Feature",
-      "properties": {"kind": "exclusion", "exclusion_id": "EX-DEMO", "exclusion_type": "water", "restriction": ["NO_FLY", "NO_SPRAY"], "version": 1},
-      "geometry": {"type": "Polygon", "coordinates": [[[-75.4997, 2.4003], [-75.4993, 2.4003], [-75.4993, 2.4007], [-75.4997, 2.4007], [-75.4997, 2.4003]]]}
+      "properties": {"kind": "no_fly", "zone_id": "zone-demo-01", "zone_type": "water", "version": 1},
+      "geometry": {"type": "Polygon", "coordinates": [[[-75.499700, 2.400300], [-75.499300, 2.400300], [-75.499300, 2.400700], [-75.499700, 2.400700], [-75.499700, 2.400300]]]}
     }
   ]
 }
 ```
 
-**Note:** GeoJSON is a portable representation, not a flight plan. The actual permitted operating buffers, altitude, paths, setbacks and airspace authorizations belong to the certified flight operator and applicable permits; they must not be invented from the simplified example. A `NO_FLY` area prohibits the aircraft path and therefore also spraying. A `NO_SPRAY` area may allow transit when the certified operator's plan and authorization allow it, but application equipment must remain off. The operator must apply the stricter restriction when both are relevant.
+## 6. Life of a lot polygon
 
-## 3. Lifecycle and permissions
+![Lot polygon states](../architecture/diagrams/11-lot-geometry-lifecycle.drawio.png)
 
-```mermaid
-flowchart TD
-    A[Map or site information] --> B[Draft exclusion zones]
-    B --> C{Zones reviewed before first flight?}
-    C -- No --> X[BLOCK preliminary mission]
-    C -- Yes --> D[EXCLUSIONS_READY]
-    D --> E[Area delimitation flight]
-    E --> F{Flight log and objects persisted?}
-    F -- No --> G[Keep pending and retry upload]
-    G --> F
-    F -- Yes --> H[Validate lot geometry]
-    H --> I{Geometry and zones valid?}
-    I -- No --> J[Return candidate to DRAFT]
-    I -- Yes --> K[PUBLISHED: lot.geometry.published]
-    K --> L[Precision mission eligible]
-    L --> M{Human-approved fumigation and closed prerequisite log?}
-    M -- No --> N[BLOCK fumigation]
-    M -- Yes --> O[Release authorized mission]
-```
-
-1. **Before the first flight:** an authorized field supervisor/operator uploads the exclusions and verifies coverage of houses, beneficiadero, roads and water. Each geometry states whether it is `NO_FLY`, `NO_SPRAY`, or both. A signed acknowledgement (`EXCLUSIONS_READY`) is required, even when no exclusions are found. The initial delimitation mission is the only exception to requiring a published lot boundary.
-2. **At the first area flight:** the operator loads the pre-reviewed exclusions, flies offline if needed, and retains the photos/map and flight log until an upload route exists. The flight is not considered closed on the platform until its log is persisted.
-3. **Validation:** a designated reviewer confirms the survey boundary, exclusion versions and flight evidence; only then publishes a new immutable `geometry_version`.
-4. **Subsequent missions:** missions reference the exact published geometry and exclusion versions. A new boundary/exclusion revision invalidates stale mission packages; they must be regenerated and approved.
-5. **Fumigation guard:** a published lot boundary alone is insufficient. The separate fumigation order still needs human authorization, applicable permissions, focus confirmation and a closed prerequisite flight log under [the flight-log ADR](../adr/flight-log-and-fumigation.md). No event or inference function authorizes spraying automatically.
-
-The platform operator may persist and version geometry; an authorized drone supervisor approves operating constraints; the pilot executes the mission; an authorized human approves each fumigation. The farmer does not operate the drone. Changes to exclusions and publication events must be auditable.
-
-### Allowed state transitions
-
-| Current state | Allowed next state | Required evidence |
+| State | Means | Next state and what it needs |
 |---|---|---|
-| `DRAFT` | `EXCLUSIONS_READY` | Human-reviewed exclusion set or explicit empty-set attestation |
-| `EXCLUSIONS_READY` | `DRAFT`, `SURVEYED` | Recorded correction, or persisted delimitation object plus closed flight log |
-| `SURVEYED` | `DRAFT`, `VALIDATED` | Recorded validation failure, or valid GeoJSON/topology plus reviewer decision |
-| `VALIDATED` | `DRAFT`, `PUBLISHED` | Recorded pre-publication correction, or conditional publication of a new immutable version |
-| `PUBLISHED` | `SUSPENDED` | Safety or integrity reason recorded by an authorized identity |
-| `SUSPENDED` | None for that version | A replacement starts as a separate `DRAFT` version |
+| `DRAFT` | Zones or a polygon are being prepared | `EXCLUSIONS_READY`, when the supervisor reviews the no-fly zones or records that there are none |
+| `EXCLUSIONS_READY` | The farm can receive its delimitation flight, and nothing else | `SURVEYED`, when the flight log and map objects are stored on the platform. `DRAFT`, when a zone is corrected |
+| `SURVEYED` | A candidate polygon exists | `VALIDATED`, when the checks of section 7 pass and a reviewer accepts it. `DRAFT`, when they fail |
+| `VALIDATED` | The polygon and its strips are accepted | `PUBLISHED`, by a conditional write that creates a new immutable version. `DRAFT`, for a correction before publication |
+| `PUBLISHED` | Precision missions and estimation flights can use this version | `SUSPENDED`, when an authorized person records a safety or integrity reason |
+| `SUSPENDED` | No new mission can use this version | None. A replacement starts as a new `DRAFT` |
 
-Skipping a state, editing a published version or re-publishing the same version is rejected. A correction starts or returns the unpublished candidate to `DRAFT` and preserves event history. A new draft may be prepared while the current published version remains active; activation is an atomic replacement after validation.
+A state cannot be skipped, a published version is never edited, and the same version is never published twice. A new draft can be prepared while the current version stays published, and it replaces that version in one step when it is published.
 
-## 4. Validation and publication checks
-
-| Check | Rule | When failing |
+| Event | Emitted when | Used by |
 |---|---|---|
-| Geometry format | RFC 7946 object, finite longitude/latitude in valid ranges, closed rings with at least four positions, no invalid overlaps/self-intersections | Reject publication |
-| Association | Lot belongs to the specified farm, and is uniquely identified within that farm | Reject publication |
-| Lot topology | Nonempty geometry; no invalid holes; lot does not unintentionally cross unrelated registered lots | Manual correction/review |
-| Exclusions | Houses, beneficiadero, roads and water identified or explicitly attested absent; `NO_FLY`/`NO_SPRAY` restriction reviewed **before the first flight** | Block mission |
-| Mission | Exact published boundary and applicable exclusion versions exist and are not suspended, except for the initial delimitation mission | Block mission |
-| Flight evidence | Delimitation object and closed flight log persisted with checksum/source ID | Keep survey pending |
-| Version control | Conditional publish; previous version retained; mission uses current published version | Reject stale missions |
-| Access and audit | Human identity for reviewer; least privilege; change audit; encryption in transit and at rest | Deny and alert |
+| `lot.exclusions.ready` | The no-fly zones of a farm are reviewed | The delimitation planner, which may then issue the first flight |
+| `lot.geometry.published` | A polygon version is published | Confirmation, fumigation, verification and estimation planners |
+| `lot.geometry.suspended` | A version is suspended | Every planner, which stops issuing packages for it and marks pending packages as replaced |
 
-For example, an exclusion can overlap the physical lot: that is expected; the overlap prevents flying or spraying according to its restriction rather than invalidating the full lot. If the exclusions make the operation unsafe, the mission remains blocked. Apply spatial validation in an appropriate projected/geodesic calculation where distance matters; do not treat longitude/latitude as metres.
+The [drone mission link](../network/drone-mission-link.md) puts the exact polygon and zone versions inside each signed mission package, so a ground station with no connection still flies the version that was valid when it left.
 
-## 5. Contract with downstream stories
+## 7. Checks before publication and before each mission
 
-| Event / artifact | Producer | Consumer | Effect |
+| Check | Rule | On failure |
+|---|---|---|
+| Format | Valid RFC 7946, finite coordinates within range, closed rings of four or more positions, correct ring direction, no self-intersection | Publication rejected with the reason |
+| Ownership | The lot belongs to the farm and its identifier is unique in that farm | Publication rejected |
+| Shape | Non-empty polygon, valid holes, no unintended overlap with another registered lot | Back to review |
+| Zones | Each of the four places present or explicitly declared absent, reviewed before the first flight | Delimitation flight blocked |
+| Strips | Every strip generated from the current parameters, computed in metres | Publication rejected |
+| Evidence | Delimitation log and map objects stored, with their hash and version | The polygon stays surveyed |
+| Version | Conditional publication, earlier versions kept | Outdated missions rejected |
+| Mission | Exact published version that is not suspended, except the first delimitation flight | Mission blocked |
+
+A zone may overlap the lot. That is expected, and the overlap only removes that area from flight or spraying. When the zones leave no safe path, the mission stays blocked.
+
+## 8. Fumigation gate
+
+A fumigation order needs a published polygon. The platform enforces this with a conditional write on the case table, so an order cannot exist for a lot in any other state. The polygon alone is not enough, since the order also needs a confirmed focus, a closed prerequisite flight log and a named supervisor who authorizes it, as the [flight log decision](../adr/flight-log-and-fumigation.md) records.
+
+The treated area of an order is the focus area inside the published polygon, minus the no-fly zones and minus the no-spray strips of the method chosen. The platform computes it when the order is created, and the supervisor sees it on the map before authorizing. An order whose treated area is empty cannot be authorized.
+
+## 9. Storage and access
+
+Polygon metadata, states and events live in the transactional case table. GeoJSON files, maps and flight logs live in the encrypted, versioned object bucket for five years. A polygon tied to a farmer is personal data and follows the [personal data and retention](../security/personal-data-and-retention.md) rules.
+
+| Role | Can do |
+|---|---|
+| Drone supervisor | Create and review no-fly zones, review strips, accept and publish a polygon, suspend a version |
+| Pilot | Read the published version of the missions assigned to the brigade |
+| Platform functions | Generate strips, run the checks, write states with conditional writes |
+| Farmer | See the polygon and zones of the farmer's own farms |
+| Buyer and carrier | No access |
+
+Every change of state records who, when, from which state, to which state and why.
+
+## 10. What fails and what the platform does
+
+| Situation | What the platform does |
+|---|---|
+| A farm has no reviewed no-fly zones | The delimitation flight is blocked |
+| Zones are reviewed and no polygon exists | Only the delimitation flight can be issued, and fumigation stays blocked |
+| The delimitation flight landed and its log is not stored | The polygon stays unpublished until the upload completes |
+| The polygon is unclosed or crosses itself | Publication is rejected with the reason |
+| A valid polygon, reviewed zones and a stored log | The reviewer publishes, and the platform emits `lot.geometry.published` |
+| A published polygon and no human authorization | Fumigation stays blocked |
+| The polygon changes after a mission package was downloaded | The old package is rejected and a new one is issued |
+| A no-fly zone crosses the planned path | Planning is blocked until the certified operator reroutes |
+| The focus lies inside a drone strip and outside the ground strip | The order is created as a ground application |
+| The focus lies inside the ground strip | No product is applied, and the supervisor decides another treatment |
+| A version is suspended | New missions and estimation flights for that lot are blocked until a new version is published |
+| Someone requests a state change that skips a state | The conditional write fails and the attempt is audited |
+
+## 11. Cost
+
+Rates come from the AWS Price List API for us-east-1.
+
+| Item | Rate | Volume | USD |
 |---|---|---|---|
-| `lot.exclusions.ready` | Supervisor review | Delimitation planner (#19) | Allows first area survey only |
-| `lot.geometry.published` | Geometry validation | Focus confirmation (#32), fumigation (#33), harvest estimation (#35) | Enables approved lot-based missions |
-| `lot.geometry.suspended` | Reviewer/platform safety gate | All flight planners | Blocks new missions and invalidates stale packages |
-| `mission.package.created` | Flight planning service | Ground station (#19) | Includes boundary/exclusion versions and immutable reference |
+| GeoJSON and maps in S3 | 0.023 per GB-month | Under 10 MB of geometry | Below 0.01 a month |
+| State writes in DynamoDB | 0.625 per million write request units | A few thousand writes for the 200 initial delimitations | Below 0.01 once |
+| Reads by mission planners | 0.125 per million read request units | A few thousand reads a month | Below 0.01 a month |
+| Strip generation and checks | 0.20 per million function requests and 0.0000166667 per GB-second | One run per publication | Below 0.01 |
 
-For the pilot design, geometry metadata and event history belong to a transactional store (the platform uses DynamoDB), while aerial images, GeoJSON source artifacts, maps and flight logs are kept in encrypted, versioned S3 object storage for the required five years. Farm/lot geometry is personal data when tied to a farmer and follows the access and deletion rules in [the privacy design](../security/personal-data-and-retention.md). Links use stable object identifiers and content hashes. Upload and retry behavior is detailed in #19 and #36, not implemented here.
+Geometry costs less than a cent a month. The delimitation flights themselves belong to the drone service cost in the operating mode document, and the delimitation images fall inside its estimate of images per month.
 
-## 6. Acceptance and failure scenarios
+## 12. Assumptions and pending confirmations
 
-| ID | Given | When | Expected result |
-|---|---|---|---|
-| G01 | New lot, no reviewed exclusion map | Survey requested | Survey mission BLOCKED |
-| G02 | Reviewed exclusion zones, no boundary | Delimitation requested | Area survey allowed only; fumigation blocked |
-| G03 | Delimitation flight done but log missing | Publish requested | Lot remains unpublished |
-| G04 | Invalid polygon (unclosed/self-intersecting) | Publish requested | Rejected with actionable validation error |
-| G05 | Valid polygon, reviewed zones, persisted log | Reviewer publishes | Versioned `lot.geometry.published` emitted |
-| G06 | Polygon published but no human spray authorization | Fumigation requested | BLOCKED |
-| G07 | Lot version changes after mission download | Mission submitted | Stale mission BLOCKED and regenerated |
-| G08 | `NO_FLY` zone intersects proposed path | Mission prepared | Planning blocked or rerouted by certified operator |
-| G09 | `NO_SPRAY` zone intersects treatment area | Fumigation prepared | Application path excluded; transit only if separately permitted |
-| G10 | No prohibited locations observed | Supervisor signs empty exclusion set | Recorded attestation, not silent omission |
-| G11 | Boundary temporarily suspended | Precision/harvest mission requested | Mission BLOCKED pending review |
-| G12 | Invalid lifecycle transition requested | State update submitted | Conditional update rejected and audited |
+| Item | Who confirms | Effect if it fails |
+|---|---|---|
+| Drone spraying takes the aerial distances of Decree 1843 of 1991, article 87 | Legal review with the sanitary and agricultural authorities | The drone strips change to the confirmed value, and fewer orders move to ground application |
+| A single farm house counts as human population under article 87 | Legal review | Strips around isolated houses may shrink to the 30 m of RAC 100 |
+| A strip for minor roads and farm tracks | Legal review and the certified operator | Until then the drone only avoids flying over the track |
+| A narrower water strip with live barriers and drift-reducing nozzles | Regional environmental authority | The strip stays at 100 m |
+| RAC 100 keeps the 30 m distance from people after its later amendments | Aerocivil, current text | The no-flight distance from people changes |
+| The supervisor can map the four places before the first flight from a visit or a sketch | Federation | The first flight waits for a prior visit |
+| The brigade can carry out ground application when a drone strip blocks the drone | Federation and the certified operator | Those foci stay untreated, and the case records why |
+| Real coordinates of each farm come from the delimitation flights | Brigades | No real coordinate exists in the design until then |
 
-## 7. Design-only deliverables and open confirmations
+## 13. Sources
 
-- [x] Portable lot and exclusion format specified.
-- [x] All four required exclusion categories covered.
-- [x] Exclusions loaded before the initial flight; definitive polygon published after a successful area survey.
-- [x] Fumigation blocked without published lot, closed prerequisite flight evidence and human authorization.
-- [x] Versioning, access control and failure scenarios described.
-- [ ] Cross-review with the drone supervisor / E4-05 owner (#33) for the exact flight-authorization gate.
-- [ ] Confirm which mapped features are `NO_FLY`, `NO_SPRAY`, or both, plus legal operating distances, flight altitude and safety buffers against field conditions and applicable authorizations.
-- [ ] No actual farm geometry is present in the available repository materials; pilot coordinates must be surveyed rather than fabricated.
-
-**Sources:** Issue #31; [E4-01 operating-mode decision](../adr/drone-operating-mode.md); [flight log ADR](../adr/flight-log-and-fumigation.md); [privacy design](../security/personal-data-and-retention.md); [RFC 7946](https://www.rfc-editor.org/rfc/rfc7946.html). The academic case referenced by the issue was not included in the repository at review time. This document proposes a contract; it does **not** represent a deployed geospatial service or an authorized real flight.
+- IETF, [RFC 7946, The GeoJSON Format](https://www.rfc-editor.org/rfc/rfc7946.html), sections 3.1.6, 4 and 11.2.
+- EPSG, [9377, MAGNA-SIRGAS 2018 Origen Nacional](https://epsg.io/9377).
+- Ministry of Health, [Decree 1843 of 1991](https://normograma.invima.gov.co/compilacion/docs/decreto_1843_1991.htm), articles 87 and 102 on the use of pesticides.
+- Ministry of Environment, [concept on the protection of springs and water bodies](https://www.minambiente.gov.co/wp-content/uploads/2024/09/concep_240822_032252-PROTECCION-NACIMIENTOS-Y-CUERPOS-DE-AGUA.pdf), quoting Decree 1076 of 2015, article 2.2.1.1.18.2, and confirming that it is in force.
+- Aerocivil, [RAC 100, operation of unmanned aircraft systems](https://www.aerocivil.gov.co/documentos/254/reglamentos-aeronauticos-de-colombia-rac/), sections 100.220, 100.310, 100.410 and 100.430, as adopted by Resolution 01983 of 2023.
+- AWS Price List API, [S3](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/us-east-1/index.json), [DynamoDB](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonDynamoDB/current/us-east-1/index.json) and [Lambda](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSLambda/current/us-east-1/index.json), us-east-1.
+- [Drone operating mode](operating-mode.md), [drone mission link](../network/drone-mission-link.md), [flight log decision](../adr/flight-log-and-fumigation.md) and [personal data and retention](../security/personal-data-and-retention.md) of this platform.
