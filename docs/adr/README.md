@@ -6,6 +6,7 @@ Each record states the problem, the options and the decision, in terms a reviewe
 |---|---|
 | [Primary and second cloud](cloud-platform.md) | AWS us-east-1, with Azure East US prepared and idle |
 | [Out-of-coverage farms](out-of-coverage-connectivity.md) | Shared LoRaWAN gateway for readings, data mule for objects |
+| [LoRa link reliability](lora-link-reliability.md) | Cumulative application acknowledgement, versioned batch frame, desired configuration with the applied version |
 | [Farm node connection](farm-node-connection.md) | One cycle each hour, configuration through a Device Shadow, default IoT endpoint |
 | [Carrier data on the phone](carrier-data-on-phone.md) | Positions for 24 hours, custody events until confirmed |
 | [Sack event history](sack-event-history.md) | State derived from events, return after a center rejection, port rejection ends the record |
