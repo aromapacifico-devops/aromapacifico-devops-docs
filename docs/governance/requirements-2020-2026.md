@@ -41,7 +41,7 @@ The 2020 pilot design was never deployed. The Federation resumes it in 2026 with
 | Data coverage on most farms | Replaced | Some pilot farms lie outside coverage, so a design that needs signal leaves them out | Store-and-forward, shared gateway |
 | Device publishing straight to the ingestion point | Replaced | With no signal the reading would be lost | Node buffer of 24 hours at most |
 | Weekly visits to farms | Retired | Travel is difficult, and a visit must not be a data path | Remote connectivity, drone confirmation |
-| Dependence on a mobile generation being shut down | Retired | The access network changed, and the design must survive the pilot | Node modem on LTE |
+| Dependence on a mobile generation being shut down | Retired | The access network changed, and the design must survive the pilot. See the [mobile network validity](../network/mobile-network-validity.md) | Node modem on LTE |
 
 ## 4. Sites
 

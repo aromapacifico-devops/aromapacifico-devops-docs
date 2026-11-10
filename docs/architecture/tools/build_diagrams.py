@@ -620,11 +620,13 @@ def connectivity():
     table = ("<table style='font-size:11px' cellpadding='4'><tr><td><b>Source</b></td><td><b>Destination</b></td><td><b>Port</b></td><td><b>Action</b></td></tr>"
              "<tr><td>Logistics</td><td>Cloud API</td><td>443</td><td>Allow</td></tr>"
              "<tr><td>Local servers</td><td>Cloud API</td><td>443</td><td>Allow</td></tr>"
+             "<tr><td>Logistics</td><td>Label printer</td><td>To confirm</td><td>Pending</td></tr>"
              "<tr><td>Transport</td><td>Internet</td><td>443</td><td>Allow</td></tr>"
              "<tr><td>Management</td><td>Internet</td><td>443</td><td>Allow</td></tr>"
              "<tr><td>Support</td><td>Internet</td><td>443</td><td>Allow</td></tr>"
              "<tr><td>Visitors</td><td>Internet</td><td>80, 443</td><td>Allow</td></tr>"
-             "<tr><td>Visitors</td><td>10.X.0.0/16</td><td>Any</td><td>Deny</td></tr>"
+             "<tr><td>Every zone</td><td>Own gateway</td><td>DHCP, DNS</td><td>Allow</td></tr>"
+             "<tr><td>Visitors</td><td>Private ranges</td><td>Any</td><td>Deny</td></tr>"
              "<tr><td>Any</td><td>Any</td><td>Any</td><td>Deny</td></tr></table>")
     p._v(table, "text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=11;strokeColor=none;fillColor=none;", 1510, 142, 280, 340)
     p.text("These rules stay for the whole pilot. The same set repeats at each center.", 1516, 490, 268, 50, size=11)
@@ -856,8 +858,297 @@ def sack_states():
     return p
 
 
+def center_wlan():
+    p = Page("09 Center WLAN", 1700, 940, "How the WLAN of a center is segmented: SSID, VLAN and what each zone may reach")
+    p.group("Wi-Fi clients and their SSID", 40, 70, 400, 640, stroke=FAIL, dashed=True, sw=2)
+    zones = [("Management", "AP-GER, VLAN 101", "10.X.1.0/24, WPA3-Personal"), ("Support", "AP-SOP, VLAN 2", "10.X.2.0/24, WPA3-Personal"),
+             ("Logistics", "AP-LOG, VLAN 3", "10.X.3.0/24, WPA3-Personal"), ("Transport", "AP-TRA, VLAN 4", "10.X.4.0/24, WPA3-Personal"),
+             ("Visitors", "AP-VIS, VLAN 5", "10.X.5.0/24, isolated clients")]
+    p.step("<b>Access points</b><br>2 to 3, powered by the switch<br>five SSIDs<br>one VLAN per SSID", 520, 110, 150, 548, fill="#EAF2F8", stroke="#147EBA", cid="ap")
+    for i, (name, ssid, net_) in enumerate(zones):
+        y = 110 + i * 110
+        fill = "#FDEDEC" if name == "Visitors" else "#F2F8FC"
+        p.step(f"<b>{name}</b><br>{ssid}<br>{net_}", 60, y, 360, 92, fill=fill, stroke="#147EBA", cid=f"z{i}")
+        p.edge(f"z{i}", "ap", ssid.split(",")[0], BIZ, exit=(1, 0.5), entry=(0, (i * 110 + 46) / 548))
+    p.step("<b>Managed switch</b><br>trunks carry only the listed VLANs<br>no routing", 750, 339, 140, 90, fill="#EAF2F8", stroke="#147EBA", cid="sw")
+    p.net("Perimeter firewall<br>gateway of every zone", 1040, 358, "firewall", "fw")
+    p.edge("ap", "sw", "trunk, tagged", CTRL, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("sw", "fw", "trunk, all zone VLANs", CTRL, exit=(1, 0.5), entry=(0, 0.5))
+
+    p.group("Local servers, VLAN 10, wired only, 10.X.10.0/24", 1160, 70, 500, 270, stroke="#147EBA", color="#147EBA")
+    p.step("<b>Label printer</b><br>10.X.10.6", 1180, 130, 140, 70, fill="#F2F8FC", stroke="#147EBA", cid="prt")
+    p.step("<b>Switch</b><br>10.X.10.2", 1340, 130, 140, 70, fill="#F2F8FC", stroke="#147EBA", cid="swm")
+    p.step("<b>Access points</b><br>10.X.10.3 to .5", 1500, 130, 140, 70, fill="#F2F8FC", stroke="#147EBA", cid="apm")
+    p.step("<b>Administration host</b><br>10.X.10.11 to .20", 1340, 250, 140, 70, fill="#FFF8E1", stroke="#D6B656", cid="adm")
+    p.note("Each device accepts administration only from the administration host.", 1180, 250, 140, 70)
+    p.edge("adm", "swm", "admin only", CTRL, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("adm", "apm", "admin only", CTRL, exit=(1, 0.5), entry=(0.5, 1), points=[(1570, 285)])
+    p.net("Internet", 1290, 358, "cloud", "net", w=80, h=52)
+    p.edge("fw", "prt", "Printing rule, pending", OBJ, dashed=True, exit=(1, 0.1), entry=(0, 0.5), points=[(1125, 363), (1125, 165)])
+    p.edge("fw", "net", "HTTPS 443, visitors 80 and 443", OBJ, exit=(1, 0.5), entry=(0, 0.5))
+
+    p.group("Cloud, us-east-1", 1160, 480, 500, 210, stroke=INK, sw=2)
+    p.aws("Virtual private<br>gateway", 1260, 540, "site_to_site_vpn", NET, "vgw")
+    p.aws("Private endpoints<br>API and S3", 1500, 540, "endpoints", NET, "eps")
+    p.edge("fw", "vgw", "IPsec VPN, logistics and local servers only", OBJ, exit=(1, 0.9), entry=(0, 0.5), points=[(1125, 405), (1125, 566)])
+    p.edge("vgw", "eps", "", OBJ)
+
+    p.group("Four layers keep visitors apart, and each one stops them on its own", 460, 730, 1200, 180, stroke=FAIL, color=FAIL)
+    layers = [("<b>1. Access point.</b> Client isolation on AP-VIS stops one visitor phone from reaching another."),
+              ("<b>2. VLAN and trunk.</b> VLAN 5 exists only on the access point trunks and the firewall uplink, with no wired port."),
+              ("<b>3. Firewall.</b> Deny toward every private range and toward the firewall itself, ahead of the internet allow. Only DHCP and DNS reach the gateway."),
+              ("<b>4. Tunnel and cloud.</b> No route for 10.X.5.0/24, and endpoint security groups accept only logistics and local servers.")]
+    for i, text in enumerate(layers):
+        p.note(text, 480 + i * 290, 770, 270, 110, fill="#FDEDEC", stroke="#DD344C")
+    p.legend(40, 730, 400, [(BIZ, False, "Wi-Fi association, named by SSID"), (CTRL, False, "Wired trunk or administration"), (OBJ, False, "Path the firewall allows"), (OBJ, True, "Rule defined, not enabled")])
+    p.note("<b>X is 41 Cauca, 42 Huila or 43 Tolima.</b> Only logistics and local servers reach the cloud. No zone reaches another. The printing rule from logistics stays pending until address, protocol and port are confirmed.", 40, 858, 400, 70)
+    return p
+
+
+def drone_link():
+    p = Page("10 Drone mission link", 1700, 1460, "How a drone mission is preloaded, flown with no signal and published, with no evidence lost or counted twice")
+    drone, gs, api, kms, s3, case = 230, 520, 820, 1060, 1300, 1530
+    top, bottom = 70, 1270
+    bands = [("Preload at the municipal seat or collection center, online", 140, 404, "#EAF2F8", "#147EBA"),
+             ("At the lot, no signal needed", 560, 262, "#FEF9E7", "#B7950B"),
+             ("Synchronization on return, municipal seat or collection center", 838, 432, "#EAF6EC", "#2E7D32")]
+    for _, y, h, fill, stroke in bands:
+        p.zone("", 40, y, 1620, h, fill, stroke)
+    p.lifeline("Drone and controller", "Native log and evidence storage", drone, top, bottom, net="wireless_modem")
+    p.lifeline("Ground station", "Brigade laptop, encrypted store, journal", gs, top, bottom, net="pc")
+    p.lifeline("Mission API", "API Gateway and mission functions", api, top, bottom, icon="api_gateway", color=APP)
+    p.lifeline("AWS KMS", "Asymmetric signing key", kms, top, bottom, icon="key_management_service", color=SEC)
+    p.lifeline("Amazon S3", "Encrypted, versioned objects", s3, top, bottom, icon="s3", color=STORAGE)
+    p.lifeline("Case table", "DynamoDB, records and keys", case, top, bottom, icon="dynamodb", color=DATA)
+    for label, y, _, fill, _ in bands:
+        p._v(label, f"text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor={INK};fillColor={fill};strokeColor=none;spacingLeft=6;", 50, y + 6, 560, 24)
+
+    p.message(gs, api, 190, "Sign in, Cognito with second factor", BIZ)
+    p.message(api, kms, 224, "Sign manifest digest", CTRL)
+    p.message(kms, api, 258, "ECDSA signature", CTRL, dashed=True)
+    p.message(api, gs, 292, "Signed manifest, download links", BIZ, dashed=True)
+    p.message(gs, s3, 326, "Download package files", OBJ)
+    p.message(s3, gs, 360, "Polygon, exclusions, route", OBJ, dashed=True)
+    p.note("<b>Check and store.</b> Signature with the pinned public key, every SHA-256, then one atomic move into the mission store", 70, 378, 400, 44)
+    p.message(gs, api, 444, "Station acknowledgement, package digest", BIZ)
+    p.message(gs, drone, 478, "Load mission, local link", BIZ)
+    p.message(drone, gs, 512, "Loaded digest read back", BIZ, dashed=True)
+
+    p.note("<b>Preflight.</b> Inside the window, highest revision, not suspended, same polygon and exclusion versions, free storage, and for a fumigation a human authorization for this revision", 70, 596, 400, 58)
+    p.note("<b>Flight.</b> The drone flies the loaded mission and writes its log, photos and evidence to its own storage", 70, 664, 400, 40)
+    p.message(drone, gs, 726, "Log and evidence, file by file", OBJ)
+    p.note("<b>Journal.</b> Each file copied, hashed and journaled. The drone copy stays until the station copy matches", 70, 744, 400, 44)
+    p.message(gs, 780, 804, "No path, upload waits", FAIL, dashed=True)
+
+    p.message(gs, api, 888, "Sign in again, object list with sizes and SHA-256", BIZ)
+    p.message(api, gs, 922, "Missing objects, fresh presigned URLs", BIZ, dashed=True)
+    p.message(gs, s3, 956, "PUT with SHA-256 checksum, one URL per object", OBJ)
+    p.message(s3, gs, 990, "Version ID, or rejected and retried", OBJ, dashed=True)
+    p.message(gs, api, 1024, "Completion, manifest signed by the station key", BIZ)
+    p.note("<b>Station identity.</b> Signature checked against the station certificate in the IoT registry. A revoked station cannot publish", 860, 1042, 400, 44)
+    p.message(api, s3, 1108, "Read checksum and version", CTRL)
+    p.message(s3, api, 1142, "Stored checksum, version ID", CTRL, dashed=True)
+    p.message(api, case, 1176, "Conditional write, flight record", BIZ)
+    p.message(api, gs, 1210, "Publication receipt", BIZ, dashed=True)
+    p.note("<b>Delete.</b> The station deletes its copy only after the receipt. A repeated request returns the same receipt", 70, 1226, 400, 36)
+
+    p.legend(40, 1286, 560, [(BIZ, False, "Mission, acknowledgement and record"), (OBJ, False, "Package files and flight evidence"),
+                             (CTRL, False, "Signing and verification"), (FAIL, False, "Failure, data stays local"), (CTRL, True, "Dashed line, an answer to a request")])
+    p.note("<b>Fumigation.</b> A fumigation package exists only after the prerequisite flight is published and a supervisor, distinct from the pilot, authorizes it. Inference never authorizes.", 620, 1286, 1040, 50)
+    p.note("<b>Large files.</b> Above 100 MB the station uses a multipart upload with a full-object CRC checksum, keeps its upload ID, and resends only missing parts. Verification then computes the SHA-256.", 620, 1350, 1040, 50)
+    return p
+
+
+def audit_path():
+    p = Page("11 Audit evidence path", 1860, 990, "How evidence of the four sensitive events reaches a store that no account can alter")
+    p.group("People and devices", 40, 80, 260, 640, stroke="#5D6D7E")
+    p.card("Buyer or app user", "Reads a sack", 60, 140, 220, 64, cid="src_app", net="mobile")
+    p.card("Platform operator", "Changes a threshold", 60, 280, 220, 64, cid="src_op", net="pc")
+    p.card("Farm node", "Publishes telemetry", 60, 420, 220, 64, cid="src_node", net="wireless_modem")
+    p.card("Ground station", "Delivers flight objects", 60, 560, 220, 64, cid="src_gs", net="pc")
+
+    p.group("Workload account, one per environment", 340, 80, 720, 640, stroke=INK, sw=2)
+    p.card("API Gateway", "Request ID, access log", 370, 140, 190, 64, cid="api", icon="api_gateway", color=APP)
+    p.card("Platform functions", "Query, domain, upload", 610, 140, 200, 64, cid="fn", icon="lambda", color=COMPUTE)
+    p.card("Audit log group", "Events, 90 days", 850, 140, 190, 64, cid="lg_app", icon="cloudwatch_2", color=MGMT)
+    p.card("Ranges table", "Alert thresholds", 610, 280, 200, 64, cid="ranges", icon="dynamodb", color=DATA)
+    p.card("IoT Core", "Broker", 370, 420, 190, 64, cid="iot", icon="iot_core", color=IOT)
+    p.card("IoT log group", "Publish-In, farm groups", 850, 420, 190, 64, cid="lg_iot", icon="cloudwatch_2", color=MGMT)
+    p.card("Flight object bucket", "Presigned uploads", 610, 560, 200, 64, cid="flights", icon="s3", color=STORAGE)
+
+    p.group("Log archive account", 1100, 80, 720, 640, stroke=SEC, sw=2, color=SEC)
+    p.card("Logs destination", "Receives subscriptions", 1130, 280, 200, 64, cid="dest", icon="cloudwatch_2", color=MGMT)
+    p.card("Firehose", "Decompress, one event per line", 1130, 420, 200, 64, cid="fh", icon="kinesis_data_firehose", color="#8C4FFF")
+    p.card("Organization trail", "Data events, digests", 1130, 560, 200, 64, cid="trail", icon="cloudtrail", color=MGMT)
+    p.card("Audit bucket", "Object Lock compliance, 5 years, audit key", 1380, 410, 230, 84, cid="bucket", icon="s3", color=STORAGE, impl=False, stroke=SEC)
+    p.card("Athena", "Evidence queries", 1650, 280, 150, 64, cid="athena", icon="athena", color="#8C4FFF")
+    p.card("Security role", "Read only", 1650, 560, 150, 64, cid="sec", icon="identity_and_access_management", color=SEC)
+
+    p.edge("src_app", "api", "1 Read a sack", BIZ, exit=(1, 0.5), entry=(0, 0.3))
+    p.edge("src_op", "api", "2 Change a threshold", BIZ, exit=(1, 0.5), entry=(0, 0.75), points=[(330, 312), (330, 188)])
+    p.edge("api", "fn", "", BIZ)
+    p.edge("fn", "lg_app", "Audit event", BIZ)
+    p.edge("fn", "ranges", "Write", BIZ, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("src_node", "iot", "3 Publish", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("iot", "lg_iot", "Publish-In entry", TEL)
+    p.edge("src_gs", "api", "4 Ask for a URL", OBJ, exit=(1, 0.25), entry=(0.1, 1), points=[(352, 576), (352, 240), (389, 240)])
+    p.edge("src_gs", "flights", "4 PUT with the URL", OBJ, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("lg_app", "dest", "Subscription", BIZ, exit=(1, 0.5), entry=(0, 0.3), points=[(1070, 172), (1070, 299)])
+    p.edge("lg_iot", "dest", "Subscription", TEL, exit=(1, 0.3), entry=(0, 0.75), points=[(1070, 439), (1070, 328)])
+    p.edge("dest", "fh", "", BIZ)
+    p.edge("fh", "bucket", "app/ and iot/", BIZ)
+    p.edge("ranges", "trail", "Table writes", CTRL, exit=(0.9, 1), entry=(0, 0.25), points=[(790, 530), (1090, 530), (1090, 576)])
+    p.edge("flights", "trail", "PutObject", CTRL, exit=(1, 0.5), entry=(0, 0.6))
+    p.edge("trail", "bucket", "AWSLogs/", CTRL, exit=(1, 0.5), entry=(0.5, 1), points=[(1495, 592)])
+    p.edge("sec", "athena", "Runs queries", CTRL, dashed=True, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("athena", "bucket", "Reads", CTRL, dashed=True, exit=(0.5, 1), entry=(1, 0.3), points=[(1725, 435)])
+
+    p.legend(40, 740, 560, [(BIZ, False, "Platform events, sack reads, thresholds, URL grants"), (TEL, False, "Telemetry publications"),
+                             (OBJ, False, "Flight object delivery"), (CTRL, False, "CloudTrail data events"), (CTRL, True, "Reading the evidence")])
+    p.note("<b>Immutable.</b> No user, root included, can delete or overwrite a locked version for five years. Only CloudTrail and the Firehose role of the log archive account write to the bucket.", 620, 740, 600, 64)
+    p.note("<b>Two records for objects.</b> The upload function names the drone operator when it grants the URL. CloudTrail names the signing role and proves the arrival. They join on the object key.", 1240, 740, 580, 64)
+    p.note("<b>Direct writes.</b> A write on the ranges table that did not come from a platform function appears in the trail and is flagged by the threshold query.", 620, 820, 600, 50)
+    p.note("<b>Workload accounts.</b> Each one sends its own events. Its roles hold no write access to the archive.", 1240, 820, 580, 50)
+    return p
+
+
+def lot_geometry():
+    p = Page("12 Lot geometry lifecycle", 1780, 760, "Lot polygon states: from no-fly zones to a published version that missions can use")
+    zones = [("Before the first flight", 40, 560, "#EAF2F8", "#147EBA"), ("Delimitation flight and review", 615, 565, "#FEF9E7", "#B7950B"),
+             ("In use by missions", 1195, 545, "#EAF6EC", "#2E7D32")]
+    for name, x, w, fill, stroke in zones:
+        p.zone(name, x, 70, w, 380, fill, stroke, size=13)
+    state = dict(w=180, h=84, size=12)
+    p.step("<b>DRAFT</b><br>Zones or polygon<br>in preparation", 70, 130, cid="draft", **state)
+    p.step("<b>EXCLUSIONS_READY</b><br>Only the delimitation flight<br><i>lot.exclusions.ready</i>", 360, 130, cid="excl", **state)
+    p.step("<b>SURVEYED</b><br>Candidate polygon<br>from the flight", 650, 130, cid="surv", **state)
+    p.step("<b>VALIDATED</b><br>Polygon and no-spray<br>strips accepted", 940, 130, cid="val", **state)
+    p.step("<b>PUBLISHED</b><br>Precision and estimation<br><i>lot.geometry.published</i>", 1230, 130, fill="#E8F5E9", stroke=TEL, cid="pub", **state)
+    p.step("<b>SUSPENDED</b><br>No new mission<br><i>lot.geometry.suspended</i>", 1520, 130, fill="#FDEDEC", stroke=FAIL, cid="susp", **state)
+    p.edge("draft", "excl", "zones reviewed", TEL)
+    p.edge("excl", "surv", "log stored", TEL)
+    p.edge("surv", "val", "checks pass", TEL)
+    p.edge("val", "pub", "published", TEL)
+    p.edge("pub", "susp", "safety reason", FAIL)
+    p.edge("excl", "draft", "", FAIL, exit=(0.5, 1), entry=(0.75, 1), points=[(450, 254), (205, 254)])
+    p.edge("surv", "draft", "", FAIL, exit=(0.5, 1), entry=(0.5, 1), points=[(740, 279), (160, 279)])
+    p.edge("val", "draft", "", FAIL, exit=(0.5, 1), entry=(0.25, 1), points=[(1030, 304), (115, 304)])
+    p.text("Correction or failed check returns the candidate to draft", 260, 256, 380, 20, size=11, color=FAIL)
+    p.edge("susp", "draft", "", OBJ, dashed=True, exit=(0.5, 1), entry=(0.11, 1), points=[(1610, 334), (90, 334)])
+    p.text("A replacement starts as a new draft, and the published version stays in use until it is replaced", 700, 336, 620, 20, size=11, color=OBJ)
+    p.note("<b>Supervisor.</b> Maps houses, the processing facility, roads and water as no-fly zones, or records that there are none.", 60, 372, 520, 60)
+    p.note("<b>Checks.</b> Flight log and map stored, valid GeoJSON, ring direction, no self-intersection, strips computed in metres in EPSG 9377.", 635, 372, 525, 60)
+    p.note("<b>Missions.</b> Each package carries this exact version. A fumigation also needs a closed prior log and a named supervisor.", 1215, 372, 505, 60)
+
+    p.group("No-spray strips for the drone, stored as versioned parameters", 580, 480, 1160, 250, stroke=FAIL, color=FAIL)
+    table = ("<table style='font-size:12px' cellpadding='4'><tr><td><b>Place</b></td><td><b>Drone</b></td><td><b>Ground</b></td><td><b>Basis</b></td></tr>"
+             "<tr><td>Rivers, streams, lakes</td><td>100 m</td><td>10 m</td><td>Decree 1843 of 1991, article 87</td></tr>"
+             "<tr><td>Springs</td><td>100 m</td><td>100 m</td><td>Decree 1076 of 2015, protective forest area</td></tr>"
+             "<tr><td>Houses and processing facility</td><td>100 m</td><td>10 m</td><td>Decree 1843, articles 87 and 102</td></tr>"
+             "<tr><td>Main roads</td><td>100 m</td><td>10 m</td><td>Decree 1843, article 87</td></tr>"
+             "<tr><td>People outside the operation</td><td>30 m, no flight</td><td></td><td>RAC 100, sections 100.310 and 100.410</td></tr></table>")
+    p._v(table, "text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;strokeColor=none;fillColor=none;", 600, 514, 700, 200)
+    p.note("<b>Ground fallback.</b> A focus inside the drone strip and outside the ground strip becomes a ground application by the brigade, with the same authorization. Inside the ground strip no product is applied.", 1320, 520, 400, 100, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Pending.</b> Strips for minor roads and narrower water strips with barriers wait for a legal review.", 1320, 634, 400, 70)
+    p.legend(40, 480, 520, [(TEL, False, "Normal path, conditional write"), (FAIL, False, "Correction, failure or suspension"), (OBJ, True, "Replacement by a new version")])
+    p.note("No state can be skipped, and a published version is never edited.", 40, 596, 520, 44)
+    return p
+
+
+def center_operation():
+    p = Page("13 Center operation", 1700, 1050, "How a collection center receives, labels and dispatches sacks, and what limits it at 400 sacks a day")
+    p.group("Reception: arrival is one action for the load, the decision is one event for each sack", 30, 60, 1640, 250, stroke=FAIL, dashed=True, sw=2)
+    top = [("<b>1. Load arrives</b><br>carrier, once<br>arrived_at_center", "t1"), ("<b>2. Waiting area</b><br>sacks stay in transit<br>no event", "t2"),
+           ("<b>3. Scan the label</b><br>15 s, assumed", "t3"), ("<b>4. Weigh</b><br>20 s, assumed<br>farm weight is kept", "t4"),
+           ("<b>5. Inspect</b><br>90 s, assumed<br>no criteria invented", "t5"), ("<b>6. Decide and record</b><br>20 s, assumed<br>reception weight, reason code", "t6"),
+           ("<b>7. Move the sack</b><br>20 s, assumed<br>stack or return area", "t7")]
+    for i, (v, cid) in enumerate(top):
+        p.step(v, 50 + i * 230, 110, 190, 80, fill="#F2F8FC", stroke="#147EBA", cid=cid)
+        if i:
+            p.edge(top[i - 1][1], cid, "", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    p.step("<b>Accepted</b><br>received_accepted<br>then dispatched_to_port, groups of 30, 15 s a sack", 1050, 215, 300, 70, fill="#EEF7EE", stroke=TEL, cid="acc")
+    p.step("<b>Rejected</b><br>received_rejected<br>then returned_to_farm, same code", 1400, 215, 250, 70, fill="#FDEDEC", stroke=FAIL, cid="rej")
+    p.edge("t6", "acc", "accept", TEL, exit=(0.3, 1), entry=(0.5, 0))
+    p.edge("t6", "rej", "reject", FAIL, exit=(0.8, 1), entry=(0.5, 0))
+    p.note("The five reception steps add up to 165 s for each sack. The dispatch scan of 15 s makes 180 s and belongs to the dispatch station.", 50, 215, 480, 70)
+    p.note("A correction before dispatch is an event with a reason code and an observation. The codes stay provisional until the Federation confirms its criteria.", 560, 215, 450, 70)
+
+    p.group("Sack that arrives with no code: four steps, each one can fail alone and none creates a second sack or code", 30, 340, 1640, 270, stroke=OBJ, dashed=True, sw=2)
+    nc = [("<b>A. Assign a code</b><br>from the issued block of this device<br>20 s with B", "n1"), ("<b>B. Register</b><br>registered_at_center<br>farm, weight, event_id", "n2"),
+          ("<b>C. Print one label</b><br>30 s on the printer<br>never two identical labels", "n3"), ("<b>D. Attach and scan</b><br>40 s<br>scan must match the registered code", "n4")]
+    for i, (v, cid) in enumerate(nc):
+        p.step(v, 50 + i * 300, 390, 250, 80, fill="#F2F8FC", stroke="#147EBA" if cid != "n3" else OBJ, cid=cid)
+        if i:
+            p.edge(nc[i - 1][1], cid, "", OBJ, dashed=cid == "n3", exit=(1, 0.5), entry=(0, 0.5))
+    p.step("<b>Reception</b><br>steps 3 to 7", 1300, 390, 150, 80, fill="#EEF7EE", stroke=TEL, cid="rcv")
+    p.edge("n4", "rcv", "", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    fails = ["No code left in the block. Stop, use another device or wait. No code is invented.",
+             "Event waits on the device and repeats with the same event_id. A second registration of the code is an anomaly.",
+             "No label came out. Print again for the same code, a retry that makes no sack, no code and no reprint record.",
+             "Mismatch. Stop the sack, void the label and print again as a reprint with the same code."]
+    for i, t in enumerate(fails):
+        p.note("<b>If it fails.</b> " + t, 50 + i * 300, 490, 250, 100, fill="#FDEDEC", stroke="#DD344C")
+    p.note("<b>Printing rule pending.</b> Address, protocol and port of the printer are not confirmed, so no permission is opened. A receipt, if any, is a separate non-adhesive slip with no QR.", 1300, 490, 350, 100, fill="#FFF8E1", stroke="#D6B656")
+
+    p.group("Work with no internet and reprints", 30, 640, 810, 330, stroke=ALERT, dashed=True, sw=2)
+    p.step("<b>Reserve of the center</b><br>10 percent of 400 sacks for 2 days = 80 codes, assumed<br>sized first, issued in advance", 50, 690, 300, 80, fill="#FFF3E0", stroke=ALERT, cid="res")
+    p.step("<b>Exclusive blocks</b><br>no overlap, one per device<br>40 + 40, or 27 + 27 + 26", 400, 690, 250, 80, fill="#FFF3E0", stroke=ALERT, cid="blk")
+    p.edge("res", "blk", "split", ALERT, exit=(1, 0.5), entry=(0, 0.5))
+    p.note("<b>Exhausted.</b> Stop. <b>Lost device.</b> Freeze its codes and never reuse them. <b>Link back.</b> Events arrive, gaps close, a new block is issued, and the 48 h review list fills.", 50, 800, 600, 70, fill="#FFFFFF", stroke=ALERT)
+    p.note("<b>Reprint.</b> Same code, reason code, label_reprinted, old label withdrawn or voided when possible. Review from the third reprint is an operating assumption.", 50, 885, 600, 70, fill="#FFFFFF", stroke=ALERT)
+
+    p.group("Capacity at 400 sacks a day, with assumed times to measure in the first harvest", 870, 640, 800, 370, stroke=INK, sw=2)
+    p.step("<b>Busiest hour</b><br>150 sacks, 3 times the average of 50<br>9 people cover the hour at 85 percent, in the model<br>4 people complete the day, 63 sacks queue", 890, 690, 360, 90, fill="#F7FAFC", stroke=INK, cid="cap")
+    p.step("<b>Bottleneck: inspection</b><br>48 percent of the person time of a sack<br>5 people inspecting in the busiest hour", 1280, 690, 370, 90, fill="#FDEDEC", stroke=FAIL, cid="bot")
+    p.note("<b>People set the pace.</b> 2 desktops and 20 phones say nothing about people, scales or inspection pace. With 4 people the backlog is 63 sacks after the busiest hour.", 890, 800, 360, 80)
+    p.note("<b>One scale</b> runs at 83 percent in the busiest hour. <b>One printer</b> is busy 19 percent with 10 percent of sacks with no code and 5 percent reprints.", 1280, 800, 370, 80)
+    p.legend(890, 895, 360, [(TEL, False, "Normal path"), (FAIL, False, "Rejection or failure"), (OBJ, True, "Step that depends on the pending printing rule")])
+    return p
+
+
+def crop_case():
+    p = Page("14 Crop case states", 1800, 800, "Crop case states: from a cultivation alert to a focus confirmed or discarded by a person")
+    zones = [("Case opens and the focus is built", 40, 520, "#EAF2F8", "#147EBA"), ("Drone flight, with no connection", 580, 520, "#FEF9E7", "#B7950B"),
+             ("Decision of a person", 1120, 640, "#EAF6EC", "#2E7D32")]
+    for name, x, w, fill, stroke in zones:
+        p.zone(name, x, 70, w, 500, fill, stroke, size=13)
+    st = dict(w=170, h=76, size=12)
+    p.step("<b>open</b><br>alert or reported<br>symptom", 60, 260, cid="open", **st)
+    p.step("<b>focus_ready</b><br>50 m around the node,<br>cut to the lot", 330, 260, cid="focus", **st)
+    p.step("<b>location_pending</b><br>no position, lot<br>or flyable area", 60, 110, fill="#FDEDEC", stroke=FAIL, cid="loc", **st)
+    p.step("<b>geometry_blocked</b><br>polygon missing<br>or suspended", 60, 420, fill="#FDEDEC", stroke=FAIL, cid="geo", **st)
+    p.step("<b>mission_requested</b><br>exact polygon and<br>zone versions", 600, 260, cid="mreq", **st)
+    p.step("<b>flight_published</b><br>log and evidence<br>verified", 870, 260, cid="fpub", **st)
+    p.step("<b>mission_stale</b><br>package can no longer<br>fly, rebuilt as a new attempt", 600, 420, fill="#FDEDEC", stroke=FAIL, cid="stale", **st)
+    p.step("<b>pending_review</b><br>evidence and<br>inference ready", 1140, 260, cid="rev", **st)
+    p.step("<b>retry</b><br>inconclusive,<br>evidence kept", 1140, 420, fill="#FDEDEC", stroke=FAIL, cid="retry", **st)
+    p.step("<b>confirmed</b><br>a fumigation order<br>may follow", 1440, 190, fill="#E8F5E9", stroke=TEL, cid="conf", **st)
+    p.step("<b>discarded</b><br>a later alert<br>opens a new case", 1440, 330, fill="#F2F3F4", stroke=CTRL, cid="disc", **st)
+    p.edge("open", "focus", "focus built", TEL)
+    p.edge("focus", "mreq", "requested", TEL)
+    p.edge("mreq", "fpub", "flight published", TEL)
+    p.edge("fpub", "rev", "inference done", TEL)
+    p.edge("rev", "conf", "confirmed", TEL, exit=(1, 0.3), entry=(0, 0.5), points=[(1380, 283), (1380, 228)])
+    p.edge("rev", "disc", "discarded", CTRL, exit=(1, 0.7), entry=(0, 0.5), points=[(1380, 313), (1380, 368)])
+    p.edge("open", "loc", "", FAIL, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("open", "geo", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("loc", "focus", "supervisor records it", BIZ, exit=(1, 0.5), entry=(0.5, 0), points=[(415, 148)])
+    p.edge("geo", "focus", "polygon published", BIZ, exit=(1, 0.5), entry=(0.5, 1), points=[(415, 458)])
+    p.edge("mreq", "stale", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("stale", "focus", "", BIZ, exit=(0, 0.3), entry=(0.735, 1), points=[(455, 443)])
+    p.edge("rev", "retry", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("retry", "focus", "new attempt", BIZ, exit=(0.5, 1), entry=(0.618, 1), points=[(1225, 540), (435, 540)])
+    p.text("polygon, focus or window changed", 690, 350, 200, 40, size=11, color=FAIL)
+    p.text("reviewer finds it inconclusive", 1230, 350, 150, 40, size=11, color=FAIL)
+    p.legend(40, 600, 520, [(TEL, False, "Normal path, conditional write"), (FAIL, False, "Blocked or failed"), (BIZ, False, "Recovery by a person or an event"), (CTRL, False, "Discarded by the reviewer")])
+    p.note("<b>Drying alerts</b> only notify the farmer. Guidance ranges and references open no case. One node keeps one open case, and new alerts attach to it.", 580, 600, 560, 70)
+    p.note("<b>No fumigation here.</b> A confirmed focus lets a supervisor create an order, which needs its own authorization by a named person.", 1160, 600, 600, 70, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Events.</b> alert.raised, case.opened, focus.versioned, confirmation.requested, flight.record.published, inference.completed, confirmation.completed.", 580, 686, 1180, 50)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

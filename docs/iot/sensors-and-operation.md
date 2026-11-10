@@ -65,13 +65,13 @@ The probe measures pH, and the application accepts a manual reading as a fallbac
 
 ## 4. Alert ranges
 
-The Federation configures ranges on the platform and the node holds none. A change reaches the next evaluation with no visit and no firmware update.
+The Federation configures ranges on the platform and the node holds none. A change reaches the next evaluation with no visit and no firmware update. The [alert ranges](configurable-thresholds.md) define the versions, why humidity binds to the soil and temperature to the air, and how a change is published.
 
 | Variable | Cultivation alert | Drying |
 |---|---|---|
 | pH | Outside 4.5 to 6.0, recommended 4.9 to 5.6 | Not applicable |
-| Humidity | Outside 40 to 80 percent | Lot closes near 12 percent |
-| Temperature | Outside 14 to 30 °C, recommended 17 to 23 °C | Grain above 40 °C |
+| Humidity | Soil humidity outside 40 to 80 percent | Lot closes near 12 percent |
+| Temperature | Air temperature outside 14 to 30 °C, recommended 17 to 23 °C | Grain above 40 °C |
 | Nitrogen, phosphorus, potassium | Outside the range the Federation publishes | Not applicable |
 
 ## 5. Hourly cycle
@@ -95,14 +95,16 @@ There is no reliable power at the lot, so the node must live on its solar kit.
 
 | Item | Value |
 |---|---|
-| Battery | 12.8 V, 12 Ah, 153.6 Wh |
+| Battery, nominal | 12.8 V, 12 Ah, 153.6 Wh |
+| Usable share of the battery | 80 percent, a design assumption to confirm with the pack datasheet |
+| Usable capacity | 122.9 Wh |
 | Target autonomy with no sun | 5 days |
-| Average power that autonomy allows | 1.28 W |
-| Daily energy that autonomy allows | 30.7 Wh |
+| Ceiling of the average power that autonomy allows | 1.02 W |
+| Ceiling of the daily draw that autonomy allows | 24.6 Wh |
 | Panel | 20 W |
-| Panel output with 3 peak sun hours | 60 Wh a day |
+| Panel output at full power with 3 peak sun hours | 60 Wh a day, before derating and charge losses |
 
-The panel covers about twice the daily budget with 3 peak sun hours, which leaves margin to recharge after cloudy days. Since the controller sleeps most of the time, real consumption should sit under this budget. The hourly connection takes about 0.45 Wh a day, and 1.2 Wh with every attempt failing, at an assumed 1.5 W on the modem. Field measurement must confirm that with the chosen modem.
+At full power the panel gives about 2.4 times the daily ceiling with 3 peak sun hours. After derating and the losses of the charge path, which the [autonomous node specification](autonomous-node.md) assumes at 0.72 in all, it gives about 43 Wh a day, still about 1.8 times the ceiling. The ceiling limits the draw and is no estimate of consumption. Since the controller sleeps most of the time, real consumption should sit well under it. The hourly connection takes about 0.45 Wh a day, and 1.2 Wh with every attempt failing, at an assumed 1.5 W on the modem. Field measurement must confirm that with the chosen modem. The autonomous node specification holds the calculation, its sensitivity and the conditions under which the sizing holds.
 
 ## 7. Buffer
 

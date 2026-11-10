@@ -75,7 +75,7 @@ IoT Core accepts payloads of up to 128 KB and 100 publish requests a second per 
 3. Amazon Data Firehose receives a copy and writes Parquet files to the S3 archive.
 4. An SQS queue receives the other copy.
 5. A Lambda function reads batches from the queue, sorts them by node and `measured_at`, validates the contract and writes to DynamoDB with a conditional write.
-6. The function compares the reading with the current ranges and updates the alert state if the reading is the newest one.
+6. The function compares the reading with the version of each range in force at its measured time, as the [alert ranges](configurable-thresholds.md) define, and updates the alert state if the reading is the newest one.
 7. A reading out of range creates an alert, and SNS delivers it to the farmer's phone.
 
 The queue sits between IoT Core and the function so that a slow or failing function loses nothing. Firehose takes its copy straight from the rule, so the archive stays complete even if the function fails.
@@ -165,7 +165,7 @@ Alerts fire on the change of state. A reading out of range raises one alert, and
 |---|---|---|---|
 | Readings table | Partition `node_id`, sort `measured_at#seq` | 90 days through TTL | Recent history in the application |
 | Alert state items, in the readings table | Partition `node_id`, sort `state#<variable>` | Current values, no expiry | Change of state per variable |
-| Ranges table | Partition `zone_type`, sort `variable` | Current values | Evaluation |
+| Ranges table | Partition `zone_type`, sort `variable#valid_from` | Every version, five years | Evaluation by measured time |
 | Alerts table | Partition `farm_id`, sort `raised_at` | Five years | Alert history |
 | Telemetry archive | Parquet, by `stream/year/month/day/` of arrival | Five years through a lifecycle rule | Pilot reports through Athena |
 
@@ -186,7 +186,9 @@ Nodes outside coverage send readings over LoRa to a gateway shared by the vereda
 
 LoRa carries short frames, far below the 0.5 KB of the JSON message. The node therefore sends a compact binary frame on that path, with the same fields, and a decoder function rebuilds the contract before it enters the queue. Everything after that point stays identical, so a LoRa farm costs no extra design in the platform.
 
-Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, they send about 7,200 crop messages a month, which costs under USD 0.05.
+The frame, its size budget, the acknowledgement of stored readings and the configuration of the node are defined in the [LoRa path of the farms out of coverage](../network/lora-out-of-coverage.md).
+
+Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, with one uplink and at most one acknowledgement downlink each hour, they send about 57,600 messages a month, which costs about USD 0.35.
 
 ## 11. What fails and what happens
 
@@ -247,7 +249,7 @@ This module of the first plan implements box C07. It creates the IoT rule, the S
 | SMS fallback for alerts | Federation, with a price for Colombia | Without it, the alert waits for data on the phone |
 | The share of farms outside coverage | Federation | Number of gateways, cost barely moves in the cloud |
 | Messages average 0.5 KB | First nodes | Linear effect on small amounts |
-| LoRa frequency plan for Colombia | Network survey | Radios and gateways are selected accordingly |
+| LoRa frequency plan, power and transmission limits for Colombia | Regulator, spectrum agency or an accredited laboratory, and the network survey | Radios and gateways are selected accordingly. See the LoRa path document for what is still unverified |
 
 ## Sources
 

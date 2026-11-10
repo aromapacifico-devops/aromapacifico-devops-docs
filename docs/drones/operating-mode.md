@@ -21,9 +21,10 @@ The drone service combines area work and precision work. This document explains 
 |---|---|
 | Precision agriculture | Working on one focus: confirm, fumigate, verify |
 | Area agriculture | Working on a whole lot or farm: delimit, estimate |
-| Focus | The place a sensor reading marked |
+| Focus | The area around the node whose reading raised the alert, or around a reported symptom |
 | Polygon | The geographic outline of a lot |
-| No-fly zone | Houses, drying facilities, roads and water sources |
+| No-fly zone | Houses, the processing facility, roads and water sources, loaded before the first flight |
+| No-spray strip | A band around those places where the drone may fly with the sprayer off |
 | Campaign | A planned round of flights in a period |
 
 ---
@@ -36,7 +37,7 @@ The drone service combines area work and precision work. This document explains 
 | Confirm the alert | Evidence of the focus | The drone flies to the focus, never over the whole farm |
 | Fumigate | Treated lot and flight log | Only on a delimited lot, with an authorized order |
 | Verify | Photo or short path | Without it, the fumigation stays open |
-| Estimate the harvest | Number of sacks for the center | One area flight per harvest, no fumigation |
+| Estimate the harvest | Number of sacks for the center | One area flight per farm and per harvest, no fumigation |
 
 The five services all enter the design, and none replaces another.
 
@@ -58,7 +59,7 @@ Precision alone cannot work, since fumigation depends on a polygon that only are
 | Confirm the alert | Precision | Sensor alert or visible symptom | Platform | Focus photo |
 | Fumigate | Precision | Authorized order | Supervisor | Flight log with product lot |
 | Verify | Precision | Closed fumigation flight | Platform | Photo or short path |
-| Estimate the harvest | Area | Once per harvest | Campaign plan | Area images, estimated sacks |
+| Estimate the harvest | Area | Once per farm and per harvest | Campaign plan | Orthomosaic, field sample, estimated sacks |
 
 A visible symptom on a coffee plant also enters through the confirmation service, so no separate weekly review exists.
 
@@ -75,6 +76,8 @@ The event is **lot polygon published**. A lot enters precision work only after i
 | Harvest period | An estimation flight returns to area work on that lot |
 
 The rule is enforced by the platform with a conditional write, so an order cannot exist for a lot with no polygon.
+
+The [lot boundaries and exclusion zones](lot-boundaries-and-exclusions.md) define the polygon format, the no-spray strips and their legal distances, and the ground application the brigade uses when a strip keeps the drone away from a focus. The [harvest estimation](harvest-estimation.md) defines how the estimation flight becomes sacks for the center.
 
 ## 5. Who does what
 
@@ -129,6 +132,8 @@ The drone operates far from the farmer's phone, so a mission never depends on si
 | On return | Municipal seat or center | The ground station uploads with presigned URLs |
 
 If the link falls at the lot, the mission stays in the buffer of the drone. The fumigation does not close until its flight log is stored on the platform.
+
+The [drone mission link](../network/drone-mission-link.md) defines the signed package, the exact polygon and exclusion versions, how long a package stays valid offline, the acknowledgements of the station and the drone, the resumable upload and when a flight counts as complete. Presigned URLs are requested after the connection returns, so none has to last through the trip.
 
 ## 8. Flight logs
 
