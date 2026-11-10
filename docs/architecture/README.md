@@ -1,6 +1,6 @@
 # Platform architecture
 
-Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production.
+Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production. [Persistence and archive](persistence-and-archive.md) explains where data lives for five years, how it is read and restored, and how it is deleted.
 
 | Diagram | Question it answers |
 |---|---|
