@@ -2,7 +2,7 @@
 
 ## Context
 
-The farm node, the shared LoRaWAN gateway and the phones use mobile networks. The regulator says that there is no national schedule to retire 2G or 3G and that each operator decides when and where, so a network could be switched off during the pilot with the notice that the rules require. The public sources show 4G published in nearly every municipal seat of Cauca, Huila and Tolima for three operators. They show nothing about LTE-M or NB-IoT, nothing about signal at a farm, and nothing about the bands of a device. The [mobile network validity](../network/mobile-network-validity.md) document holds the sources, their dates and what each one proves.
+The farm node, the shared LoRaWAN gateway and the phones use mobile networks. The regulator says that there is no national schedule to retire 2G or 3G and that each operator decides when and where, so a network could be switched off during the pilot with the notice that the rules require. The public datasets list some 4G area in nearly every municipal seat of Cauca, Huila and Tolima for three operators, which counts seats with any reported area and measures no service. They show nothing about LTE-M or NB-IoT, nothing about signal at a farm, and nothing about the bands of a device. The [mobile network validity](../network/mobile-network-validity.md) document holds the sources, their dates and what each one proves.
 
 ## Options
 

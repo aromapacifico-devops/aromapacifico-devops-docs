@@ -120,30 +120,55 @@ Limits of the data.
 | Tolima | Tigo | 322 (270) | 0 (0) | 217 (106) | 317 (261) | 46 |
 | Tolima | WOM | 115 (115) | 0 (0) | 90 (91) | 115 (115) | 36 |
 
-A site with several technologies counts once in each column. Of the three departments, only Claro reports sites with 2G in 2026 second quarter, and its count fell in each of them over the year. Claro reports about the same number of sites with 3G as a year before. No operator shows a drop of 3G sites large enough to read as a retirement in these figures.
+A site with several technologies counts once in each column. In the three departments, only Claro reports sites with 2G in 2026 second quarter, and its count is lower than a year earlier in each of them. These are counts of sites that the operators reported for each period. A stable count of sites with 3G describes the reported period and does not show that no retirement is planned, and a drop in the count would not by itself show a retirement. A retirement of a network is shown by a specific announcement of the operator or the regulator, and none was found for 3G in the sources read, which is also not proof that none exists.
 
 ### Coverage of populated centers in 2025 fourth quarter
 
-Each cell gives the number of seats or centers where the operator reports any area of that technology, out of the total in the dataset, and in brackets the share of their area with any reported signal.
+The coverage file has one row for each populated center, technology and signal level. For each row it gives the area of the center and the area that each operator covers at that signal level. Two readings of it follow, and they answer different questions, so they are given in separate tables and must not be added or compared across tables.
 
-| Department | Operator | 4G in municipal seats | 4G in other populated centers | 3G in municipal seats | 3G in other populated centers |
+How the figures are built.
+- Geographic unit. Populated centers of the dataset, grouped by department. A municipal seat is a center whose code ends in 000, which is a rule of this document and not a field of the file. Every other center is grouped as other populated centers. The groups are a department level summary of a municipal dataset. They are not municipal figures, and they say nothing about rural land.
+- Denominator. The centers that the file lists for that technology. The file has rows for a center and a technology only for some centers, and it does not say why, so the number of centers differs between technologies and a count for 3G is not comparable with a count for 4G.
+- Signal levels. The file has five levels, which the dataset page does not define. Nothing here interprets them. The area of an operator is the sum over all five levels, so a level that is weak enough to give no usable service still counts.
+- Unit of area. The file does not state it, and the values are used only as a ratio inside the same file.
+
+Table 1, number of centers where the operator reports any area of the technology, out of the centers that the file lists for that technology. A center counts with any reported area however small.
+
+| Department | Operator | 4G, municipal seats | 4G, other populated centers | 3G, municipal seats | 3G, other populated centers |
 |---|---|---|---|---|---|
-| Cauca | Claro | 42 of 42 (99.6 %) | 512 of 523 (94.9 %) | 41 of 42 (99.5 %) | 495 of 501 (96.2 %) |
-| Cauca | Movistar | 36 of 42 (96.2 %) | 317 of 523 (68.0 %) | 36 of 42 (96.2 %) | 230 of 501 (52.5 %) |
-| Cauca | Tigo | 37 of 42 (96.6 %) | 337 of 523 (70.7 %) | 34 of 42 (93.5 %) | 160 of 501 (41.0 %) |
-| Cauca | WOM | 32 of 42 (83.1 %) | 114 of 523 (17.3 %) | 10 of 42 (57.1 %) | 52 of 501 (13.0 %) |
-| Huila | Claro | 37 of 37 (98.4 %) | 158 of 171 (87.8 %) | 37 of 37 (99.9 %) | 146 of 159 (90.7 %) |
-| Huila | Movistar | 37 of 37 (98.7 %) | 133 of 171 (79.4 %) | 37 of 37 (98.5 %) | 83 of 159 (63.1 %) |
-| Huila | Tigo | 37 of 37 (98.8 %) | 133 of 171 (81.3 %) | 36 of 37 (97.6 %) | 65 of 159 (46.3 %) |
-| Huila | WOM | 33 of 37 (89.1 %) | 32 of 171 (18.0 %) | 9 of 37 (72.7 %) | 13 of 159 (11.7 %) |
-| Tolima | Claro | 47 of 47 (99.4 %) | 203 of 216 (81.2 %) | 47 of 47 (99.4 %) | 207 of 211 (95.9 %) |
-| Tolima | Movistar | 46 of 47 (98.8 %) | 180 of 216 (82.4 %) | 45 of 47 (98.9 %) | 140 of 211 (71.6 %) |
-| Tolima | Tigo | 46 of 47 (98.9 %) | 189 of 216 (86.4 %) | 44 of 47 (97.9 %) | 120 of 211 (58.8 %) |
-| Tolima | WOM | 36 of 47 (86.5 %) | 39 of 216 (18.2 %) | 17 of 47 (77.2 %) | 28 of 211 (12.0 %) |
+| Cauca | Claro | 42 of 42 | 512 of 523 | 41 of 42 | 495 of 501 |
+| Cauca | Movistar | 36 of 42 | 317 of 523 | 36 of 42 | 230 of 501 |
+| Cauca | Tigo | 37 of 42 | 337 of 523 | 34 of 42 | 160 of 501 |
+| Cauca | WOM | 32 of 42 | 114 of 523 | 10 of 42 | 52 of 501 |
+| Huila | Claro | 37 of 37 | 158 of 171 | 37 of 37 | 146 of 159 |
+| Huila | Movistar | 37 of 37 | 133 of 171 | 37 of 37 | 83 of 159 |
+| Huila | Tigo | 37 of 37 | 133 of 171 | 36 of 37 | 65 of 159 |
+| Huila | WOM | 33 of 37 | 32 of 171 | 9 of 37 | 13 of 159 |
+| Tolima | Claro | 47 of 47 | 203 of 216 | 47 of 47 | 207 of 211 |
+| Tolima | Movistar | 46 of 47 | 180 of 216 | 45 of 47 | 140 of 211 |
+| Tolima | Tigo | 46 of 47 | 189 of 216 | 44 of 47 | 120 of 211 |
+| Tolima | WOM | 36 of 47 | 39 of 216 | 17 of 47 | 28 of 211 |
 
-The municipal table in `data/mobile-coverage-cauca-huila-tolima.csv` holds the same figures by municipality, operator, technology and type of center, and `tools/mobile_coverage_extract.py` regenerates it from the two downloaded files.
+Table 2, share of the area of those same centers that the operator covers at any signal level. It is the sum of the covered areas divided by the sum of the areas of the centers in the group, so a large center weighs more than a small one. It is not an average of the shares of the centers.
 
-What this table shows is that 4G is published in nearly every municipal seat of the three departments for Claro, Movistar and Tigo, and that outside seats the share of area with 4G varies between operators and between departments. It gives no signal at a farm.
+| Department | Operator | 4G, municipal seats | 4G, other populated centers | 3G, municipal seats | 3G, other populated centers |
+|---|---|---|---|---|---|
+| Cauca | Claro | 99.6 | 94.9 | 99.5 | 96.2 |
+| Cauca | Movistar | 96.2 | 68.0 | 96.2 | 52.5 |
+| Cauca | Tigo | 96.6 | 70.7 | 93.5 | 41.0 |
+| Cauca | WOM | 83.1 | 17.3 | 57.1 | 13.0 |
+| Huila | Claro | 98.4 | 87.8 | 99.9 | 90.7 |
+| Huila | Movistar | 98.7 | 79.4 | 98.5 | 63.1 |
+| Huila | Tigo | 98.8 | 81.3 | 97.6 | 46.3 |
+| Huila | WOM | 89.1 | 18.0 | 72.7 | 11.7 |
+| Tolima | Claro | 99.4 | 81.2 | 99.4 | 95.9 |
+| Tolima | Movistar | 98.8 | 82.4 | 98.9 | 71.6 |
+| Tolima | Tigo | 98.9 | 86.4 | 97.9 | 58.8 |
+| Tolima | WOM | 86.5 | 18.2 | 77.2 | 12.0 |
+
+The municipal table in `data/mobile-coverage-cauca-huila-tolima.csv` holds the area of each center group and the covered area by municipality, operator, technology and type of center, and `tools/mobile_coverage_extract.py` regenerates it from the two downloaded files. Its `center_area` and `covered_area` columns carry the same undefined unit.
+
+What these tables allow is to compare operators inside one table, for the same technology and group, as the published reports of each operator. They do not give the signal at a farm, the quality of service at any level, or whether a number of centers in Table 1 is large for the pilot.
 
 ## 5. LTE-M and NB-IoT
 
