@@ -174,6 +174,8 @@ The reading-to-handoff time of this alert is 119.4 seconds, within the objective
 
 ## 8. How the record is filled
 
+The [alert delivery sequence](../architecture/diagrams/15-alert-delivery-sequence.drawio.png) shows these steps across the services.
+
 1. The ingestion function raises the alert, writes the first fields and publishes to SNS. It stores `push_message_id` and `push_published_at` in the same item.
 2. In the same step it sends a check message for the alert to a delay queue, with a delay of 5 minutes.
 3. SNS writes the delivery status of the push to CloudWatch Logs. A subscription filter passes each entry to the delivery status function, which writes the handoff time, the status and the answer of the push service.
