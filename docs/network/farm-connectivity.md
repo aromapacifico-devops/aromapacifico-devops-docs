@@ -42,6 +42,7 @@ The node lives on a solar kit and sleeps almost all the time. Coverage on a coff
 | What the node measures, its energy and installation | [Sensors and operation](../iot/sensors-and-operation.md) |
 | What happens to a reading after IoT Core | [Telemetry ingestion](../iot/telemetry-ingestion.md) |
 | Farms with no coverage at all | [Out-of-coverage farms](../adr/out-of-coverage-connectivity.md) |
+| Which mobile networks the node may use, and what the sources show | [Mobile network validity](mobile-network-validity.md) |
 | Device identity and revocation | [Encryption, secrets and revocation](../security/encryption-secrets-revocation.md) |
 
 This document covers a node on the cellular path, with signal and without it. The node keeps the same buffer and the same rules on the LoRa path, while its radio, frames and configuration path belong to the design of out-of-coverage farms. The generation of the modem stays open until coverage in Cauca, Huila and Tolima is confirmed, and nothing here depends on one in particular.
