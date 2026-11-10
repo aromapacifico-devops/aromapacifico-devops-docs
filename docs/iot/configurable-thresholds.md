@@ -1,322 +1,202 @@
-# E3-04 — Configurable crop and drying thresholds
+# Alert ranges
 
-- **Issue:** [#26](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/26)
-- **Owner:** `Melo088`
-- **Status:** Proposed integration contract; **pending review and acceptance by `Melo088`**
-- **Scope:** Architecture and contracts only. No firmware, application, Lambda, Terraform or AWS resource is implemented.
+The Federation sets the ranges that turn a reading into an alert, and it changes them from the platform with no visit to a farm and no firmware update. This document defines the initial ranges and the sensor each one applies to, how a range is stored as an immutable version, which version judges each reading, how a change is published, reviewed and audited, and what happens when a range is missing or wrong.
 
-This document makes E3-04 consumable by E3-08 without taking ownership away from its assignee. It does not claim that the contract is approved. If the owner publishes a different E3-04 contract, consumers must map to that contract and preserve the invariants in section 3.
+## Contents
 
-## 1. Context and scope
+1. Terms
+2. Context and volumes
+3. Initial ranges
+4. Kinds of range
+5. Ranges table
+6. Which version judges a reading
+7. Publishing a change
+8. What fails and what the platform does
+9. Infrastructure code
+10. Cost
+11. Assumptions and pending confirmations
+12. Sources
 
-The Federation must change crop and drying rules from the platform without visiting or reflashing a farm node. A reading is stored first and evaluated in the platform after AWS IoT Core ingestion. The node measures and publishes; it does not decide whether a value is safe, recommended or operationally complete.
+## 1. Terms
 
-The existing [sensor design](sensors-and-operation.md), [ingestion design](telemetry-ingestion.md), [farm connectivity design](../network/farm-connectivity.md) and [pH ADR](../adr/ph-measurement.md) remain authoritative for measurement cadence, message identity, offline buffering and the source of pH. Security follows [identity and access](../security/identity-and-access.md), [encryption and revocation](../security/encryption-secrets-revocation.md) and [personal data and retention](../security/personal-data-and-retention.md).
+| Term | Meaning in this document |
+|---|---|
+| Range | The limits of one variable in one zone type, cultivation or drying |
+| Version | One immutable set of limits for a range, with the time from which it applies |
+| Alert range | Limits outside which a reading raises an alert |
+| Recommended range | Limits shown to the farmer as guidance, which raise no alert |
+| Reference | A target value shown to a person, such as grain humidity near 12 percent, which raises no alert and closes nothing |
+| Evaluation | The comparison of one reading with the version that applies to it |
+| Measured time | `measured_at`, the time the node took the reading |
 
-### In scope
+## 2. Context and volumes
 
-- versioned rules for cultivation and drying;
-- publication, validation, audit, rollback and historical lookup;
-- deterministic evaluation of delayed, duplicate and out-of-order readings;
-- contracts consumed by the alert-to-drone flow.
+The node measures and publishes, and the platform decides. The [sensors and operation](sensors-and-operation.md) document lists the variables, the [telemetry ingestion](telemetry-ingestion.md) document stores each reading once and evaluates it, and the [audit design](../security/audit.md) records every change of a range. A node holds no range, so a change reaches the next evaluation with no visit.
 
-### Out of scope
-
-- choosing NPK ranges or deciding whether the stated crop humidity range applies to soil or air;
-- turning the drying reference near 12% into an automatic close command;
-- changing sensor cadence, the hourly connection policy or the 24-hour node buffer;
-- implementing any component.
-
-## 2. Established decisions and source values
-
-| Context | Variable | Type | Initial value from the case | Design treatment |
-|---|---|---|---|---|
-| Cultivation | pH | Alert threshold | Outside 4.5–6.0 | Configurable `ALERT_RANGE` |
-| Cultivation | pH | Recommended range | 4.9–5.6 | Configurable `RECOMMENDED_RANGE`; never an alert by itself |
-| Cultivation | Humidity | Alert threshold | Outside 40–80% | Value retained, but publication remains blocked until the Federation identifies the measurement binding |
-| Cultivation | Temperature | Alert threshold | Outside 14–30 °C | Configurable `ALERT_RANGE`; binding must state soil or air |
-| Cultivation | Temperature | Recommended range | 17–23 °C | Configurable `RECOMMENDED_RANGE`; same explicit binding requirement |
-| Cultivation | N, P, K | Alert threshold | Federation-defined | No numeric values invented; absent until the Federation publishes each rule |
-| Drying | Grain temperature | Alert threshold | Above 40 °C | Configurable `ALERT_MAX_EXCLUSIVE` |
-| Drying | Grain humidity | Reference | Near 12% | Configurable `OPERATIONAL_REFERENCE`; does not close a drying lot |
-
-The repository's telemetry contract exposes `soil_humidity_pct`, `air_humidity_pct`, `soil_temp_c` and `air_temp_c`. The source text says only “humidity” and “temperature” for the crop ranges. Therefore an active rule must identify one exact telemetry field; the platform must not silently apply a generic value to both. The same initial numeric range may be published more than once only after the Federation explicitly approves each binding.
-
-The pH ADR is not changed: the multiparameter soil probe measures pH every four hours, and an explicitly identified manual measurement is a fallback. The reading's `source` is retained so calibration and manual-entry provenance remain auditable.
-
-## 3. Semantic model and invariants
-
-The platform keeps four concepts separate:
-
-| Concept | Example | Effect |
+| Figure | Value | Origin |
 |---|---|---|
-| Measured value | `ph = 6.2` at a specific `measured_at` | Immutable observation; never rewritten by a rule change |
-| Alert threshold | pH outside 4.5–6.0 | May produce an alert/case when the evaluation policy permits it |
-| Recommended range | pH 4.9–5.6 | Guidance shown to a user; being outside it is not automatically an alert |
-| Operational objective/reference | Grain humidity near 12% | Supports a human decision; never implies automatic drying closure |
+| Cultivation readings | 1,200 a day, 200 farms every 4 hours | Sensors and operation |
+| Drying readings in harvest | 2,400 a day, 100 farms every hour | Sensors and operation |
+| Evaluations in a harvest month | About 108,000 readings, each with up to 8 variables | 3,600 a day for 30 days |
+| Ranges | 7 at the start, in 2 zone types | Section 3 |
+| Changes of a range | A few a year, by the Federation | Assumption |
 
-Invariants:
+A reading can arrive up to 24 hours late, when a node drains its buffer. That is the main reason ranges are versioned by time.
 
-1. Firmware contains no business ranges and cannot publish threshold changes.
-2. Every active rule has one farm, optional zone/lot scope, one context, one exact telemetry variable, one unit and one meaning.
-3. Published versions are immutable. Corrections and rollback create a new audited publication.
-4. Evaluation records the exact configuration/rule version, even when the result is `NO_RULE` or `INVALID_CONFIGURATION`.
-5. A recommended range or operational reference cannot open an alert unless a separate, explicit `ALERT_*` rule exists.
-6. A value “near 12%” requires a Federation-approved tolerance or display policy before automated comparison. It never emits a lot-close command.
-7. NPK rules remain missing, not zero, until the Federation supplies values and units.
-8. No personal name, document number or contact detail is copied into a domain event. Human actors use opaque workforce identity references.
+## 3. Initial ranges
 
-## 4. ThresholdConfiguration contract
+The pilot gives the ranges below. The text says humidity and temperature without naming soil or air, and the node measures both. The design binds each range to one field of the message.
 
-`ThresholdConfiguration` is the immutable aggregate published for one scope. `schema_version` evolves the payload shape; `configuration_version` orders business revisions. The example is synthetic and contains no farm coordinates or personal data.
+| Zone | Variable, message field | Kind | Initial limits |
+|---|---|---|---|
+| Cultivation | Soil pH, `ph` | Alert range | Outside 4.5 to 6.0 |
+| Cultivation | Soil pH, `ph` | Recommended range | 4.9 to 5.6 |
+| Cultivation | Soil humidity, `soil_humidity_pct` | Alert range | Outside 40 to 80 percent |
+| Cultivation | Air temperature, `air_temp_c` | Alert range | Outside 14 to 30 °C |
+| Cultivation | Air temperature, `air_temp_c` | Recommended range | 17 to 23 °C |
+| Cultivation | Nitrogen, phosphorus and potassium, `n_mg_kg`, `p_mg_kg`, `k_mg_kg` | Alert range | None until the Federation publishes them |
+| Cultivation | Air humidity, `air_humidity_pct`, and soil temperature, `soil_temp_c` | None | Stored and shown, with no alert |
+| Drying | Grain temperature, `grain_temp_c` | Alert range | Above 40 °C |
+| Drying | Grain humidity, `grain_humidity_pct` | Reference | Near 12 percent |
+
+Temperature goes to the air because the published climate of the coffee zone is an air temperature. Cenicafé describes a mean of 18 to 22.5 °C for the zone, close to the recommended 17 to 23 °C. Humidity goes to the soil because the same source gives a mean air relative humidity of 70 to 85 percent, so an upper limit of 80 percent on the air would raise alerts on ordinary days. The Federation confirms both bindings, and a change is a new version of the range.
+
+pH comes from the soil probe every 4 hours, and a manual reading entered in the application is the fallback when the probe fails. The reading keeps its source, so a manual value is always identifiable.
+
+Nitrogen, phosphorus and potassium have no range until the Federation publishes one with its unit. Their readings are stored and shown, and the platform records that no range applies, which differs from a range of zero.
+
+## 4. Kinds of range
+
+| Kind | Fields | Raises an alert |
+|---|---|---|
+| Alert range | `min`, `max`, each optional, with whether each limit is included | Yes, when the value falls outside |
+| Recommended range | `min`, `max` | No. The application shows the value as outside the recommendation |
+| Reference | `target`, and a tolerance once the Federation defines one | No. It never closes a drying lot, which stays a decision of the farmer |
+
+Grain temperature above 40 °C is an alert range with `max` 40 excluded, so exactly 40.0 °C raises nothing. Grain humidity near 12 percent has no tolerance in the pilot definition, so the platform shows the value and the target and decides nothing.
+
+## 5. Ranges table
+
+The ranges table keeps every version. Its partition key stays `zone_type`, and its sort key becomes `variable#valid_from`, so the versions of one variable sort by time.
+
+| Attribute | Meaning |
+|---|---|
+| `zone_type` | `cultivation` or `drying`, partition key |
+| `variable#valid_from` | Message field and the UTC time from which the version applies, sort key |
+| `kind` | `alert`, `recommended` or `reference` |
+| `min`, `max`, `min_included`, `max_included` | Limits of a range |
+| `target`, `tolerance` | Value of a reference, with the tolerance empty until defined |
+| `unit` | Unit of the field, matched against the message contract |
+| `version` | Integer that grows by one for each version of the variable and kind |
+| `reason` | Why the version exists |
+| `published_by` | Cognito subject of the platform operator who published it |
+| `published_at` | UTC time of publication |
+| `reverts_to` | Version copied by a rollback, empty otherwise |
+
+Example of one version.
 
 ```json
 {
-  "contract_name": "ThresholdConfiguration",
-  "schema_version": "1.0",
-  "configuration_id": "TC-DEMO-FARM-001-CROP",
-  "configuration_version": 3,
-  "status": "PUBLISHED",
-  "farm_id": "FARM-DEMO-001",
-  "zone_id": "ZONE-DEMO-CROP-01",
-  "lot_id": "LOT-DEMO-A",
-  "context": "CULTIVATION",
-  "valid_from": "2026-11-10T00:00:00Z",
-  "valid_until": null,
+  "zone_type": "cultivation",
+  "variable#valid_from": "ph#2026-11-10T00:00:00Z",
+  "kind": "alert",
+  "min": 4.5,
+  "min_included": true,
+  "max": 6.0,
+  "max_included": true,
+  "unit": "pH",
+  "version": 1,
+  "reason": "Initial range of the pilot",
+  "published_by": "8a7b6c5d-4e3f-4a2b-9c1d-0e9f8a7b6c51",
   "published_at": "2026-11-09T15:30:00Z",
-  "published_by": {
-    "actor_id": "WORKFORCE-DEMO-042",
-    "actor_type": "FEDERATION_OPERATOR"
-  },
-  "change": {
-    "change_request_id": "CHANGE-DEMO-0091",
-    "reason": "Initial case ranges",
-    "supersedes_configuration_version": 2,
-    "reverts_to_configuration_version": null
-  },
-  "rules": [
-    {
-      "rule_id": "RULE-DEMO-PH-ALERT",
-      "rule_version": 3,
-      "variable": "ph",
-      "measurement_source": "SOIL_PROBE_OR_IDENTIFIED_MANUAL_FALLBACK",
-      "unit": "pH",
-      "rule_type": "ALERT_RANGE",
-      "lower_bound": 4.5,
-      "lower_inclusive": true,
-      "upper_bound": 6.0,
-      "upper_inclusive": true,
-      "severity": "WARNING",
-      "enabled": true
-    },
-    {
-      "rule_id": "RULE-DEMO-PH-RECOMMENDED",
-      "rule_version": 3,
-      "variable": "ph",
-      "measurement_source": "SOIL_PROBE_OR_IDENTIFIED_MANUAL_FALLBACK",
-      "unit": "pH",
-      "rule_type": "RECOMMENDED_RANGE",
-      "lower_bound": 4.9,
-      "lower_inclusive": true,
-      "upper_bound": 5.6,
-      "upper_inclusive": true,
-      "severity": null,
-      "enabled": true
-    }
-  ],
-  "audit": {
-    "correlation_id": "CORR-DEMO-CHANGE-0091",
-    "approval_reference": "APPROVAL-DEMO-017",
-    "source": "PLATFORM",
-    "comment": "Pending E3-04 owner review"
-  }
+  "reverts_to": null
 }
 ```
 
-The drying aggregate uses `context: DRYING`, `variable: grain_temp_c`, `rule_type: ALERT_MAX_EXCLUSIVE`, `upper_bound: 40.0`; exactly 40 °C is not “above 40 °C”. Grain humidity uses `variable: grain_humidity_pct` and `rule_type: OPERATIONAL_REFERENCE`, with `target: 12.0`. Its tolerance is nullable until approved, so no automated near-target decision can run.
+Ranges apply to the whole Federation, one set for each zone type. Ranges for one farm or one lot would add a scope to the key and are left for after the pilot.
 
-An unresolved crop humidity proposal is represented as a non-publishable draft, not as an active wildcard:
+## 6. Which version judges a reading
 
-```json
-{
-  "contract_name": "ThresholdRuleDraft",
-  "schema_version": "1.0",
-  "rule_id": "RULE-DRAFT-CROP-HUMIDITY",
-  "context": "CULTIVATION",
-  "variable": null,
-  "candidate_variables": ["soil_humidity_pct", "air_humidity_pct"],
-  "unit": "percent",
-  "rule_type": "ALERT_RANGE",
-  "lower_bound": 40.0,
-  "upper_bound": 80.0,
-  "status": "PENDING_MEASUREMENT_BINDING",
-  "enabled": false
-}
-```
+A reading is judged by the version in force at its measured time, never at its arrival. The evaluation queries the partition of the zone type for the sort keys of the variable up to `variable#measured_at`, newest first, and takes one item. A reading drained hours later therefore gets the same result it would have had on time.
 
-N, P and K follow the same principle: one rule per telemetry field (`n_mg_kg`, `p_mg_kg`, `k_mg_kg`), with Federation-approved bounds and units. A draft with missing bounds cannot be published.
-
-## 5. Publication, validation, history and rollback
-
-```mermaid
-flowchart TD
-    A[Authorized operator creates draft] --> B[Validate schema scope units and semantics]
-    B --> C{Valid and complete?}
-    C -- No --> D[Reject publication and audit reasons]
-    C -- Yes --> E[Human reviews effective time and change reason]
-    E --> F{Authorized approval?}
-    F -- No --> D
-    F -- Yes --> G[Conditional publish immutable version]
-    G --> H[Emit ThresholdChanged]
-    H --> I[Evaluators load by event time]
-    J[Rollback requested] --> K[Copy prior rules into a new draft]
-    K --> B
-```
-
-### Validation rules
-
-- required identifiers are opaque, nonempty and resolve to an active farm; `lot_id` and `zone_id`, when present, must belong to it;
-- timestamps are UTC ISO 8601; `valid_until`, when present, is later than `valid_from`;
-- only one published version may cover the same scope and event-time instant; publication closes the previous open interval atomically;
-- `configuration_version` and each changed `rule_version` increase monotonically;
-- variables and units must match the telemetry schema; finite numeric values only;
-- for a range, lower bound is less than upper bound and inclusivity is explicit;
-- alert rules require severity; recommended/reference rules must not carry an alert severity;
-- `measurement_source` is exact; no `crop_humidity_pct` wildcard is accepted;
-- grain humidity near 12% cannot be evaluated as “near” without an approved tolerance, and cannot have a `CLOSE_DRYING` action;
-- NPK publication fails if a bound or unit is absent;
-- the publishing actor needs the threshold-administrator permission and cannot be a device identity;
-- a reason and approval reference are mandatory for publication and rollback.
-
-Invalid drafts remain `REJECTED` or editable `DRAFT`; they never replace the current published version. A deterministic validation error list and attempted actor/time/correlation are retained in the audit history. If a corrupt or semantically invalid version is encountered at runtime, evaluation fails closed as `INVALID_CONFIGURATION`, sends the item to operational review/DLQ as appropriate, and keeps the last independently valid version available only for event times within that version's recorded validity. The evaluator must not silently stretch its validity.
-
-History is append-only for five years under the existing audit policy. A rollback is a new version whose `change.reverts_to_configuration_version` points to the source version. The old record remains unchanged, and the rollback's `valid_from` controls only future/event-time use; it does not rewrite prior evaluations.
-
-## 6. ThresholdChanged contract
-
-```json
-{
-  "event_name": "ThresholdChanged",
-  "schema_version": "1.0",
-  "event_id": "EVT-DEMO-THRESHOLD-0004",
-  "occurred_at": "2026-11-09T15:30:01Z",
-  "farm_id": "FARM-DEMO-001",
-  "lot_id": "LOT-DEMO-A",
-  "zone_id": "ZONE-DEMO-CROP-01",
-  "correlation_id": "CORR-DEMO-CHANGE-0091",
-  "causation_id": "CHANGE-DEMO-0091",
-  "source_reading_id": null,
-  "configuration_id": "TC-DEMO-FARM-001-CROP",
-  "configuration_version": 3,
-  "valid_from": "2026-11-10T00:00:00Z",
-  "change_type": "PUBLISHED",
-  "changed_rule_ids": ["RULE-DEMO-PH-ALERT", "RULE-DEMO-PH-RECOMMENDED"],
-  "status": "APPLIED",
-  "audit": {
-    "actor_id": "WORKFORCE-DEMO-042",
-    "actor_type": "FEDERATION_OPERATOR",
-    "approval_reference": "APPROVAL-DEMO-017",
-    "reason": "Initial case ranges"
-  }
-}
-```
-
-Consumers deduplicate on `event_id`. They fetch the immutable version named in the event and verify its digest/version before caching it. Delivery of `ThresholdChanged` invalidates a cache; it does not cause historical readings to be silently re-evaluated.
-
-## 7. Event-time evaluation policy
-
-The rule version for a reading is selected by **event time** (`measured_at`), not arrival time (`received_at`): choose the single published configuration whose interval contains `measured_at` and whose farm/lot/zone and variable binding match the reading. This makes a delayed reading produce the same classification it would have produced online.
-
-```mermaid
-sequenceDiagram
-    participant N as Farm node
-    participant I as Ingestion
-    participant R as Rule history
-    participant E as Evaluator
-    participant A as Alert state
-    N->>I: reading measured_at seq values
-    I->>I: conditional store by node measured_at seq
-    I->>R: resolve scope at measured_at
-    R-->>E: immutable configuration and rule version
-    E->>E: compare measured value and record outcome
-    E->>A: conditional update only if reading is newer
-    A-->>E: applied stale or duplicate
-```
-
-| Situation | Evaluation result | Alert/case effect |
+| Situation | Result | Effect on the alert |
 |---|---|---|
-| Exact valid rule exists | `IN_RANGE`, `OUT_OF_RANGE` or reference/recommendation result | Alert only for `OUT_OF_RANGE` from an `ALERT_*` rule |
-| No matching rule/version | `NO_RULE` | Persist and alarm on configuration gap; no fabricated threshold and no alert |
-| Configuration invalid | `INVALID_CONFIGURATION` | Fail closed, operational alarm/DLQ; no alert based on guessed values |
-| Duplicate reading | Return prior `SensorReadingEvaluated` result | No second event effect or alert |
-| Delayed but newer than variable state | Evaluate historical version, label `LATE`, conditionally advance state | Alert is marked delayed and carries both times |
-| Delayed and older than current variable state | Evaluate and retain as `LATE_HISTORICAL` | Does not clear, reopen or duplicate the current alert/case |
-| Reading more than five minutes in the future | `CLOCK_INVALID` | Quarantine/no alert and raise clock alarm, as ingestion already specifies |
+| A version applies | `in_range`, `out_of_range`, or the recommendation or reference shown | An alert only for `out_of_range` on an alert range |
+| No version applies | `no_range` | No alert. The reading is stored, and a metric shows the gap |
+| The version is invalid | `invalid_range` | No alert, the message goes to the dead letter queue, and an alarm fires |
+| The reading is a duplicate | The earlier result | Nothing changes |
+| The reading is late and newer than the alert state | Judged by its own version and marked late | The alert state moves, and the alert carries both times |
+| The reading is late and older than the alert state | Judged and kept as history | The current alert does not change |
+| The reading is more than 5 minutes in the future | `clock_fault` | No alert, as ingestion already defines |
 
-The idempotency key remains `node_id + measured_at + seq`; an evaluation adds `rule_id + rule_version`. Alert transition identity is derived from the reading identity and rule version. Conditional writes ensure that parallel deliveries create one effective evaluation and one state transition. Re-evaluation is an explicit, audited command with a new evaluation ID and reason; it never overwrites the original and does not notify/open a case unless a separately approved replay policy says so.
+Each evaluation stores the `version` it used next to the reading. The alert state changes with a conditional write only when the reading is newer than the one that set it, as the ingestion design defines. A change of range never re-judges past readings. A re-evaluation is an explicit command with a reason, and it writes a new evaluation next to the original.
 
-## 8. Normal and failure scenarios
+## 7. Publishing a change
 
-| ID | Scenario | Expected result |
-|---|---|---|
-| T01 | pH 6.2 under published 4.5–6.0 alert rule | One `OUT_OF_RANGE` evaluation referencing exact rule/configuration versions |
-| T02 | pH 4.7 | Alert range says in range; recommended range says outside recommendation; no alert |
-| T03 | Grain temperature 40.1 °C | One drying alert; exactly 40.0 °C is not above the threshold |
-| T04 | Grain humidity reads 12% | Reference recorded; drying lot remains open pending a human/owned workflow |
-| T05 | NPK has no Federation rule | `NO_RULE`, configuration-gap alarm, reading retained |
-| T06 | Crop humidity source is unresolved | Draft cannot publish; neither soil nor air is guessed |
-| T07 | Same MQTT reading arrives twice | One stored reading/evaluation/alert effect |
-| T08 | Buffered reading arrives after a rule change | Version active at `measured_at` is used and recorded |
-| T09 | Older out-of-order reading conflicts with newer state | Historical result retained; current alert state unchanged |
-| T10 | Operator requests rollback | New version published with actor, approval, reason and source-version link |
-| T11 | Bad bounds or unit | Publication rejected; current valid version unchanged |
-| T12 | Rule cache is unavailable | Retry with bounded backoff; then DLQ/operational alarm, never evaluate from firmware defaults |
+Only the platform operator publishes a range, through the platform API, signed in with Cognito and a second factor. A device identity cannot reach this API.
 
-## 9. Security, observability and retention
+1. The operator enters the new limits, the time from which they apply and the reason.
+2. The function validates the change with the rules below.
+3. A conditional write creates the new item, which fails if a version with the same `valid_from` exists.
+4. The function writes the `threshold.changed` event of the audit design, with the zone type, the variable, the limits before and after, and the reason.
 
-- Cognito workforce identity with MFA protects platform changes; device X.509 identities can only publish their own telemetry topics.
-- Threshold administration, review and platform execution use separate least-privilege roles. A machine identity cannot invent human approval.
-- Configuration and audit stores use KMS encryption; TLS 1.2 or later protects transport. No static AWS key belongs in a rule or node.
-- Domain audit records actor reference, before/after version, reason, approval reference, time, correlation, outcome and denied attempts. CloudTrail complements it for API activity.
-- CloudWatch metrics/alarms cover rejected publications, `NO_RULE`, invalid configurations, DLQ age, evaluation latency, duplicates, late readings and cache/version mismatches. Logs carry identifiers, not raw personal records or secrets.
-- Configurations, evaluations, alerts and audit evidence follow the existing five-year operational/audit retention. Personal data remains separated and follows its own legal deletion/anonymization rule.
-
-## 10. Alternatives
-
-| Alternative | Decision |
+| Rule | On failure |
 |---|---|
-| Hard-code thresholds in firmware | Rejected: requires field/firmware change and loses central version audit |
-| Use the latest rule at arrival time | Rejected: buffered readings change meaning after a publication |
-| Re-evaluate all history on every change | Rejected: rewrites operational meaning and can generate stale alerts |
-| Treat recommended range as alert range | Rejected: conflates guidance with exceptional state |
-| Automatically close drying near 12% | Rejected: “near” is undefined and closure is an operational/human decision |
-| Default missing NPK/humidity bindings | Rejected: would invent business values or sensor semantics |
+| The variable and its unit exist in the message contract | Rejected |
+| Limits are finite numbers, and `min` is below `max` | Rejected |
+| `valid_from` is UTC and no earlier than the time of publication | Rejected, so history never changes |
+| A recommended range or a reference carries no alert behavior | Rejected |
+| A reference for grain humidity carries no closing action | Rejected |
+| The reason is present | Rejected |
 
-## 11. Acceptance criteria, dependencies and pending decisions
+A rollback publishes a new version that copies the limits of an older one and fills `reverts_to`. No version is ever edited or deleted, and versions are kept for five years with the rest of the audit evidence. The evaluation function caches the versions of a zone type for one minute, so a change applies to readings measured after its `valid_from` within a minute of publication.
 
-| E3-04 criterion | Design evidence | Status |
-|---|---|---|
-| Initial pH, humidity, temperature, grain and NPK semantics | Sections 2–4 preserve every supplied value without inventing NPK or humidity binding | Met by proposal; owner decision pending for bindings/NPK |
-| Versioned ranges with change audit | Sections 4–6 define immutable versions, actor, approval, history and rollback | Met by proposed contract |
-| Ranges not fixed in device | Sections 1 and 3 place all evaluation in the platform | Met by design |
+A write on the table that does not come from the platform function still leaves a CloudTrail data event, which the audit design compares with the `threshold.changed` events.
 
-Dependencies and decisions still open:
+## 8. What fails and what the platform does
 
-- `Melo088` must accept or replace `ThresholdConfiguration`, `ThresholdChanged`, event-time semantics and permissions.
-- The Federation must map the 40–80% crop humidity range and both crop temperature ranges to exact telemetry variables.
-- The Federation must publish N, P and K ranges, units and severities.
-- The Federation must define whether “near 12%” needs an informational tolerance/display; it must not become automatic lot closure.
-- The E3-08 owner must consume the accepted E3-04 version and keep `source_reading_id`, rule/configuration versions and evaluation status end to end.
-
-## 12. Risks
-
-| Risk | Mitigation |
+| Situation | What the platform does |
 |---|---|
-| A delayed reading uses today's rule | Event-time lookup and immutable validity intervals |
-| Ambiguous humidity/temperature binds to the wrong probe | Block publication until exact telemetry binding is approved |
-| A rollback erases history | New forward version with `reverts_to` reference |
-| Duplicate delivery opens multiple cases | Reading/evaluation/alert idempotency keys and conditional writes |
-| Configuration outage hides dangerous readings | Queue/retry/DLQ and alarm; never fall back to device constants |
-| A reference is mistaken for an automated command | Typed rule semantics and explicit prohibition on automatic drying closure |
+| pH 6.2 against the alert range of 4.5 to 6.0 | One `out_of_range` evaluation with its version, and one alert |
+| pH 4.7 | Inside the alert range and outside the recommendation. The application shows it, and no alert is raised |
+| Grain at 40.1 °C | One drying alert. At 40.0 °C nothing is raised |
+| Grain humidity at 12 percent | The value and the target are shown, and the lot stays open until the farmer closes it |
+| Nitrogen has no published range | `no_range`, the reading is stored, and the gap metric grows |
+| The same reading arrives twice | One evaluation and one alert effect |
+| A drained reading arrives after a change of range | The version in force at its measured time judges it |
+| An older reading arrives after a newer one | It is kept as history, and the alert does not change |
+| The operator rolls back a change | A new version with the old limits, its reason and `reverts_to` |
+| A change has bad limits or an unknown unit | Rejected, and the current version stays |
+| The ranges table cannot be read | The function retries, then the message goes to the dead letter queue with an alarm. Nothing is judged with a guessed value |
 
-This proposal is intentionally reviewable: it establishes the integration boundary needed by E3-08, but E3-04 remains owned and subject to approval by `Melo088`.
+## 9. Infrastructure code
+
+The telemetry ingestion module creates the ranges table with the sort key `variable#valid_from` and receives the initial ranges in its `alert_ranges` input, which it writes as version 1 of each range. Later versions come only through the platform API, so a new `terraform apply` never overwrites a range the Federation changed. The audit design already names the table in its CloudTrail selector.
+
+## 10. Cost
+
+Rates come from the AWS Price List API for us-east-1.
+
+| Item | Rate | Harvest month | USD |
+|---|---|---|---|
+| Version reads by the evaluation | 0.125 per million read request units | About 108,000 queries, fewer with the one-minute cache | Below 0.02 |
+| Version writes | 0.625 per million write request units | A few a year | Below 0.01 |
+| Storage | 0.25 per GB-month beyond the free 25 GB | A few kilobytes | 0.00 |
+
+The ranges add nothing visible to the platform cost, whose telemetry line already includes the evaluation.
+
+## 11. Assumptions and pending confirmations
+
+| Item | Who confirms | Effect if it fails |
+|---|---|---|
+| Crop humidity applies to the soil and crop temperature to the air | Federation | A new version binds the range to the other field |
+| Nitrogen, phosphorus and potassium ranges and units | Federation | Until then those readings raise no alert |
+| A tolerance for grain humidity near 12 percent | Federation | Until then the platform only shows value and target |
+| One set of ranges for the whole Federation is enough for the pilot | Federation | Ranges by farm or lot add a scope to the key |
+| Ranges change a few times a year | Federation | Nothing changes in the design, only the count of versions |
+
+## 12. Sources
+
+- Cenicafé, [the climate of the coffee zone](https://publicaciones.cenicafe.org/index.php/avances_tecnicos/article/view/2164), for the mean air temperature and air relative humidity of the zone.
+- AWS Price List API, [DynamoDB](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonDynamoDB/current/us-east-1/index.json), us-east-1.
+- [Sensors and operation](sensors-and-operation.md), [telemetry ingestion](telemetry-ingestion.md), [pH measurement decision](../adr/ph-measurement.md), [audit of sensitive events](../security/audit.md) and [identity and access](../security/identity-and-access.md) of this platform.
