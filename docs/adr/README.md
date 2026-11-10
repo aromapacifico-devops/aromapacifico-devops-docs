@@ -17,6 +17,7 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Drone operating mode](drone-operating-mode.md) | Combination of area and precision work |
 | [pH measurement](ph-measurement.md) | Soil probe, with a manual reading as a fallback |
 | [Flight log and fumigation](flight-log-and-fumigation.md) | Two logs, one before authorization and one before closure |
+| [Drone mission signing](drone-mission-signing.md) | Packages signed with a KMS key, results signed with the station device key |
 | [Infrastructure code scope](infrastructure-code-scope.md) | Telemetry ingestion and the focus confirmation function |
 | [Telemetry storage](telemetry-storage.md) | DynamoDB for 90 days, S3 for five years |
 | [Managed inference](managed-inference.md) | Bedrock for analysis, Rekognition as a person filter |
