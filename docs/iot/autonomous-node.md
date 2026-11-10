@@ -294,19 +294,36 @@ With 20 W, a draw at the ceiling and 2.5 peak sun hours take 10.8 days to refill
 
 ## 9. Environment
 
-The approved design names an IP67 enclosure and a battery and controller rated for the range. This section turns that into requirements and states what is not yet known.
+The approved design names an IP67 enclosure and a battery and controller rated for the range. This section turns that into requirements, with reference values for the climate of the coffee zone of the three departments.
+
+### Reference climate
+
+No farm of the pilot has its own weather record, so the values below come from weather stations in the coffee zone of Cauca, Huila and Tolima. They are reference values. They describe stations between 1,200 and 2,000 m, and the extremes of each farm, and the temperature inside the closed enclosure, come from field data and from the suppliers.
+
+| Value | Reference | Source |
+|---|---|---|
+| Highest monthly mean of the daily maximum | 28.6 °C, at a station at 1,510 m in Cauca. Huila reaches 28.4 °C and Tolima 27.3 °C | IDEAM standard normals 1991 to 2020, 17 stations with maximum temperature |
+| Lowest monthly mean of the daily minimum | 12.5 °C, at a station at 1,752 m in Cauca. Huila reaches 13.1 °C and Tolima 13.6 °C | IDEAM standard normals 1991 to 2020, 19 stations with minimum temperature |
+| Monthly mean relative humidity | 56 to 89 percent across the three departments | IDEAM standard normals 1991 to 2020, 18 stations with humidity |
+| Absolute maximum and minimum in one year | 29.0 °C and 9.8 °C at 1,755 m in El Tambo, Cauca. 29.1 °C and 14.1 °C at 1,461 m in Líbano, Tolima, for January to August | Cenicafé coffee weather yearbook 2025 |
+| Daily mean relative humidity in one year | 48 to 97 percent in El Tambo, with 59 days at 90 percent or more. Up to 99 percent in Líbano, with 146 of 243 days at 90 percent or more | Cenicafé coffee weather yearbook 2025 |
+
+The yearbook has no principal station in Huila, so the Huila figures come from the IDEAM normals only. Normals are averages of 30 years and hide single hot or cold days, and the yearbook shows one year, so neither gives the extreme that a component may face over its life.
+
+### Requirements
 
 | Condition | Requirement | Kind |
 |---|---|---|
-| Water and dust | An enclosure rated IP67, with the test report of the supplier. The code is defined in IEC 60529. The definition of the levels of IP67 was not verified in this review, since only the catalog listing of the standard could be read, and the supplier must give the test report and a reviewer must check it against the standard | Design value. The standard is not verified here |
+| Water and dust | An enclosure rated IP67, with the test report of the supplier. The code is defined in IEC 60529, and a reviewer checks the report against the text of the standard, which this document does not quote | Design value |
 | Probes and cables | Heads and cables rated for burial or immersion where they are buried, with connectors of the same rating | Pending, with the probes |
-| Ambient temperature | Operating and storage ranges of every component stated by the supplier and covering the extremes of the sites plus the rise inside a closed enclosure in the sun | Pending. No numbers for the sites were extracted |
-| Humidity and condensation | A way to keep condensation from the electronics, such as a vent, a desiccant or a coating, with the supplier stating the rated humidity | Pending. No humidity data was retrieved |
-| Battery temperature | The charging limit of the pack at low temperature, and its operating range, stated by the pack datasheet | Pending, see section 8 |
+| Ambient temperature | Operating range of every component from 0 °C to 60 °C at least. The lower end leaves about 10 °C below the lowest reference reading. The upper end leaves about 30 °C above the highest reference reading for the sun on a closed enclosure, a rise that the enclosure supplier and a field measurement confirm | Assumed, from the reference climate |
+| Storage and transport | Storage range of every component covering the same 0 °C to 60 °C, since nodes wait in vehicles and depots before installation | Assumed |
+| Humidity and condensation | Components rated for relative humidity up to 100 percent with condensation, or protected by a vent, a desiccant or a coating. The reference shows daily mean humidity at 90 percent or more on many days, so condensation inside the enclosure is expected | Assumed, from the reference climate |
+| Battery temperature | The charging limit of the pack at low temperature, and its operating range, stated by the pack datasheet. A charging limit from 0 °C sits below the lowest reference reading | Pending, see section 8 |
 | Sunlight | Enclosure and cable sheaths rated for sunlight over the life of the node | Pending |
 | Animals, tools and weather | Buried cable, mast height and a mast that resists wind | Design value, from the sensors design |
 
-What was found. The coffee research institute publishes an interactive climate atlas of the coffee zone, dated June 2022, which describes temperature as following altitude, with the highest values in the inter-Andean valleys of the Cauca and Magdalena rivers. The atlas as read gives no numbers for the farms of the pilot, and humidity and extremes were not extracted. The requirement therefore stays open until the extremes and the humidity of the sites are known, and a supplier must state ranges that cover them.
+The reference values change the requirement only if field data of the pilot farms show lower or higher extremes. The installation survey records the altitude of each farm, since temperature in the coffee zone follows altitude.
 
 ## 10. Identity, configuration and firmware
 
@@ -346,7 +363,7 @@ The identity is provisioned in a controlled place before shipment. The key pair 
 
 Association of the node, the farm and the identity. The node identifier follows the form of the existing example, the department code and a sequence. The identity belongs to the node, so a node can be provisioned before its farm is known. The platform links the node to its farm, its department and its zones, which are attributes of the record of the node. The link is made when the node is assigned to a farm, by an authorized platform operator or by the installation step that links the node. The installer needs no secret for it.
 
-The design of the farm module names fleet provisioning with a temporary claim as the choice for the real rollout of 200 farms. A claim is a credential shared by all the nodes that use it, which this procedure avoids. If the rollout uses fleet provisioning, its claim credential and its link with the controlled provisioning must be designed again, and nothing here assumes it.
+The rollout of 200 farms uses this same procedure, one node at a time, and the farm module runs once for each node with its request. Fleet provisioning with a claim is not used. A claim is a credential shared by the nodes that use it, and a node provisioned before shipment has no need to register itself at the farm.
 
 Delivery without shared credentials and without keys in files.
 
@@ -401,7 +418,7 @@ The controller starts only firmware whose signature it has verified against a pu
 | Compatibility | The node accepts an image only for its own hardware and only from a version it supports |
 | Rollback | The node returns to the previous image if the new one fails to boot or fails to connect and report within a set number of cycles. A security version stops a rollback to an image known to be vulnerable |
 | Confirmation | The node reports its version after it runs the new image, and the platform records it |
-| Rollout | Nodes update in batches and not all at once, so that the load and the risk spread |
+| Rollout | Nodes update in batches, so that the load and the risk spread |
 
 Constraints that bound the update.
 
@@ -554,9 +571,9 @@ Two fields would help the platform and are proposed here, with nothing changed u
 | Interface, supply, power up time and accuracy of each probe | Probe supplier | Drivers, regulators and the accepted accuracy change |
 | Operator support for the modem class, its bands and its power saving settings | Each operator, through the Federation | The modem class or the plan changes |
 | Where the secure connection is built, in the controller or in the cellular module | Module supplier | Memory, key storage and energy change |
-| Extremes of temperature and the humidity of the sites, and the rise inside the enclosure | Weather data and the enclosure supplier | The enclosure and component ranges change |
+| Operating range of 0 °C to 60 °C, from the reference climate and an assumed rise inside the enclosure | Field data of the farms, the enclosure supplier and a measurement inside a closed enclosure in the sun | The enclosure and component ranges change |
+| Condensation inside the enclosure | Supplier ratings and the first installations | The protection against condensation changes |
 | Battery level below which an update does not start | Measurements of the first nodes | The update window shrinks |
-| Fleet provisioning with a temporary claim, named in the farm module design for the real rollout, aligned with provisioning in a controlled place | Owners of the farm module design | A shared claim credential would enter the nodes, which this specification avoids |
 | Firmware version and battery measurement added to the reported data | Owners of the ingestion design | The update and the energy monitoring have less data |
 | Frame, transmission limits, configuration and update of the LoRa variant | Design of the farms out of coverage | The LoRa variant stays incomplete |
 
@@ -567,10 +584,12 @@ Two fields would help the platform and are proposed here, with nothing changed u
 | A firmware update architecture for IoT devices, RFC 9019 | IETF, April 2021 | Authenticated and integrity protected images, a bootloader that can select valid firmware, devices that must not fail on a power or network loss during an update | Informational. It is an architecture and fixes no product |
 | Foundational cybersecurity activities for IoT device manufacturers, NISTIR 8259A | NIST, December 2020 | Software update as a device capability, with verification and authentication before install, authorized rollback and authorized entities only | Capability baseline |
 | AWS IoT Jobs and AWS IoT Core for LoRaWAN FUOTA documentation | AWS, read in November 2026 | Jobs that run firmware updates on devices, and FUOTA with multicast, fragmentation and clock synchronization based on the LoRa Alliance specifications | Documentation of a service. The versions of the specifications differ between pages |
-| AN-979 The Practical Limits of RS-485, SNLA042A | Texas Instruments, May 2004 | Up to 32 unit loads, 10 Mbps at 40 feet and 4000 feet at 100 kbps as the guidelines of the standard, with the note that practical limits move | Read in full. A 2004 application note that predates the revision of the standard. A supplier datasheet decides each case |
-| IEC 60529, catalog listing | IEC webstore | The standard covers the classification of degrees of protection of enclosures | Only the catalog listing was read. The levels of IP67 are not verified |
-| Atlas climatológico cafetero interactivo | Cenicafé, June 2022 | Temperature follows altitude, highest in the inter-Andean valleys of the Cauca and Magdalena rivers | Read. It gives no numbers for the pilot farms, and no humidity or extremes were extracted |
-| Datasheet of one 12.8 V LiFePO4 pack, 5 Ah model | A pack maker, 2025 edition | Example of a recommended discharge depth of 80 percent and charging from 0 °C to 50 °C for that pack | Read in full. It is not the pack of this design and proves nothing for it |
-| Mobile operator settings sheets for NB-IoT and for LTE-M | GSMA | Each operator sets its own PSM and eDRX support and timers, and some offer none | Read. The sheets list operators of other countries, and none of Colombia was found in them |
+| AN-979 The Practical Limits of RS-485, SNLA042A | Texas Instruments, May 2004 | Up to 32 unit loads, 10 Mbps at 40 feet and 4000 feet at 100 kbps as the guidelines of the standard, with the note that practical limits move | A 2004 application note that predates the revision of the standard. A supplier datasheet decides each case |
+| IEC 60529, catalog listing | IEC webstore | The standard covers the classification of degrees of protection of enclosures | The text of the standard is not quoted here |
+| Atlas climatológico cafetero interactivo | Cenicafé, June 2022 | Temperature follows altitude, highest in the inter-Andean valleys of the Cauca and Magdalena rivers | Gives no numbers for the pilot farms |
+| Normales climatológicas estándar 1991 a 2020, station workbook | IDEAM | Monthly means of the daily maximum and minimum temperature and of relative humidity, for stations of Cauca, Huila and Tolima between 1,200 and 2,000 m | Averages of 30 years. Stations, and no farm |
+| Anuario meteorológico cafetero 2025 | Cenicafé, September 2026 | Daily and monthly temperature and humidity of the principal stations Manuel Mejía in El Tambo and La Trinidad in Líbano, with the absolute values of the year | One year. Líbano has data from January to August. No principal station in Huila |
+| Datasheet of one 12.8 V LiFePO4 pack, 5 Ah model | A pack maker, 2025 edition | Example of a recommended discharge depth of 80 percent and charging from 0 °C to 50 °C for that pack | It is not the pack of this design and proves nothing for it |
+| Mobile operator settings sheets for NB-IoT and for LTE-M | GSMA | Each operator sets its own PSM and eDRX support and timers, and some offer none | The sheets list operators of other countries, and none of Colombia was found in them |
 | AWS IoT Core for LoRaWAN, onboarding, profiles and frequency bands | AWS documentation, read in November 2026 | Versions 1.0.x and 1.1, over the air activation, the root keys and EUIs, device and service profiles, supported frequency bands, gateway credentials | Documentation of a service. It does not decide the plan for Colombia |
 | Farm connectivity, sensors and operation, telemetry ingestion, encryption, secrets and revocation, and the decision records on the node cycle and the farm module | This repository | Approved rules, design values and the security model | Design documents |
