@@ -144,7 +144,7 @@ module "farm" {
 
 **Why a CSR.** Terraform can ask AWS to generate the certificate and its keys, and in that case the private key lands in the state file. The state must hold no secrets, so that option is ruled out. With a CSR, the private key is created on the device and never leaves it, and Terraform receives only the public part.
 
-**How one module becomes 200 farms.** The sample proves the module with one farm. Reaching 200 means repeating the call with `for_each` over a list of farms, or using AWS fleet provisioning, where each node registers itself at installation with a temporary claim. Fleet provisioning fits a single visit better, since it asks nothing of Terraform at install time, and it remains the choice for the real rollout.
+**How one module becomes 200 farms.** The sample proves the module with one farm. Reaching 200 means repeating the call with `for_each` over a list of nodes. Each node is provisioned before shipment, where it generates its key pair and its certificate request, so the installer runs nothing at the farm and handles no secret. Fleet provisioning with a claim was discarded, since a claim is a credential shared by every node that uses it.
 
 ## 7. Module and repository layout
 
