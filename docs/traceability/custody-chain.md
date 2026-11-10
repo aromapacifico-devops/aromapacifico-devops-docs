@@ -108,21 +108,21 @@ A center uses `POST /centers/{center_id}/events`, and a carrier uses `POST /trip
 | `handed_to_carrier` | `trip_id` |
 | `arrived_at_center` | `trip_id`, `center_id` |
 | `received_accepted` | `center_id`, `weight_kg` |
-| `received_rejected` | `center_id`, `reason` |
-| `reception_corrected_to_accepted` | `center_id`, `reason` |
-| `reception_corrected_to_rejected` | `center_id`, `reason` |
-| `returned_to_farm` | `center_id`, `reason` |
+| `received_rejected` | `center_id`, `weight_kg`, `reason_code`, `observation` |
+| `reception_corrected_to_accepted` | `center_id`, `reason_code`, `observation` |
+| `reception_corrected_to_rejected` | `center_id`, `reason_code`, `observation` |
+| `returned_to_farm` | `center_id`, `reason_code`, `observation` |
 | `dispatched_to_port` | `center_id`, `carrier_id` |
 | `picked_up` | `trip_id`, `center_id` |
 | `delivered_accepted` | `trip_id`, `received_by_org`, `receipt_ref` |
 | `delivered_rejected` | `trip_id`, `received_by_org`, `receipt_ref`, `reason` |
 | `reweighed` | `weight_kg` |
-| `label_reprinted` | `center_id` |
+| `label_reprinted` | `center_id`, `reason_code`, `observation` |
 | `reported_missing` | `trip_id`, `note` |
 
 The five facts the pilot names map to these events. Registration with weight and identifier is `registered`, the handover is `handed_to_carrier`, arrival is `arrived_at_center` with its reception decision, departure is `dispatched_to_port` with `picked_up`, and delivery is `delivered_accepted` or `delivered_rejected`.
 
-`weight_kg` repeats at reception because the center weighs the sack, and a difference from the farm reads as a fact of the history. The design of the center operation defines the values of `reason`.
+`weight_kg` repeats at reception, on an accepted and on a rejected sack, because the center weighs every sack, and a difference from the farm reads as a fact of the history. `reason_code` takes one value from a closed list and `observation` holds free text, so reports can count events by reason. The [collection center operations](../network/collection-center-operations.md) define the lists of codes.
 
 ## 5. Responsible person and evidence
 
