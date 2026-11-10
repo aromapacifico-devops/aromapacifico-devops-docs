@@ -494,9 +494,10 @@ def cloud_deployment():
     p.aws("Virtual private<br>gateway", 354, 370, "site_to_site_vpn", NET, "vgw")
     p.badge("C04", 352, 346)
     p.edge("cfw", "vgw", "IPsec", OBJ, exit=(1, 0.5), entry=(0, 0.5), points=[(310, 386), (310, 396)])
-    p.group("Permanent firewall rules", 450, 480, 570, 66, stroke="#DD344C", color="#DD344C", fill="#FFFFFF")
+    p.group("Permanent firewall rules, coded", 450, 480, 570, 66, stroke="#DD344C", color="#DD344C", fill="#FFFFFF")
     p.badge("C06", 972, 486)
-    p.text("Endpoint security groups allow TCP 443 from 10.41.3.0/24 and 10.41.10.0/24 and deny all else. Visitors have no route.", 460, 504, 500, 38, size=11)
+    p.text("<b>SG-01 to SG-05</b> one group per endpoint, TCP 443 from logistics and local servers of each linked center, no outbound. "
+           "<b>NACL-01 to NACL-04</b> 443 in and return ports out on endpoint subnets, deny on reserved ones.", 460, 502, 505, 42, size=10)
     p.edge("vgw", "ep1", "", OBJ)
     p.edge("vgw", "ep2", "", OBJ, exit=(1, 0.25), entry=(0, 0.25), points=[(424, 383), (424, 358), (700, 358), (700, 383)])
     p.edge("vgw", "ep3", "", OBJ, exit=(1, 0.25), entry=(0, 0.25), points=[(424, 383), (424, 350), (892, 350), (892, 383)])

@@ -97,7 +97,7 @@ The platform adds three fields that no device can set.
 | `received_at` | Time the platform stored the event |
 | `outcome` | `applied`, `gap` or `anomaly` at the last replay |
 
-A center uses `POST /centers/{center_id}/events`, and a carrier uses `POST /trips/{trip_id}/events`. A group action, such as scanning 30 sacks, creates 30 events in one request, and each one gets its own answer.
+A center uses `POST /centers/{center_id}/events` on the private REST API, reached through the tunnel, and a carrier uses `POST /trips/{trip_id}/events` on the public HTTP API. A group action, such as scanning 30 sacks, creates 30 events in one request, and each one gets its own answer.
 
 ## 4. Event catalog
 
@@ -276,15 +276,15 @@ Calculated from the AWS price list for us-east-1, for 252,000 events and 36,000 
 
 | Item | Rate | One request per event, USD | Grouped by truck, USD |
 |---|---|---|---|
-| API Gateway HTTP API | USD 1.00 per million | 0.25 | 0.01 |
+| API Gateway, HTTP API for carriers and private REST API for centers | USD 1.00 and USD 3.50 per million | 0.25 to 0.88 | 0.01 to 0.04 |
 | Lambda at 256 MB, 0.2 s per event or 1 s per group | USD 0.20 per million and USD 0.0000166667 per GB-second | 0.26 | 0.04 |
 | DynamoDB transactional writes, 4 units per event | USD 0.625 per million | 0.63 | 0.63 |
 | DynamoDB strong reads, 2 units per event | USD 0.125 per million | 0.06 | 0.06 |
 | Index on the trip, 2 writes per sack | USD 0.625 per million | 0.05 | 0.05 |
 | Issued codes, 1 write each | USD 0.625 per million | 0.02 | 0.02 |
-| **Total** | | **About 1.27** | **About 0.81** |
+| **Total** | | **About 1.27 to 1.90** | **About 0.81 to 0.84** |
 
-The grouped figure and the positions of the carriers add up to about USD 1.39 in a harvest month, slightly above the USD 1.34 of the line for APIs in the monthly cost of the platform, before counting public queries. The cost analysis settles that line. The difference is a few cents against a total above USD 180, so it changes no decision.
+The lower figure of each range counts every request at the HTTP API rate, and the upper one at the private REST API rate. Center requests are only part of the total, so the real figure falls between the two. With grouping, the private API adds at most USD 0.03 in a harvest month, which the monthly cost of the platform absorbs in its sack line.
 
 Printing labels uses the printer of each center, and its materials belong to the hardware and fee estimate.
 

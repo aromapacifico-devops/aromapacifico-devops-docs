@@ -62,7 +62,7 @@ Sites at the edge hold their data until a path exists. A serverless platform in 
 | Zone | What lives there | Key decision |
 |---|---|---|
 | Field | Solar nodes, LoRa nodes, shared gateways, drones and phones | Each device buffers locally and needs no local server |
-| Collection centers | One LAN pattern repeated three times, with perimeter firewall and a dedicated 100 Mbps WAN | The second octet is the only difference between centers |
+| Collection centers | One LAN pattern repeated three times, with [perimeter firewall](../security/firewall-policy.md) and a dedicated 100 Mbps WAN | The second octet is the only difference between centers |
 | Governance | Seven accounts under one AWS Organization | Controls apply from the root, and every account inherits them |
 | Production | IoT Core, API Gateway, functions, queues, DynamoDB, S3, Bedrock | No servers, no instances, no idle compute |
 | Network | One VPC per environment, with seven subnets and a VPN per center | The VPC exists for the path from the centers |
