@@ -134,7 +134,7 @@ Each node and each ground station holds an X.509 certificate of its own, tied to
 | Stage | Action |
 |---|---|
 | Manufacture or preparation | The certificate is created and stored on the device |
-| Installation | The installer links the thing to the farm |
+| Installation | The installer links the thing to the farm and records its lot and GPS position |
 | Operation | The device publishes with TLS client authentication |
 | Loss or retirement | The certificate is revoked, see the encryption document |
 

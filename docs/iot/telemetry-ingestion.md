@@ -75,7 +75,7 @@ IoT Core accepts payloads of up to 128 KB and 100 publish requests a second per 
 3. Amazon Data Firehose receives a copy and writes Parquet files to the S3 archive.
 4. An SQS queue receives the other copy.
 5. A Lambda function reads batches from the queue, sorts them by node and `measured_at`, validates the contract and writes to DynamoDB with a conditional write.
-6. The function compares the reading with the current ranges and updates the alert state if the reading is the newest one.
+6. The function compares the reading with the version of each range in force at its measured time, as the [alert ranges](configurable-thresholds.md) define, and updates the alert state if the reading is the newest one.
 7. A reading out of range creates an alert, and SNS delivers it to the farmer's phone.
 
 The queue sits between IoT Core and the function so that a slow or failing function loses nothing. Firehose takes its copy straight from the rule, so the archive stays complete even if the function fails.
@@ -165,7 +165,7 @@ Alerts fire on the change of state. A reading out of range raises one alert, and
 |---|---|---|---|
 | Readings table | Partition `node_id`, sort `measured_at#seq` | 90 days through TTL | Recent history in the application |
 | Alert state items, in the readings table | Partition `node_id`, sort `state#<variable>` | Current values, no expiry | Change of state per variable |
-| Ranges table | Partition `zone_type`, sort `variable` | Current values | Evaluation |
+| Ranges table | Partition `zone_type`, sort `variable#valid_from` | Every version, five years | Evaluation by measured time |
 | Alerts table | Partition `farm_id`, sort `raised_at` | Five years | Alert history |
 | Telemetry archive | Parquet, by `stream/year/month/day/` of arrival | Five years through a lifecycle rule | Pilot reports through Athena |
 
