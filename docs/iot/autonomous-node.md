@@ -214,7 +214,7 @@ The approved kit is a 12.8 V and 12 Ah battery of the LiFePO4 type and a 20 W pa
 | Ceiling of the daily draw for 5 days | 24.58 Wh a day, 1.02 W on average | Calculation. A ceiling and no estimate of consumption |
 | Target for the estimated consumption with a 20 percent margin | 20.48 Wh a day | Calculation, margin assumed |
 
-The 80 percent factor is a design assumption. Search results that summarize datasheets of several makers of 12.8 V LiFePO4 packs mention a recommended discharge depth of 80 percent and no charging below 0 °C, and none of them is the datasheet of the pack that this design will use. The datasheet of the chosen pack sets the real factor, and the low temperature charging limit.
+The 80 percent factor is a design assumption. The datasheet of one 12.8 V pack of a maker, a 5 Ah model that is not the pack of this design, lists a recommended discharge depth of 80 percent and charging from 0 °C to 50 °C. It shows that such values exist for some packs and proves nothing for the pack that will be chosen. The datasheet of that pack sets the real factor and its low temperature charging limit.
 
 ### Consumption of the components
 
@@ -298,43 +298,90 @@ The approved design names an IP67 enclosure and a battery and controller rated f
 
 | Condition | Requirement | Kind |
 |---|---|---|
-| Water and dust | An enclosure rated IP67, with the test report of the supplier. The code and its tests are defined in IEC 60529, whose listing says it classifies the degrees of protection that enclosures provide. The levels of each numeral were not read in this review | Design value. Source for the standard |
+| Water and dust | An enclosure rated IP67, with the test report of the supplier. The code is defined in IEC 60529. The definition of the levels of IP67 was not verified in this review, since only the catalog listing of the standard could be read, and the supplier must give the test report and a reviewer must check it against the standard | Design value. The standard is not verified here |
 | Probes and cables | Heads and cables rated for burial or immersion where they are buried, with connectors of the same rating | Pending, with the probes |
-| Ambient temperature | Operating and storage ranges of every component stated by the supplier and covering the extremes of the sites plus the rise inside a closed enclosure in the sun | Pending. Only mean temperatures were found |
+| Ambient temperature | Operating and storage ranges of every component stated by the supplier and covering the extremes of the sites plus the rise inside a closed enclosure in the sun | Pending. No numbers for the sites were extracted |
 | Humidity and condensation | A way to keep condensation from the electronics, such as a vent, a desiccant or a coating, with the supplier stating the rated humidity | Pending. No humidity data was retrieved |
 | Battery temperature | The charging limit of the pack at low temperature, and its operating range, stated by the pack datasheet | Pending, see section 8 |
 | Sunlight | Enclosure and cable sheaths rated for sunlight over the life of the node | Pending |
 | Animals, tools and weather | Buried cable, mast height and a mast that resists wind | Design value, from the sensors design |
 
-What was found. Coffee growing in Colombia lies between about 200 and 1,900 m, with over 90 percent of the crops between 600 and 1,800 m, where the mean air temperature is about 20 °C, and about 23 °C below 1,100 m, according to publications of the coffee research institute as summarized by a search. Those are mean temperatures and give neither the extremes nor the humidity. The requirement therefore stays open until the extremes and the humidity of the sites are known, and a supplier must state ranges that cover them.
+What was found. The coffee research institute publishes an interactive climate atlas of the coffee zone, dated June 2022, which describes temperature as following altitude, with the highest values in the inter-Andean valleys of the Cauca and Magdalena rivers. The atlas as read gives no numbers for the farms of the pilot, and humidity and extremes were not extracted. The requirement therefore stays open until the extremes and the humidity of the sites are known, and a supplier must state ranges that cover them.
 
 ## 10. Identity, configuration and firmware
 
 The platform gives each node its own X.509 certificate, created from a request so that the private key stays on the device, with a policy limited to the resources of that node. A stolen or lost node is revoked. The flash of the controller is encrypted. This section adds how the identity is provisioned, how the key is protected, how the firmware is verified and updated, and how the cellular and LoRa variants differ.
 
+### Identity of the cellular node and of the LoRa node
+
+The two variants have different identities and different mechanisms. The cellular node holds an X.509 certificate that AWS IoT Core accepts. The LoRa node does not connect to AWS IoT Core and holds no certificate of the platform.
+
+| Item | Cellular node | LoRa node |
+|---|---|---|
+| Identity | One X.509 certificate per node, and a private key that never leaves the device | A device identifier and root keys of the LoRaWAN protocol, which the node and the network server both hold |
+| Identifiers | The node identifier, which is the thing name and the client identifier | The device EUI and the join EUI. The documentation of the network server calls the join EUI the application EUI in version 1.0.x |
+| Secrets | A private key held only by the node | Root keys held by the node and by the network server, a single application key in version 1.0.x and an application key and a network key in version 1.1, each of 32 hexadecimal digits |
+| Where the platform keeps it | The certificate and its policy in AWS IoT Core, with no key | The network server keeps the root keys of each wireless device, encrypted with a key that AWS owns and manages |
+| Activation | The connection with the certificate | Over the air activation, which creates new session keys at each join. Activation by personalization uses static keys, and the documentation of the network server recommends the over the air activation |
+| Compromise of one device | Revoke its certificate | Remove the device from the network server and retire its keys |
+| What the platform gives the node | A policy limited to its own topics and its own shadow | A device profile and a service profile, with a destination for its messages |
+
+The documentation of the network server supports LoRaWAN devices of versions 1.0.x and 1.1. The gateways of the shared vereda use a different credential, a certificate that the configuration and update service of the network server manages, and they are not nodes.
+
+The keys of a LoRa node are symmetric, so the rule that the private key is never exported cannot hold for them. The equivalent rule is that each node has its own random keys, that the keys are written to the protected store of the node at provisioning, that they are loaded into the network server once through a direct call of the provisioning tool, and that they are kept in no file, no repository and no state of the infrastructure code. A key shared by many nodes is not allowed.
+
 ### Provisioning of the identity
 
-| Step | Requirement |
-|---|---|
-| 1 | The key pair is generated on the node, and the private key is not readable from outside |
-| 2 | The node exports a certificate request, which the platform operator signs and registers for that node only |
-| 3 | The certificate and the node identifier are written to the node, and the node reports its firmware version |
-| 4 | The node is linked to a farm at installation, with no secret handled by the installer |
+The identity is provisioned in a controlled place before shipment. The key pair of a cellular node is generated on the node and the private key is not exported. The installer receives a node that is ready, with no secret to handle.
 
-Two points to provision are possible.
-
-| Point | For | Against |
+| Step | Cellular node | LoRa node |
 |---|---|---|
-| In a controlled place before shipment | A single visit at the farm with no special tool, and secrets handled by trained staff | The nodes must be linked to a farm later, and a stock of provisioned nodes needs control |
-| At the farm during installation | The node is linked to the farm at once | The installer needs a tool and a connection at the lot, and the key generation happens in the field |
+| 1 | Create the node record in the register, with the identifier, the serial number of the board and the identifier of its protected store | Create the node record with the identifier, the serial number and the device EUI |
+| 2 | The provisioning station puts the node in a locked provisioning mode. The node generates its key pair in the protected store and exports only the certificate request | The provisioning station generates the random root keys of the node and writes them straight into the protected store of the node |
+| 3 | A platform operator signs the request through the farm module of the infrastructure code, which creates the thing, its group membership, the certificate and the attachment of the policy of that node. The state holds no key | The provisioning tool registers the wireless device in the network server with its profiles and its destination, in one direct call, with the keys in memory only |
+| 4 | The certificate and the node identifier are written to the node. The node proves that it holds the key by signing a challenge | The tool reads back the identifiers from the node and checks that the network server knows the device |
+| 5 | The node connects once to the platform and reads its shadow. It publishes nothing, so no test data reaches the platform. A failure stops the shipment | The node joins through a test gateway and sends one uplink to a test destination. A failure stops the shipment |
+| 6 | The node leaves provisioning mode, the debug ports are locked and the lock is read back | Same |
+| 7 | The register records the node, the certificate or the device EUI, the date and the staff involved. It holds no key | Same |
 
-The proposal is the controlled place before shipment, and it is pending approval.
+Association of the node, the farm and the identity. The node identifier follows the form of the existing example, the department code and a sequence. The identity belongs to the node, so a node can be provisioned before its farm is known. The platform links the node to its farm, its department and its zones, which are attributes of the record of the node. The link is made when the node is assigned to a farm, by an authorized platform operator or by the installation step that links the node. The installer needs no secret for it.
 
-### Protection of the private key
+The design of the farm module names fleet provisioning with a temporary claim as the choice for the real rollout of 200 farms. A claim is a credential shared by all the nodes that use it, which this procedure avoids. If the rollout uses fleet provisioning, its claim credential and its link with the controlled provisioning must be designed again, and nothing here assumes it.
+
+Delivery without shared credentials and without keys in files.
+
+| Rule | Detail |
+|---|---|
+| No shared credential | Each node has its own key or keys, and no claim, default key or common password is built into a node |
+| No key in a file | Private keys never leave the node. Root keys of LoRa nodes exist in memory of the provisioning tool and in the protected store, and in no file, repository, ticket, chat or state of the infrastructure code |
+| Provisioning station | A controlled computer with access limited to named staff, no general internet use, a record of each session and no storage of what it writes to nodes |
+| Staff | Two named roles, the person who runs the station and the platform operator who signs, and the same person does not hold both |
+| Logs | The tools log identifiers and results and never log keys |
+
+Revocation and replacement.
+
+| Case | Cellular node | LoRa node |
+|---|---|---|
+| Lost, stolen or broken node | The platform operator marks the certificate as revoked and detaches its policy. The next attempt fails at the secure connection, and the thing is marked inactive so that no silent node alarm fires | The wireless device is removed from the network server, and its keys are retired. Its session stops working |
+| Replacement | A new node gets its own provisioning, a new key and a new certificate. A certificate is never reused | A new node gets new random keys and a new device EUI, and the old keys are never reused |
+| Link of the farm | The farm link moves to the new node, and the register keeps the history of both | Same |
+| Suspected key exposure | Revoke and replace | Retire the keys and replace the node |
+
+Checks before shipment and during installation.
+
+| When | Check |
+|---|---|
+| Before shipment | The node is registered, its identity is checked on the platform side as the steps above show, the debug lock is read back, the firmware version is read from the node and matches the approved release, the clock is set and the real-time clock holds, the probes are tested on a bench, the battery is charged and its voltage read, and the enclosure is closed and inspected |
+| At installation, before leaving the farm | The node reads its probes, joins the network and sends or drains its first message, the first reading appears on the platform for the right node and the right farm, the signal quality and the registration are read and recorded, and the farmer sees the node in the application |
+| At installation, identity | The installer reads the node identifier from the label and confirms that it matches the register and the farm. No secret is read, typed or shown |
+
+The firmware version is read from the node during these checks. Whether the node reports it to the platform stays a proposal that needs the agreement of the owners of the ingestion design, together with the battery measurement.
+
+### Protection of the keys
 
 | Requirement | Detail |
 |---|---|
-| Not extractable | The key is generated and used inside a protected store of the controller, a secure element or the cellular module, and never leaves it |
+| Not extractable | The private key of a cellular node is generated and used inside a protected store of the controller, a secure element or the cellular module, and never leaves it. The root keys of a LoRa node are written once to a protected store of the same class and are not readable from outside |
 | Equivalent protections | If the part has no secure element, the controller must offer readout protection and flash encryption, and the choice must be justified in the datasheet and reviewed |
 | No key on the serial link | The radio module never receives the private key, unless it is the protected store itself |
 | Debug locked | Ports that read the memory are locked in the delivered node |
@@ -383,19 +430,42 @@ The cloud side can use a job service that tells a device which file to fetch and
 
 ### Firmware update on the LoRa path
 
-A full firmware update over LoRa is not assumed. The options below are viable candidates, and the design of the farms out of coverage decides among them with the measures in the last table.
+A full firmware update over LoRa is not assumed. Updating parameters and updating firmware are different things, and they are separated below.
+
+#### Parameters
+
+| Option | What it does | What it cannot do |
+|---|---|---|
+| Downlink of parameters | Changes values that the firmware already reads, such as the cadence of a drying lot, when the node listens after an uplink | It cannot change code, so it cannot fix a flaw in the code |
+
+#### Firmware
 
 | Option | What it needs | Open points |
 |---|---|---|
-| Update on site with a local link | A person with a programmer or a short range link at the farm, or at the visit of the carrier that moves the objects from those farms | Visit cost, and who is trusted to do it |
-| Update over the air with the LoRa application layer specifications | Remote multicast setup, fragmented data block transport and clock synchronization, which AWS IoT Core for LoRaWAN documents for its devices. The nodes must listen at a scheduled time | Energy of the listening windows, the size of the image, the success rate with a shared gateway, and whether the specifications versions match the stack |
-| Update of the parameters only | The configuration that the platform holds, sent as downlink | Does not replace a firmware fix |
+| Update on site with a local link | A person with a programmer or a short range link at the farm, with the node opened or reached without opening it | A visit for each update, and the cost and the trust placed in the person |
+| Update at an existing stop | The same local link used during a visit that already happens, such as the stop of the carrier that moves the objects from those farms | Whether the stop reaches the node, and who is allowed to update |
+| Update over the air with the LoRa application layer specifications | Remote multicast setup, fragmented data block transport and clock synchronization, which the network server documents for its devices, with devices that listen at a scheduled time | Energy of the listening windows, image size, success rate with a shared gateway, and whether the versions of the specifications match the stack |
+
+None of these is chosen. The measures of the last table decide them.
+
+#### How a vulnerability is corrected when the firmware needs a person on site
+
+| Step | Action | Limit |
+|---|---|---|
+| 1 | Assess the flaw and who can reach it. A flaw that needs physical access to the node differs from one that a radio message can trigger | The assessment needs the design of the frame |
+| 2 | Reduce exposure with no firmware change. Remove the node from the network server, which ends its session, or change the parameters that switch off the affected feature | The node stops reporting, and a parameter cannot fix code |
+| 3 | Schedule the update by exposure, starting with the nodes most exposed, using the visits and the stops that already happen | The time to reach every farm depends on those visits, which are not defined for these farms |
+| 4 | Update on site with the local link, check the version, and record it in the register | A person on site for each node |
+| 5 | Keep the risk visible until the last node is updated, with its owner and its date | A node never visited stays exposed |
+
+The time to correct a flaw cannot be stated until the visits to the farms out of coverage are known. A design with no radio update has to keep the firmware small, accept no inbound service on the node, and leave only messages that the LoRaWAN protocol authenticates and encrypts. These measures reduce the chance that a flaw exists and do not replace a way to fix one. The decision between an on site update and an over the air update belongs to the design of the farms out of coverage, with the measures below.
 
 | Measure to decide | Why |
 |---|---|
 | Image size and the number of fragments | Decides the session time |
 | Energy of a session, with the listening windows | Compared with the ceiling of section 8 |
 | Success rate and the cost of repeating a session | Decides if a fix reaches every node |
+| Visits and stops that reach the farm, and their frequency | Decides how fast an on site fix arrives |
 | Whether a key and a manifest can be checked with the memory of the LoRa node | Section 10 requirements still apply |
 
 ### Configuration
@@ -497,9 +567,10 @@ Two fields would help the platform and are proposed here, with nothing changed u
 | A firmware update architecture for IoT devices, RFC 9019 | IETF, April 2021 | Authenticated and integrity protected images, a bootloader that can select valid firmware, devices that must not fail on a power or network loss during an update | Informational. It is an architecture and fixes no product |
 | Foundational cybersecurity activities for IoT device manufacturers, NISTIR 8259A | NIST, December 2020 | Software update as a device capability, with verification and authentication before install, authorized rollback and authorized entities only | Capability baseline |
 | AWS IoT Jobs and AWS IoT Core for LoRaWAN FUOTA documentation | AWS, read in November 2026 | Jobs that run firmware updates on devices, and FUOTA with multicast, fragmentation and clock synchronization based on the LoRa Alliance specifications | Documentation of a service. The versions of the specifications differ between pages |
-| TI application notes on RS-485, as summarized by a search | Texas Instruments | Up to 32 unit loads and a trade between cable length and data rate | The notes were not opened in full. The figures must be checked in them before use |
-| IEC 60529, product listing | IEC webstore | The IP code classifies degrees of protection of enclosures | Only the listing was read. The levels were not |
-| Publications of the coffee research institute, as summarized by a search | Cenicafé | Altitude of the coffee area and mean air temperatures by altitude | Mean temperatures only. No extremes and no humidity |
-| Datasheets of 12.8 V LiFePO4 packs of several makers, as summarized by a search | Makers | Recommended discharge depth of 80 percent and a charging floor at 0 °C in some of them | Not opened and not the pack of this design |
-| PSM and eDRX descriptions of operators and of cellular connectivity providers, as summarized by a search | Providers | Power saving modes exist in LTE-M and NB-IoT and the network decides whether to accept the timers | Not the specifications. The operators of the pilot have not confirmed any setting |
+| AN-979 The Practical Limits of RS-485, SNLA042A | Texas Instruments, May 2004 | Up to 32 unit loads, 10 Mbps at 40 feet and 4000 feet at 100 kbps as the guidelines of the standard, with the note that practical limits move | Read in full. A 2004 application note that predates the revision of the standard. A supplier datasheet decides each case |
+| IEC 60529, catalog listing | IEC webstore | The standard covers the classification of degrees of protection of enclosures | Only the catalog listing was read. The levels of IP67 are not verified |
+| Atlas climatológico cafetero interactivo | Cenicafé, June 2022 | Temperature follows altitude, highest in the inter-Andean valleys of the Cauca and Magdalena rivers | Read. It gives no numbers for the pilot farms, and no humidity or extremes were extracted |
+| Datasheet of one 12.8 V LiFePO4 pack, 5 Ah model | A pack maker, 2025 edition | Example of a recommended discharge depth of 80 percent and charging from 0 °C to 50 °C for that pack | Read in full. It is not the pack of this design and proves nothing for it |
+| Mobile operator settings sheets for NB-IoT and for LTE-M | GSMA | Each operator sets its own PSM and eDRX support and timers, and some offer none | Read. The sheets list operators of other countries, and none of Colombia was found in them |
+| AWS IoT Core for LoRaWAN, onboarding, profiles and frequency bands | AWS documentation, read in November 2026 | Versions 1.0.x and 1.1, over the air activation, the root keys and EUIs, device and service profiles, supported frequency bands, gateway credentials | Documentation of a service. It does not decide the plan for Colombia |
 | Farm connectivity, sensors and operation, telemetry ingestion, encryption, secrets and revocation, and the decision records on the node cycle and the farm module | This repository | Approved rules, design values and the security model | Design documents |
