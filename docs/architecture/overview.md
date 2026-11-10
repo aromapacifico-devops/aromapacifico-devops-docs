@@ -170,7 +170,7 @@ Development, test and production come from the same code with different variable
 |---|---|
 | Governance | Landing zone, cloud selection, requirement matrix |
 | Security | Identity and access, encryption and revocation, personal data and retention |
-| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, carrier tracking, port delivery |
+| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
 | Automation and change | Implementation scope, environments and promotion |
 | Workloads | Sensors, telemetry ingestion, drone operating mode, sack identity, sack states, custody chain, carrier application contract |
 | Decisions and assumptions | Decision records and assumption register |

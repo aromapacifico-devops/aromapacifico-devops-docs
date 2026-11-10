@@ -130,6 +130,8 @@ The drone operates far from the farmer's phone, so a mission never depends on si
 
 If the link falls at the lot, the mission stays in the buffer of the drone. The fumigation does not close until its flight log is stored on the platform.
 
+The [drone mission link design](../network/drone-mission-link.md) defines the signed package, exact geometry and exclusion versions, offline validity, aircraft/station acknowledgements, resumable S3 upload and mission-level completion rules. Presigned upload URLs are requested only after connectivity returns; they are not stored for the offline period.
+
 ## 8. Flight logs
 
 Each flight closes its own log. The confirmation or delimitation flight closes first, a person authorizes after that, and the fumigation and verification close the case with their own logs. This reading removes the apparent circle between "no authorization without a closed log" and "no closure without a stored log".
