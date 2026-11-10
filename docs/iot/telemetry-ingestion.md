@@ -53,7 +53,7 @@ Carrier positions travel through the carrier API and share the storage pattern, 
 | Total device messages | 50,400 | 108,000 |
 | Messages a second, average | 0.02 | 0.04 |
 
-With 0.5 KB per message, a harvest month is 54 MB. The volume is tiny. What demands design is the arrival pattern, since nodes wake on schedule and buffers drain together when a tower returns.
+With 0.5 KB per message, a harvest month is 54 MB. The volume is tiny. What demands design is the arrival pattern, since nodes wake on schedule and buffers drain together when a tower returns. The [ingestion sizing](ingestion-sizing.md) document projects these figures to 1,000 farms and checks them against the service quotas.
 
 ## 3. Ingestion service
 
@@ -175,6 +175,8 @@ Alerts reach the phone by mobile push, and urgent drying alerts fall back to SMS
 | Aurora PostgreSQL | SQL | Billed while idle, more to operate | Discarded |
 
 Reports filter by `measured_at` and scan one extra day, because a buffered reading falls in the partition of the day it arrived.
+
+The [farmer history](farmer-history.md) defines how the application reads these tables, the drying lots that keep each harvest for five years, and the monthly pilot report built on the archive.
 
 Point-in-time recovery covers the tables, with a restore point about 5 minutes behind the current time.
 
