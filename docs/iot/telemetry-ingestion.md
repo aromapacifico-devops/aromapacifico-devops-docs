@@ -176,6 +176,8 @@ Alerts reach the phone by mobile push, and urgent drying alerts fall back to SMS
 
 Reports filter by `measured_at` and scan one extra day, because a buffered reading falls in the partition of the day it arrived.
 
+The [farmer history](farmer-history.md) defines how the application reads these tables, the drying lots that keep each harvest for five years, and the monthly pilot report built on the archive.
+
 Point-in-time recovery covers the tables, with a restore point about 5 minutes behind the current time.
 
 ## 10. Out-of-coverage farms
