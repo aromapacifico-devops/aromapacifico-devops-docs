@@ -905,8 +905,59 @@ def center_wlan():
     return p
 
 
+def center_operation():
+    p = Page("10 Center operation", 1700, 1050, "How a collection center receives, labels and dispatches sacks, and what limits it at 400 sacks a day")
+    p.group("Reception: arrival is one action for the load, the decision is one event for each sack", 30, 60, 1640, 250, stroke=FAIL, dashed=True, sw=2)
+    top = [("<b>1. Load arrives</b><br>carrier, once<br>arrived_at_center", "t1"), ("<b>2. Waiting area</b><br>sacks stay in transit<br>no event", "t2"),
+           ("<b>3. Scan the label</b><br>15 s, assumed", "t3"), ("<b>4. Weigh</b><br>20 s, assumed<br>farm weight is kept", "t4"),
+           ("<b>5. Inspect</b><br>90 s, assumed<br>no criteria invented", "t5"), ("<b>6. Decide and record</b><br>20 s, assumed<br>reception weight, reason code", "t6"),
+           ("<b>7. Move the sack</b><br>20 s, assumed<br>stack or return area", "t7")]
+    for i, (v, cid) in enumerate(top):
+        p.step(v, 50 + i * 230, 110, 190, 80, fill="#F2F8FC", stroke="#147EBA", cid=cid)
+        if i:
+            p.edge(top[i - 1][1], cid, "", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    p.step("<b>Accepted</b><br>received_accepted<br>then dispatched_to_port, groups of 30, 15 s a sack", 1050, 215, 300, 70, fill="#EEF7EE", stroke=TEL, cid="acc")
+    p.step("<b>Rejected</b><br>received_rejected<br>then returned_to_farm, same code", 1400, 215, 250, 70, fill="#FDEDEC", stroke=FAIL, cid="rej")
+    p.edge("t6", "acc", "accept", TEL, exit=(0.3, 1), entry=(0.5, 0))
+    p.edge("t6", "rej", "reject", FAIL, exit=(0.8, 1), entry=(0.5, 0))
+    p.note("The five reception steps add up to 165 s for each sack. The dispatch scan of 15 s makes 180 s and belongs to the dispatch station.", 50, 215, 480, 70)
+    p.note("A correction before dispatch is an event with a reason. Reasons are provisional codes with an observation, not approved criteria.", 560, 215, 450, 70)
+
+    p.group("Sack that arrives with no code: four steps, each one can fail alone and none creates a second sack or code", 30, 340, 1640, 270, stroke=OBJ, dashed=True, sw=2)
+    nc = [("<b>A. Assign a code</b><br>from the issued block of this device<br>20 s with B", "n1"), ("<b>B. Register</b><br>registered_at_center<br>farm, weight, event_id", "n2"),
+          ("<b>C. Print one label</b><br>30 s on the printer<br>never two identical labels", "n3"), ("<b>D. Attach and scan</b><br>40 s<br>scan must match the registered code", "n4")]
+    for i, (v, cid) in enumerate(nc):
+        p.step(v, 50 + i * 300, 390, 250, 80, fill="#F2F8FC", stroke="#147EBA" if cid != "n3" else OBJ, cid=cid)
+        if i:
+            p.edge(nc[i - 1][1], cid, "", OBJ, dashed=cid == "n3", exit=(1, 0.5), entry=(0, 0.5))
+    p.step("<b>Reception</b><br>steps 3 to 7", 1300, 390, 150, 80, fill="#EEF7EE", stroke=TEL, cid="rcv")
+    p.edge("n4", "rcv", "", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    fails = ["No code left in the block: stop, use another device or wait. No code is invented.",
+             "Event waits on the device and repeats with the same event_id. A second registration of the code is an anomaly.",
+             "No label came out: print again for the same code. It is a retry, not a reprint, and it makes no sack and no code.",
+             "Mismatch: stop the sack, void the label, print again as a reprint with the same code."]
+    for i, t in enumerate(fails):
+        p.note("<b>If it fails.</b> " + t, 50 + i * 300, 490, 250, 100, fill="#FDEDEC", stroke="#DD344C")
+    p.note("<b>Printing rule pending.</b> Address, protocol and port of the printer are not confirmed, so no permission is opened. A receipt, if any, is a separate non-adhesive slip with no QR.", 1300, 490, 350, 100, fill="#FFF8E1", stroke="#D6B656")
+
+    p.group("Work with no internet and reprints", 30, 640, 810, 330, stroke=ALERT, dashed=True, sw=2)
+    p.step("<b>Reserve of the center</b><br>10 percent of 400 sacks for 2 days = 80 codes, assumed<br>sized first, issued in advance", 50, 690, 300, 80, fill="#FFF3E0", stroke=ALERT, cid="res")
+    p.step("<b>Exclusive blocks</b><br>no overlap, one per device<br>40 + 40, or 27 + 27 + 26", 400, 690, 250, 80, fill="#FFF3E0", stroke=ALERT, cid="blk")
+    p.edge("res", "blk", "split", ALERT, exit=(1, 0.5), entry=(0, 0.5))
+    p.note("<b>Exhausted:</b> stop. <b>Lost device:</b> freeze its codes, never reuse. <b>Link back:</b> events arrive, gaps close, new block issued, 48 h review list.", 50, 800, 600, 70, fill="#FFFFFF", stroke=ALERT)
+    p.note("<b>Reprint:</b> same code, reason, label_reprinted, old label withdrawn or voided when possible. Review from the third reprint is an operating assumption.", 50, 885, 600, 70, fill="#FFFFFF", stroke=ALERT)
+
+    p.group("Capacity at 400 sacks a day, assumed times, not measured", 870, 640, 800, 370, stroke=INK, sw=2)
+    p.step("<b>Busiest hour</b><br>150 sacks, 3 times the average of 50<br>needs about 9 reception stations at 85 percent<br>4 stations serve the average hour", 890, 690, 360, 90, fill="#F7FAFC", stroke=INK, cid="cap")
+    p.step("<b>Bottleneck: inspection</b><br>48 percent of the person time of a sack<br>5 people inspecting in the busiest hour", 1280, 690, 370, 90, fill="#FDEDEC", stroke=FAIL, cid="bot")
+    p.note("<b>People, not devices.</b> 2 desktops and 20 phones do not show enough people, scales or inspection pace. With 4 people the backlog is 63 sacks after the busiest hour.", 890, 800, 360, 80)
+    p.note("<b>One scale</b> runs at 83 percent in the busiest hour. <b>One printer</b> is busy 19 percent with 10 percent of sacks with no code and 5 percent reprints.", 1280, 800, 370, 80)
+    p.legend(890, 895, 360, [(TEL, False, "Normal path"), (FAIL, False, "Rejection or failure"), (OBJ, True, "Step that depends on the pending printing rule")])
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), center_operation()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
