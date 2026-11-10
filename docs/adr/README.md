@@ -20,6 +20,8 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Drone mission signing](drone-mission-signing.md) | Packages signed with a KMS key, results signed with the station device key |
 | [Spraying strips](spraying-strips.md) | Legal strips as parameters, ground application when the drone strip blocks a focus |
 | [Harvest estimation method](harvest-estimation-method.md) | Tree count, field sample and Cenicafé factor, one mission per farm |
+| [Alert ranges](alert-ranges.md) | Versions judged by measured time, humidity on the soil, temperature on the air |
+| [Confirmation focus](confirmation-focus.md) | A circle around the node, only cultivation alerts open a case |
 | [Infrastructure code scope](infrastructure-code-scope.md) | Telemetry ingestion and the focus confirmation function |
 | [Telemetry storage](telemetry-storage.md) | DynamoDB for 90 days, S3 for five years |
 | [Managed inference](managed-inference.md) | Bedrock for analysis, Rekognition as a person filter |
