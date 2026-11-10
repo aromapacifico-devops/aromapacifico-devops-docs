@@ -134,7 +134,7 @@ The public sack lookup is the only service anyone can reach without an account, 
 
 The whole pilot peaks at 30 sack reads a minute in harvest. A limit of 300 requests in 5 minutes per address leaves room for many buyers behind one carrier address, while a script trying codes meets the limit within minutes. With about 3 million valid codes in a space of 2^60, a client held to 300 tries in 5 minutes needs far longer than the life of the pilot to hit one. Count mode in the first weeks shows real traffic before the rule blocks anyone, and the limit can move to 100 if the counts allow.
 
-The private API also accepts requests only through its interface endpoint, through a resource policy, so a center call never travels the public internet.
+Center stations call a separate API, an API Gateway REST API of the private type, because that is the only type that an interface endpoint reaches and that accepts a resource policy. Its resource policy accepts requests only through the interface endpoint of the VPC, so a center call never travels the public internet. Phones and the public lookup use the public HTTP API, which has neither feature.
 
 ## 6. Temporary rules
 
@@ -204,6 +204,7 @@ The center firewalls are equipment of each center, and the VPN connections and i
 | Network ACLs are stateless, need rules for return traffic, and 1024 to 65535 covers client ephemeral ports | https://docs.aws.amazon.com/vpc/latest/userguide/custom-network-acl.html |
 | Rate-based rules, windows of 60, 120, 300 or 600 seconds and a lowest limit of 10 | https://docs.aws.amazon.com/waf/latest/developerguide/waf-rule-statement-type-rate-based-high-level-settings.html |
 | Core rule set and known bad inputs managed rule groups | https://docs.aws.amazon.com/waf/latest/developerguide/aws-managed-rule-groups-baseline.html |
+| Only REST APIs offer the private endpoint type, resource policies and AWS WAF, and HTTP APIs offer none of them | https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html |
 | MQTT on 443 with ALPN `x-amzn-mqtt-ca` | [Farm connectivity](../network/farm-connectivity.md) |
 | Zones, VLANs and the zone policy of a center | [Center WLAN](../network/center-wlan.md) |
 | Subnets, routes and the absence of internet and NAT gateways | [Cloud addressing](../network/cloud-addressing.md) |

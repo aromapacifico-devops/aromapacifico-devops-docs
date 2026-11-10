@@ -96,7 +96,7 @@ The workload is serverless, so most services run outside the VPC. The VPC exists
 |---|---|---|
 | Telemetry ingress | Interface endpoint for IoT Core data | A device at a center can publish through the tunnel |
 | Drone object ingress | Interface endpoint for S3 | Gateway endpoints cannot be reached through a VPN, so uploads from a center need this one |
-| Application | Interface endpoint for the private API | Logistics stations reach the API privately |
+| Application | Interface endpoint for the private REST API | Logistics stations reach the center API privately, since only a private REST API accepts calls through an interface endpoint |
 | Data | Reserved | DynamoDB is reached by a gateway endpoint |
 | Object storage | Reserved, holds the route association | S3 does not live in a subnet |
 | Administration | Reserved | Available for administrative endpoints |

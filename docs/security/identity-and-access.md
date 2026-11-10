@@ -61,7 +61,7 @@ This document defines who and what can act on the platform. Each actor has a sep
 | Federation analyst | IAM Identity Center | Reads only the files of the monthly pilot report, which are aggregated and name no person or farm |
 | Buyer | None | Read-only access needs no account, and the code is the capability |
 
-A single user pool with groups was preferred over one pool per role, since the applications share one API and the groups already separate permissions. API Gateway validates the token, and each function checks the group.
+A single user pool with groups was preferred over one pool per role, since the applications share one set of users and the groups already separate permissions. Phones and browsers call the public HTTP API, and center stations call a private REST API reached only through the tunnel. Both validate the same token with a Cognito authorizer, and each function checks the group.
 
 Federation staff could later sign in with a corporate directory by adding a federated provider to the pool, with no change to the applications.
 

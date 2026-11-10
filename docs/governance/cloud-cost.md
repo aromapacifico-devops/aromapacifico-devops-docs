@@ -43,7 +43,7 @@ Rates are the on-demand prices of `us-east-1` read on the retrieval date of the 
 |---|---|---|---|
 | Telemetry ingestion | Messages, rules, queue, function, tables, archive and the hourly configuration read of each node | 0.72 | 0.98 |
 | Carrier positions | 216,000 requests through the API, function and table writes | 0.58 | 0.58 |
-| Sack events | Transactional writes, reads and the trip index, with events grouped by truck | 0.20 | 0.81 |
+| Sack events | Transactional writes, reads and the trip index, with events grouped by truck. Center requests use the private REST API at USD 3.50 per million and add at most 0.03 | 0.20 | 0.81 |
 | Public sack queries | Per million requests, 1.00 API, 0.60 web firewall, 1.03 function and 0.38 table reads, which is 3.01 | 0.41 | 1.62 |
 | Inference | 1,500 or 9,000 images at USD 1.75 per 1,000, with the person filter | 2.63 | 15.75 |
 | New objects in S3 | Storage and uploads of the images of the month | 0.11 | 0.65 |
