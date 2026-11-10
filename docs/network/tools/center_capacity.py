@@ -103,17 +103,43 @@ def main():
     print("Inspection takes the largest share of the person time, so the people who inspect, and not the devices, set the pace.")
 
     print("\n## What a number of people can do in the busiest hour")
-    print("People at reception stations, with every one of them busy. Peak demand is the sacks of the busiest hour. The backlog is what is left unreceived at the end of that hour, and it clears at the average rate that follows, if the people stay.")
-    print("| People | Sacks an hour at 100 percent busy | At 85 percent | Backlog after the busiest hour | Hours to clear it at the average demand |")
-    print("|---|---|---|---|---|")
-    for people in (2, 4, 6, 8, 10):
+    print("People at reception stations at 165 seconds a sack, with every one of them busy, so each figure is an upper bound. The day has 8 hours, the busiest hour has 150 sacks and the other 7 hours share the remaining 250, which is 35.7 sacks an hour. The queue is empty when the busiest hour starts, because 35.7 is below what any row can serve.")
+    print("| People | Sacks an hour at 100 percent busy | Backlog at the end of the busiest hour | Hours to clear it, with arrivals of 35.7 an hour continuing | Longest wait, last sack of the busiest hour | Share of the day busy with reception only |")
+    print("|---|---|---|---|---|---|")
+    rest = (SACKS_PER_DAY - peak_per_hour) / (DAY_HOURS - 1)
+    for people in (2, 3, 4, 5, 6, 7, 9):
         full = people * 3600 / rec
-        at85 = full * UTIL_PEAK
         backlog = max(peak_per_hour - full, 0)
-        spare = full - avg_per_hour
-        clear = "never, below the average demand" if (backlog > 0 and spare <= 0) else (f"{backlog / spare:.1f}" if backlog > 0 else "no backlog")
-        print(f"| {people} | {full:.0f} | {at85:.0f} | {backlog:.0f} sacks | {clear} |")
+        spare = full - rest
+        if backlog == 0:
+            clear, wait = "no backlog", "none"
+        elif spare <= 0:
+            clear, wait = "never, below the arrivals", f"{60 * backlog / full:.0f} minutes and growing"
+        else:
+            clear, wait = f"{backlog / spare:.1f}", f"{60 * backlog / full:.0f} minutes"
+        day_share = SACKS_PER_DAY * rec / 3600 / (people * DAY_HOURS)
+        print(f"| {people} | {full:.0f} | {backlog:.0f} sacks | {clear} | {wait} | {day_share:.0%} |")
+    full4 = 4 * 3600 / rec
+    print(f"\nThe 63 sacks are {peak_per_hour:.0f} arrivals minus the {full4:.1f} that 4 people serve in the hour. If the 7 other hours also brought the average of {avg_per_hour:.0f} an hour, which counts the busiest hour twice and gives 450 sacks, the same backlog would take {(peak_per_hour - full4) / (full4 - avg_per_hour):.1f} hours to clear.")
+    extra = station_nc * nc + 40 * REPRINT_SHARE
+    full4b = 4 * 3600 / (rec + extra)
+    print(f"Adding the average station work for sacks with no code and reprints, {extra:.0f} seconds a sack, 4 people serve {full4b:.1f} an hour and the backlog is {peak_per_hour - full4b:.0f} sacks.")
+    print(f"Seven people is the least that serves {peak_per_hour:.0f} sacks in the hour with no backlog, and only if nobody ever waits for work. Nine people keep the utilization at 85 percent, so the queue stays empty when arrivals bunch up inside the hour. The dispatch scan, {DISPATCH_SCAN} seconds, is outside these rows.")
     print(f"The logistics zone has {LOGISTICS_DEVICES['desktops']} desktops and {LOGISTICS_DEVICES['phones']} phones, {sum(LOGISTICS_DEVICES.values())} devices. Devices do not limit the stations. People, scales and the pace of inspection do, and the number of people at a center is not known.")
+
+    print("\n## Where the busiest hour falls")
+    print("Four people, hours of 8, the busiest hour placed at each position of the day. Hourly steps, so the figures are approximate.")
+    print("| Busiest hour is hour | Largest backlog | Backlog at the end of the day | Extra time to finish after the day, minutes |")
+    print("|---|---|---|---|")
+    cap4 = 4 * 3600 / rec
+    for pos in (1, 4, 8):
+        q, qmax = 0.0, 0.0
+        for h in range(1, int(DAY_HOURS) + 1):
+            a_ = peak_per_hour if h == pos else rest
+            q = max(0.0, q + a_ - cap4)
+            qmax = max(qmax, q)
+        print(f"| {pos} | {qmax:.0f} sacks | {q:.0f} sacks | {60 * q / cap4:.0f} |")
+    print(f"The work of the day is {SACKS_PER_DAY * total_seconds / 3600:.1f} station hours with every task counted, against {4 * DAY_HOURS:g} hours of 4 people, so 4 people are busy {SACKS_PER_DAY * total_seconds / 3600 / (4 * DAY_HOURS):.0%} of the day.")
 
     print("\n## Label printer load")
     print("| Share with no code | Labels in the busiest hour | Printer seconds in that hour | Printer busy |")

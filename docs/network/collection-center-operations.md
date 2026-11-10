@@ -130,7 +130,9 @@ Four things are kept apart, and each one can fail on its own without creating a 
 | Printing | One adhesive label with the QR and the printed code of that code | A print job that refers to the code and creates nothing | A job that produced no label is repeated for the same code. It creates no sack and no code, and it is not a reprint |
 | Verification of the attached label | The operator sticks the label on the sack and scans it, and the application compares the scanned code with the registered one | None. The scan is a check of the application before the reception event, and no new event type is created | A mismatch stops the sack. The label is removed or voided and printed again as a reprint. A code that belongs to another sack is an anomaly |
 
-Order. Assignment and registration come first, so a print failure leaves a registered sack with no label, which a reprint of the same code repairs. Printing does not create the sack.
+Order. Assignment and registration come first, so a print failure leaves a registered sack with no label, which a reprint of the same code repairs. Printing does not create the sack. When the link is up, the registration request and the assignment of the code can be one call, as the sack identity design describes. They are separated here only to say what happens when each one fails.
+
+The code sheet. The sack identity design calls the printed output of this flow the code sheet. In this document it is the label printed for one sack. A separate flow, in the custody chain design, prints blocks of labels for farms on the same printer. That flow is outside this story, its printer time is not in the printer table of section 9, and it must be added when the Federation says how many labels it prints and how often.
 
 One label only. The sheet that the printer produces carries one adhesive label for the sack. No second identical adhesive label is printed, since two identical labels could end on different sacks. If the Federation wants a receipt for the person who brought the sack, it is a separate slip. The slip is not adhesive, has another format, carries the words that it is not a sack label, has no QR and is never used to identify a sack. Whether the slip is needed is pending, and the design does not require it.
 
@@ -245,19 +247,50 @@ Share of the person time of a sack, which shows the bottleneck.
 
 Inspection takes the largest share of the person time, so the people who inspect, and not the devices, set the pace.
 
-What the people at the stations can do in the busiest hour.
+What the people at reception stations can do in the busiest hour. The day has 8 hours, the busiest hour has 150 sacks and the other 7 hours share the remaining 250, which is 35.7 sacks an hour. The queue is empty when the busiest hour starts, because 35.7 is below what any row can serve. Each figure is an upper bound, since it assumes that every person is busy all the time.
 
-| People | Sacks an hour at 100 percent busy | At 85 percent | Backlog after the busiest hour | Hours to clear it at the average demand |
-|---|---|---|---|---|
-| 2 | 44 | 37 | 106 sacks | never, below the average demand |
-| 4 | 87 | 74 | 63 sacks | 1.7 |
-| 6 | 131 | 111 | 19 sacks | 0.2 |
-| 8 | 175 | 148 | 0 sacks | no backlog |
-| 10 | 218 | 185 | 0 sacks | no backlog |
+| People | Sacks an hour at 100 percent busy | Backlog at the end of the busiest hour | Hours to clear it, with arrivals of 35.7 an hour continuing | Longest wait, last sack of the busiest hour | Share of the day busy with reception only |
+|---|---|---|---|---|---|
+| 2 | 44 | 106 sacks | 13.4 | 146 minutes | 115% |
+| 3 | 65 | 85 sacks | 2.8 | 78 minutes | 76% |
+| 4 | 87 | 63 sacks | 1.2 | 43 minutes | 57% |
+| 5 | 109 | 41 sacks | 0.6 | 22 minutes | 46% |
+| 6 | 131 | 19 sacks | 0.2 | 9 minutes | 38% |
+| 7 | 153 | 0 sacks | no backlog | none | 33% |
+| 9 | 196 | 0 sacks | no backlog | none | 25% |
 
-The calculation uses the reception stage of 165 seconds and assumes that every person is busy all the time, so it is an upper bound.
+How to read the table.
 
-The peak asks for about nine people at reception stations at the target utilization, and five of them are inspecting at the same time. With fewer people the sacks wait. With four people the backlog after the busiest hour is 63 sacks and takes about an hour and 40 minutes to clear at the average demand that follows. With two people the center cannot keep up with the average of 50 sacks an hour. A waiting area for the backlog is needed, and its size is not known. Having devices for 22 clients does not show that the center has enough people, scales or inspection capacity, and this document does not claim it.
+- The 63 sacks are the 150 arrivals of the busiest hour minus the 87 that 4 people serve in that hour. They are in the queue at its end.
+- The queue then clears while the arrivals of the other hours, 35.7 an hour, keep coming. The spare capacity of 4 people is 87.3 minus 35.7, which is 51.6 sacks an hour, so 63 sacks clear in 1.2 hours. An earlier version of this document used the average of 50 an hour for the hours that follow, and that gave 1.7 hours. It counted the busiest hour twice, since the 400 sacks of the day already include its 150. The 1.7 hours holds only if the other hours also brought 50 sacks an hour, which makes 450 sacks and is not the case.
+- The longest wait is that of the last sack that arrives in the busiest hour, the queue divided by the rate of service, 43 minutes with 4 people. It assumes that sacks are served in the order they arrive.
+- Adding the average station work for sacks with no code and for reprints, 8 seconds a sack, 4 people serve 83 sacks an hour and the backlog is 67.
+
+Four people and the day. The work of the day is 20.9 station hours with every task counted, and 4 people have 32, so they are busy 65 percent of it. Four people at the utilization target of 70 percent are the least that complete the day, since 20.9 divided by 0.7 and by 8 is 3.7. The table below puts the busiest hour at different positions of the day.
+
+| Busiest hour is hour | Largest backlog | Backlog at the end of the day | Extra time to finish after the day, minutes |
+|---|---|---|---|
+| 1 | 63 sacks | 0 sacks | 0 |
+| 4 | 63 sacks | 0 sacks | 0 |
+| 8 | 63 sacks | 63 sacks | 43 |
+
+The queue is gone before the day ends when the busiest hour is not the last. If it is the last, 4 people need about 43 more minutes.
+
+Operating proposal for the design. The numbers are the ones above, and the choice of crew is the Federation's.
+
+| Item | Proposal | Why |
+|---|---|---|
+| People | 4 for the whole day, who rotate through reception, the dispatch scan and the steps for a sack with no code, and 2 more during the busiest hours, 6 in all | 4 complete the day at 65 percent busy. 6 cut the queue of the busiest hour from 63 to 19 sacks and the longest wait from 43 to 9 minutes |
+| Without the 2 extra people | Accept a queue of up to 63 sacks and a wait of up to 43 minutes in the busiest hour | The Federation decides whether that wait is acceptable. It is pending |
+| To have no queue at all | 7 people at 100 percent busy, 9 at the 85 percent target | The queue stays empty only with these crews. This is the only case that needs nine |
+| Reception stations | One for each person at reception, each with a device and a bench for inspection | Inspection is done at the station, so about 55 percent of the reception people, 5 of 9, are inspecting at any moment |
+| Scale | 1, which is busy 83 percent of the busiest hour | A second scale is a spare for a failure and would halve the load. The Federation decides |
+| Dispatch station | 1, for 400 scans of 15 seconds, 1.7 hours a day | Run by the people who rotate |
+| Label printer | 1, busy 19 percent of the busiest hour | See section 6 |
+| Hours | 8 hours a day, assumed | The hours of the center are pending, and the position of the busiest hour in the day is unknown |
+| Waiting area | Room for the queue, 63 sacks with 4 people and 19 with 6 | The size of a sack and of the area are not known |
+
+Having devices for 22 clients does not show that the center has enough people, scales or inspection capacity, and this document does not claim it.
 
 Load of the label printer. The speed of the printer is not known, and the 30 seconds for a label are an assumption.
 
@@ -277,22 +310,28 @@ Load of the label printer. The speed of the printer is not known, and the 30 sec
 | Number of people and of scales at a center | Pending | Federation | The center may need waiting capacity or more people, see section 9 |
 | Utilization targets of 70 and 85 percent | Assumed | Team | Units needed change |
 | Inspection criteria and the reasons of section 5 | Pending | Federation | The categories are replaced |
-| Reason field of `label_reprinted` and a structured reason on the other events | Pending | Data design | The reason stays in the observation or in the existing `reason` field |
+| Reason field of `label_reprinted` and a structured reason on the other events | Pending | The author of the custody chain design, who owns that data contract. This document does not change it | The reason stays in the observation or in the existing `reason` field |
 | Weight basis, gross or net, tare and tolerances | Pending | Federation | A field for the basis and a rule for the difference may be needed |
-| Weight of a rejected sack | Pending | Data design | The weight stays in the observation |
+| Weight of a rejected sack | Pending | The author of the custody chain design | The weight stays in the observation |
 | Label that is unreadable with an unknown code | Pending | Team | The sack stays held, see section 3 |
 | Receipt slip | Pending | Federation | Not needed by the design |
-| Printer model, speed, address, protocol and port | Pending | Equipment selection and the printing rule | Printing from the logistics zone cannot be commissioned until the rule is enabled |
+| Printer model, speed, address, protocol and port | Pending | Equipment selection and the printing rule | Printing from the logistics zone cannot be commissioned until the rule is enabled. It blocks operation and does not block this design |
+| Label printing for farms, how many and how often | Pending | Federation | The printer load of section 9 rises |
+| Crew, hours of the center and the wait that is acceptable in the busiest hour | Pending | Federation | The proposal of section 9 changes, see the table of crews |
 | Inspection happens after arrival, in the same place | Pending, from the sack states | Center operation | Arrival and reception may merge |
 | Two days of outage as the size of the reserve | Assumed | Team | The reserve changes in proportion |
 
 ## 11. Criteria of the story and their evidence
 
-| Literal criterion | Deliverable | Evidence |
-|---|---|---|
-| Flow of reception, acceptance and rejection | Sections 3 to 5 and the diagram | Every event and transition of the flow exists in the sack states, compared by hand with its tables. The diagram and the text name the same steps |
-| Printing of code sheets for sacks that arrive with no code | Sections 6 and 7 | The steps use the registration and reprint events as defined, a failure of each step is stated, a retry creates neither a sack nor a code, and the printing rule is shown as pending |
-| Capacity of 400 sacks a day per center in harvest | Section 9 and the script | The script takes 400 sacks, gives the stations for the average hour and the busiest hour by stage, names the bottleneck and compares the peak with the people and devices of the case. No capacity is stated as sufficient |
+The story asks for a design. The table separates what the design still lacks, the assumptions that this delivery states and accepts, and the checks that come when a center starts to operate.
+
+| Literal criterion | Where it is answered | Gaps in the design | Assumptions accepted for this delivery | Checks to start operating |
+|---|---|---|---|---|
+| Flow of reception, acceptance and rejection | Sections 3 to 5 and the diagram. Every event and transition exists in the sack states, compared by hand with its tables | None for the flow. The reasons are provisional categories, and the structured reason field is a pending decision of the data contract | Provisional reason codes, the weight shown as a difference with no tolerance | The Federation confirms the categories, the inspection criteria, the weight basis and the tolerances |
+| Printing of code sheets for sacks that arrive with no code | Sections 6 to 8. Four steps with a failure for each, one label per sack, a retry that creates no sack and no code, reprints, and blocks of codes with exhaustion, loss, replenishment and reconciliation | Printing of block sheets for farms is not sized, see section 6 | The label printed for one sack is the code sheet of the identity design. A review from the third reprint. A reserve of 80 codes | The printing rule enabled with address, protocol and port, the printer chosen, a test reception, and a time study of the steps |
+| Capacity of 400 sacks a day per center in harvest | Section 9 and the script. Stations and capacity by stage, the bottleneck, a crew proposal with wait, hours and waiting area, and the comparison with the devices | None | Times, 8 hours, the busiest hour at 3 times the average, shares of sacks with no code and reprints, utilization targets | Time study at the first center, the crew and hours of the center, the real position of the busiest hour |
+
+Printing. The design of the printing is complete for the documentary criterion, since it states the steps, the failures, the single label, the reprint and the offline blocks. Putting the printer into operation is blocked. The rule from the logistics zone to the label printer is pending, and until it is enabled no center can print from that zone. Nothing here opens a permission.
 
 Additions requested for the design and not criteria of the story. The inspection detail, the work with no internet, the reserve of codes and the reconciliation, which cite the decisions already taken.
 
