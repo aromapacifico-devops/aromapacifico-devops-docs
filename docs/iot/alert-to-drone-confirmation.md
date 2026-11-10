@@ -174,7 +174,7 @@ The objective of an alert in under five minutes counts from the measured time of
 
 | Condition | Time from the reading to the alert | Objective |
 |---|---|---|
-| Signal at the hourly connection that follows the reading | About 3.6 minutes, from the ingestion budget | Met by design, to measure in the field |
+| Signal at the hourly connection that follows the reading | About 2.1 minutes of stated limits, plus the queue poll and the SNS dwell time measured per alert | Met by design, measured for every alert |
 | Signal returns just after a connection | Up to one more hour, the next connection | Missed, and the alert carries both times |
 | No signal | When the buffer drains, within 24 hours | Missed, a degraded mode the ingestion design states |
 

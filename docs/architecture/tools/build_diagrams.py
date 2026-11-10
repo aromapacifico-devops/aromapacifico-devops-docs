@@ -1147,8 +1147,54 @@ def crop_case():
     return p
 
 
+def alert_delivery():
+    p = Page("15 Alert delivery sequence", 1900, 1060, "How an alert reaches the farmer and how each step of its delivery is recorded")
+    fn, db, sns, push, phone, api, logs, check = 160, 390, 620, 850, 1080, 1310, 1540, 1770
+    top, bottom = 70, 900
+    bands = [("Platform side, from the reading to the handoff", 140, 330, "#EAF6EC", "#2E7D32"),
+             ("Phone side, when the phone has data", 482, 196, "#EAF2F8", "#147EBA"),
+             ("Five minutes after the publish", 690, 210, "#FEF9E7", "#B7950B")]
+    for _, y, h, fill, stroke in bands:
+        p.zone("", 40, y, 1820, h, fill, stroke)
+    p.lifeline("Ingestion function", "Evaluates and raises", fn, top, bottom, icon="lambda", color=COMPUTE)
+    p.lifeline("Alerts table", "DynamoDB, delivery record", db, top, bottom, icon="dynamodb", color=DATA)
+    p.lifeline("Amazon SNS", "Mobile push", sns, top, bottom, icon="sns", color=APP)
+    p.lifeline("Push service", "FCM or Apple, outside AWS", push, top, bottom, net="server")
+    p.lifeline("Farmer phone", "Farmer application", phone, top, bottom, net="mobile")
+    p.lifeline("Platform API", "Receipt function", api, top, bottom, icon="api_gateway", color=APP)
+    p.lifeline("Status logs", "CloudWatch Logs, status function", logs, top, bottom, icon="cloudwatch_2", color=MGMT)
+    p.lifeline("Delay queue", "SQS, delivery check function", check, top, bottom, icon="sqs", color=APP)
+    for label, y, _, fill, _ in bands:
+        p._v(label, f"text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor={INK};fillColor={fill};strokeColor=none;spacingLeft=6;", 50, y + 6, 470, 24)
+
+    p.message(fn, db, 196, "Alert, live or drained", BIZ)
+    p.message(fn, sns, 230, "Publish data message, TTL 24 h", ALERT)
+    p.message(sns, fn, 264, "Message ID", CTRL, dashed=True)
+    p.message(fn, db, 298, "Push ID, publish time", BIZ)
+    p.message(fn, check, 332, "Check message, delay 300 s", CTRL)
+    p.message(sns, push, 366, "Handoff after the dwell time", ALERT)
+    p.message(sns, logs, 400, "Delivery status, dwellTimeMs", CTRL)
+    p.message(logs, db, 434, "push_handoff_at, push_status", BIZ)
+
+    p.message(push, phone, 530, "Data message, high priority", ALERT)
+    p.note("<b>On the phone.</b> The application shows the notification", 980, 552, 200, 44)
+    p.message(phone, api, 616, "POST receipt, time on the phone", CTRL)
+    p.message(api, db, 650, "receipt_at, device_received_at", BIZ)
+
+    p.message(check, db, 738, "Read the alert", CTRL)
+    p.note("<b>No handoff.</b> Undelivered metric and alarm", 1520, 756, 300, 34)
+    p.message(check, phone, 812, "SMS when urgent, active and with no receipt", FAIL)
+    p.note("<b>SMS events.</b> End User Messaging writes them to the status logs", 1400, 830, 300, 34)
+    p.message(logs, db, 884, "sms_status, sms_status_at", BIZ)
+
+    p.note("<b>No data on the phone.</b> The push waits up to 24 hours at the push service, and the receipt goes with the next call. The objective stops at the handoff", 60, 916, 560, 44)
+    p.legend(660, 916, 560, [(ALERT, False, "Alert on its way to the phone"), (BIZ, False, "Write to the delivery record"),
+                             (CTRL, False, "Control and confirmation"), (FAIL, False, "SMS fallback for urgent alerts"), (CTRL, True, "Dashed line, an answer to a request")])
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
