@@ -17,6 +17,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Drone mission link](diagrams/10-drone-mission-link.drawio.png) | How is a drone mission preloaded, flown with no signal and published |
 | [Audit evidence path](diagrams/11-audit-evidence-path.drawio.png) | How does evidence of a sensitive event reach a store that no account can alter |
 | [Lot geometry lifecycle](diagrams/12-lot-geometry-lifecycle.drawio.png) | Which states can a lot polygon pass through, and which strips keep spraying away |
+| [Center operation](diagrams/13-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
@@ -40,3 +41,5 @@ The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client
 ## Regenerating the diagrams
 
 `tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page on Linux, and `tools/export_diagrams.ps1` does the same on Windows with draw.io Desktop.
+
+The [center operations](../network/collection-center-operations.md) define reception, labels, work with no internet and the capacity of a center.
