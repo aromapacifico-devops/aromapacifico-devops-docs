@@ -127,7 +127,7 @@ A site with several technologies counts once in each column. In the three depart
 The coverage file has one row for each populated center, technology and signal level. For each row it gives the area of the center and the area that each operator covers at that signal level. Two readings of it follow, and they answer different questions, so they are given in separate tables and must not be added or compared across tables.
 
 How the figures are built.
-- Geographic unit. Populated centers of the dataset, grouped by department. A municipal seat is a center whose code ends in 000, which is a rule of this document and not a field of the file. Every other center is grouped as other populated centers. The groups are a department level summary of a municipal dataset. They are not municipal figures, and they say nothing about rural land.
+- Geographic unit. Populated centers of the dataset, grouped by department. A municipal seat is a center whose code ends in 000. The file has no field for it, so this document applies that rule. Every other center is grouped as other populated centers. The groups are a department level summary of a municipal dataset. They are not municipal figures, and they say nothing about rural land.
 - Denominator. The centers that the file lists for that technology. The file has rows for a center and a technology only for some centers, and it does not say why, so the number of centers differs between technologies and a count for 3G is not comparable with a count for 4G.
 - Signal levels. The file has five levels, which the dataset page does not define. Nothing here interprets them. The area of an operator is the sum over all five levels, so a level that is weak enough to give no usable service still counts.
 - Unit of area. The file does not state it, and the values are used only as a ratio inside the same file.
@@ -176,7 +176,7 @@ No operator confirmation of LTE-M or NB-IoT was obtained. The datasets do not se
 
 | Operator | What was found | Status |
 |---|---|---|
-| Claro | A search found business pages on IoT connectivity over SIM. They were not opened in this review, so no statement from them is used | Not confirmed |
+| Claro | Business pages on IoT connectivity over SIM exist. Their content was not read, so no statement from them is used | Not confirmed |
 | Movistar | The business site offers a managed machine line service. The page does not name the radio technologies, and it directs the visitor to a sales line | Not confirmed |
 | Tigo | A search listed a managed connectivity service with IoT SIMs. The page returned an access error when it was opened, so no statement was read | Not confirmed |
 | WOM | Its site could not be reached | Not confirmed |
@@ -209,7 +209,7 @@ The selection of the hardware belongs to the specification of the autonomous nod
 
 ## 9. Check of the design documents
 
-A search over the design documents for 2G, 3G, GSM, UMTS, GPRS, EDGE and fallback found no requirement of a retired generation. The documents mention LTE for the node modem, the gateway backhaul and the phones, the wired WAN for the centers, and LTE-M and NB-IoT only in the assumptions register. Optional SMS fallback for alerts and network time at each connection depend on the operator service and not on a named generation, and the modem selection must keep them working on 4G.
+The design documents contain no requirement of 2G, 3G, GSM, UMTS, GPRS or EDGE, and no fallback to them. The documents mention LTE for the node modem, the gateway backhaul and the phones, the wired WAN for the centers, and LTE-M and NB-IoT only in the assumptions register. Optional SMS fallback for alerts and network time at each connection depend on the operator service and not on a named generation, and the modem selection must keep them working on 4G.
 
 ## 10. Pending confirmations
 
