@@ -959,8 +959,61 @@ def drone_link():
     return p
 
 
+def audit_path():
+    p = Page("11 Audit evidence path", 1860, 990, "How evidence of the four sensitive events reaches a store that no account can alter")
+    p.group("People and devices", 40, 80, 260, 640, stroke="#5D6D7E")
+    p.card("Buyer or app user", "Reads a sack", 60, 140, 220, 64, cid="src_app", net="mobile")
+    p.card("Platform operator", "Changes a threshold", 60, 280, 220, 64, cid="src_op", net="pc")
+    p.card("Farm node", "Publishes telemetry", 60, 420, 220, 64, cid="src_node", net="wireless_modem")
+    p.card("Ground station", "Delivers flight objects", 60, 560, 220, 64, cid="src_gs", net="pc")
+
+    p.group("Workload account, one per environment", 340, 80, 720, 640, stroke=INK, sw=2)
+    p.card("API Gateway", "Request ID, access log", 370, 140, 190, 64, cid="api", icon="api_gateway", color=APP)
+    p.card("Platform functions", "Query, domain, upload", 610, 140, 200, 64, cid="fn", icon="lambda", color=COMPUTE)
+    p.card("Audit log group", "Events, 90 days", 850, 140, 190, 64, cid="lg_app", icon="cloudwatch_2", color=MGMT)
+    p.card("Ranges table", "Alert thresholds", 610, 280, 200, 64, cid="ranges", icon="dynamodb", color=DATA)
+    p.card("IoT Core", "Broker", 370, 420, 190, 64, cid="iot", icon="iot_core", color=IOT)
+    p.card("IoT log group", "Publish-In, farm groups", 850, 420, 190, 64, cid="lg_iot", icon="cloudwatch_2", color=MGMT)
+    p.card("Flight object bucket", "Presigned uploads", 610, 560, 200, 64, cid="flights", icon="s3", color=STORAGE)
+
+    p.group("Log archive account", 1100, 80, 720, 640, stroke=SEC, sw=2, color=SEC)
+    p.card("Logs destination", "Receives subscriptions", 1130, 280, 200, 64, cid="dest", icon="cloudwatch_2", color=MGMT)
+    p.card("Firehose", "Decompress, one event per line", 1130, 420, 200, 64, cid="fh", icon="kinesis_data_firehose", color="#8C4FFF")
+    p.card("Organization trail", "Data events, digests", 1130, 560, 200, 64, cid="trail", icon="cloudtrail", color=MGMT)
+    p.card("Audit bucket", "Object Lock compliance, 5 years, audit key", 1380, 410, 230, 84, cid="bucket", icon="s3", color=STORAGE, impl=False, stroke=SEC)
+    p.card("Athena", "Evidence queries", 1650, 280, 150, 64, cid="athena", icon="athena", color="#8C4FFF")
+    p.card("Security role", "Read only", 1650, 560, 150, 64, cid="sec", icon="identity_and_access_management", color=SEC)
+
+    p.edge("src_app", "api", "1 Read a sack", BIZ, exit=(1, 0.5), entry=(0, 0.3))
+    p.edge("src_op", "api", "2 Change a threshold", BIZ, exit=(1, 0.5), entry=(0, 0.75), points=[(330, 312), (330, 188)])
+    p.edge("api", "fn", "", BIZ)
+    p.edge("fn", "lg_app", "Audit event", BIZ)
+    p.edge("fn", "ranges", "Write", BIZ, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("src_node", "iot", "3 Publish", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("iot", "lg_iot", "Publish-In entry", TEL)
+    p.edge("src_gs", "api", "4 Ask for a URL", OBJ, exit=(1, 0.25), entry=(0.1, 1), points=[(352, 576), (352, 240), (389, 240)])
+    p.edge("src_gs", "flights", "4 PUT with the URL", OBJ, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("lg_app", "dest", "Subscription", BIZ, exit=(1, 0.5), entry=(0, 0.3), points=[(1070, 172), (1070, 299)])
+    p.edge("lg_iot", "dest", "Subscription", TEL, exit=(1, 0.3), entry=(0, 0.75), points=[(1070, 439), (1070, 328)])
+    p.edge("dest", "fh", "", BIZ)
+    p.edge("fh", "bucket", "app/ and iot/", BIZ)
+    p.edge("ranges", "trail", "Table writes", CTRL, exit=(0.9, 1), entry=(0, 0.25), points=[(790, 530), (1090, 530), (1090, 576)])
+    p.edge("flights", "trail", "PutObject", CTRL, exit=(1, 0.5), entry=(0, 0.6))
+    p.edge("trail", "bucket", "AWSLogs/", CTRL, exit=(1, 0.5), entry=(0.5, 1), points=[(1495, 592)])
+    p.edge("sec", "athena", "Runs queries", CTRL, dashed=True, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("athena", "bucket", "Reads", CTRL, dashed=True, exit=(0.5, 1), entry=(1, 0.3), points=[(1725, 435)])
+
+    p.legend(40, 740, 560, [(BIZ, False, "Platform events, sack reads, thresholds, URL grants"), (TEL, False, "Telemetry publications"),
+                             (OBJ, False, "Flight object delivery"), (CTRL, False, "CloudTrail data events"), (CTRL, True, "Reading the evidence")])
+    p.note("<b>Immutable.</b> No user, root included, can delete or overwrite a locked version for five years. Only CloudTrail and the Firehose role of the log archive account write to the bucket.", 620, 740, 600, 64)
+    p.note("<b>Two records for objects.</b> The upload function names the drone operator when it grants the URL. CloudTrail names the signing role and proves the arrival. They join on the object key.", 1240, 740, 580, 64)
+    p.note("<b>Direct writes.</b> A write on the ranges table that did not come from a platform function appears in the trail and is flagged by the threshold query.", 620, 820, 600, 50)
+    p.note("<b>Workload accounts.</b> Each one sends its own events. Its roles hold no write access to the archive.", 1240, 820, 580, 50)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
