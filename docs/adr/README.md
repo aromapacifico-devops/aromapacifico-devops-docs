@@ -26,6 +26,7 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Fleet and harvest estimates](fleet-and-harvest-estimates.md) | Three brigades, four months of harvest |
 | [Object storage access](object-storage-access.md) | Gateway endpoints for S3 and DynamoDB |
 | [Center WAN capacity](center-wan-capacity.md) | Priority for logistics, visitors capped at 10 percent |
+| [Dedicated center link](dedicated-center-link.md) | Committed rate at each center, shared fiber as the fallback |
 | [Farm module](farm-module.md) | One reusable module, certificate from a CSR |
 | [Demonstration account](demonstration-accounts.md) | One standalone credit account, environments that go up and down |
 | [Repository structure](repository-structure.md) | One repository per module, separate from the infrastructure repository |
