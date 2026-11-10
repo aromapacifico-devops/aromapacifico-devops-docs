@@ -186,7 +186,9 @@ Nodes outside coverage send readings over LoRa to a gateway shared by the vereda
 
 LoRa carries short frames, far below the 0.5 KB of the JSON message. The node therefore sends a compact binary frame on that path, with the same fields, and a decoder function rebuilds the contract before it enters the queue. Everything after that point stays identical, so a LoRa farm costs no extra design in the platform.
 
-Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, they send about 7,200 crop messages a month, which costs under USD 0.05.
+The frame, its size budget, the acknowledgement of stored readings and the configuration of the node are defined in the [LoRa path of the farms out of coverage](../network/lora-out-of-coverage.md).
+
+Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, with one uplink and at most one acknowledgement downlink each hour, they send about 57,600 messages a month, which costs about USD 0.35.
 
 ## 11. What fails and what happens
 
@@ -247,7 +249,7 @@ This module of the first plan implements box C07. It creates the IoT rule, the S
 | SMS fallback for alerts | Federation, with a price for Colombia | Without it, the alert waits for data on the phone |
 | The share of farms outside coverage | Federation | Number of gateways, cost barely moves in the cloud |
 | Messages average 0.5 KB | First nodes | Linear effect on small amounts |
-| LoRa frequency plan for Colombia | Network survey | Radios and gateways are selected accordingly |
+| LoRa frequency plan, power and transmission limits for Colombia | Regulator, spectrum agency or an accredited laboratory, and the network survey | Radios and gateways are selected accordingly. See the LoRa path document for what is still unverified |
 
 ## Sources
 

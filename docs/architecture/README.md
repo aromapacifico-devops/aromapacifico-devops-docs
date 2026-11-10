@@ -13,6 +13,8 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Environments](diagrams/06-environments.drawio.png) | How does a change reach production, and how do environments go up and down |
 | [Farm connection sequence](diagrams/07-farm-connection-sequence.drawio.png) | How does a farm node connect, lose its link and recover |
 | [Sack state model](diagrams/08-sack-state-model.drawio.png) | Which states can a sack pass through, and what does a rejection do |
+| [Center WLAN](diagrams/09-center-wlan.drawio.png) | Which SSID lands on which VLAN, and what can each zone reach |
+| [Drone mission link](diagrams/10-drone-mission-link.drawio.png) | How is a drone mission preloaded, flown with no signal and published |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
@@ -29,10 +31,10 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 
 ## Related documents
 
-[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, with the sequences of connection, disconnection and recovery, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
+[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, the [center WLAN](../network/center-wlan.md) details the segmentation of a collection center, with the sequences of connection, disconnection and recovery, the [drone mission link](../network/drone-mission-link.md) details the drone row, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
 
 The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
 
 ## Regenerating the diagrams
 
-`tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page.
+`tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page on Linux, and `tools/export_diagrams.ps1` does the same on Windows with draw.io Desktop.
