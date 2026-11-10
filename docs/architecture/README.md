@@ -1,6 +1,6 @@
 # Platform architecture
 
-Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production.
+Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production. [Persistence and archive](persistence-and-archive.md) explains where data lives for five years, how it is read and restored, and how it is deleted.
 
 | Diagram | Question it answers |
 |---|---|
@@ -17,6 +17,8 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Drone mission link](diagrams/10-drone-mission-link.drawio.png) | How is a drone mission preloaded, flown with no signal and published |
 | [Audit evidence path](diagrams/11-audit-evidence-path.drawio.png) | How does evidence of a sensitive event reach a store that no account can alter |
 | [Lot geometry lifecycle](diagrams/12-lot-geometry-lifecycle.drawio.png) | Which states can a lot polygon pass through, and which strips keep spraying away |
+| [Center operation](diagrams/13-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
+| [Crop case states](diagrams/14-crop-case-states.drawio.png) | How does a cultivation alert become a focus confirmed or discarded by a person |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
@@ -33,10 +35,12 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 
 ## Related documents
 
-[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, the [center WLAN](../network/center-wlan.md) details the segmentation of a collection center, with the sequences of connection, disconnection and recovery, the [drone mission link](../network/drone-mission-link.md) details the drone row, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [audit of sensitive events](../security/audit.md) shows how sack reads, threshold changes, telemetry and flight objects leave evidence, and the [firewall policy](../security/firewall-policy.md) lists every rule of the centers, the tunnel, the VPC and the public edge. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
+[Farm connectivity](../network/farm-connectivity.md) details the first row of the table above, with the sequences of connection, disconnection and recovery, the [drone mission link](../network/drone-mission-link.md) details the drone row, [carrier tracking](../network/carrier-tracking.md) details the carrier row, and [port delivery](../network/port-delivery.md) details the port row. The [center WLAN](../network/center-wlan.md) details the segmentation of a collection center, and the [center WAN sizing](../network/center-wan-sizing.md) sizes its link and its traffic classes. The [audit of sensitive events](../security/audit.md) shows how sack reads, threshold changes, telemetry and flight objects leave evidence, and the [firewall policy](../security/firewall-policy.md) lists every rule of the centers, the tunnel, the VPC and the public edge. The [decision records](../adr/README.md) explain each choice, the [requirement matrix](../governance/requirements-2020-2026.md) shows what changed from the 2020 design, and the [assumptions](../assumptions.md) state what the design takes as given.
 
 The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
 
 ## Regenerating the diagrams
 
 `tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page on Linux, and `tools/export_diagrams.ps1` does the same on Windows with draw.io Desktop.
+
+The [center operations](../network/collection-center-operations.md) define reception, labels, work with no internet and the capacity of a center.

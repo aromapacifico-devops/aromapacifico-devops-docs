@@ -53,7 +53,7 @@ Carrier positions travel through the carrier API and share the storage pattern, 
 | Total device messages | 50,400 | 108,000 |
 | Messages a second, average | 0.02 | 0.04 |
 
-With 0.5 KB per message, a harvest month is 54 MB. The volume is tiny. What demands design is the arrival pattern, since nodes wake on schedule and buffers drain together when a tower returns.
+With 0.5 KB per message, a harvest month is 54 MB. The volume is tiny. What demands design is the arrival pattern, since nodes wake on schedule and buffers drain together when a tower returns. The [ingestion sizing](ingestion-sizing.md) document projects these figures to 1,000 farms and checks them against the service quotas.
 
 ## 3. Ingestion service
 
@@ -75,7 +75,7 @@ IoT Core accepts payloads of up to 128 KB and 100 publish requests a second per 
 3. Amazon Data Firehose receives a copy and writes Parquet files to the S3 archive.
 4. An SQS queue receives the other copy.
 5. A Lambda function reads batches from the queue, sorts them by node and `measured_at`, validates the contract and writes to DynamoDB with a conditional write.
-6. The function compares the reading with the current ranges and updates the alert state if the reading is the newest one.
+6. The function compares the reading with the version of each range in force at its measured time, as the [alert ranges](configurable-thresholds.md) define, and updates the alert state if the reading is the newest one.
 7. A reading out of range creates an alert, and SNS delivers it to the farmer's phone.
 
 The queue sits between IoT Core and the function so that a slow or failing function loses nothing. Firehose takes its copy straight from the rule, so the archive stays complete even if the function fails.
@@ -142,22 +142,20 @@ That is a modest load for these services. The queue absorbs it and the function 
 
 ## 8. Alert in under five minutes
 
-The clock starts at the out-of-range reading and stops when the alert reaches the delivery service.
+The clock starts at the measured time of the out-of-range reading and stops when SNS hands the alert to the push service of the phone.
 
-| Stage | Budget |
+| Stage | Limit |
 |---|---|
-| Node reads and connects | Up to 120 seconds |
-| IoT Core and rule | 1 second |
-| Queue batching | Up to 30 seconds |
-| Function | Under 5 seconds |
-| SNS to the phone | Under 60 seconds |
-| **Total** | **About 3.6 minutes** |
+| Node stores the reading, powers the modem and opens the connection | Up to 120 seconds |
+| Node publishes, IoT Core and rule | About 1 second |
+| Queue to function, with a batching window of 0 seconds, and evaluation | Under 5 seconds for the evaluation |
+| SNS handoff to the push service | Measured per alert as the dwell time |
 
-The budget leaves more than one minute of margin, with the node using the whole connection window of 120 seconds. With no signal at the node, the alert goes out when the buffer drains, within 24 hours, and it carries the time of the reading.
+The stages with a limit add up to about 2.1 minutes. The rest of the five minutes covers the queue poll and the SNS dwell time, which AWS states no figure for, so both are measured for every alert. With no signal at the node, the alert goes out when the buffer drains, within 24 hours, and it carries the time of the reading.
 
 Alerts fire on the change of state. A reading out of range raises one alert, and further readings of the same condition update it. This avoids a stream of messages to a farmer during a long drying.
 
-**Delivery depends on the phone.** Farmers have data in the municipal seat or on main roads, so a push may wait until the phone connects. The objective counts from a moment with a delivery path, and the second objective of the platform measures it. An SMS fallback would reach a phone with basic signal, and it is left as an open choice below, since its price for Colombia could not be read from the price list.
+Alerts reach the phone by mobile push, and urgent drying alerts fall back to SMS when the phone sends no receipt within 5 minutes. The [alert delivery](alert-delivery.md) design gives the budget with its sources, the push and SMS settings, and the delivery record that measures each alert.
 
 ## 9. Storage for five years
 
@@ -165,7 +163,7 @@ Alerts fire on the change of state. A reading out of range raises one alert, and
 |---|---|---|---|
 | Readings table | Partition `node_id`, sort `measured_at#seq` | 90 days through TTL | Recent history in the application |
 | Alert state items, in the readings table | Partition `node_id`, sort `state#<variable>` | Current values, no expiry | Change of state per variable |
-| Ranges table | Partition `zone_type`, sort `variable` | Current values | Evaluation |
+| Ranges table | Partition `zone_type`, sort `variable#valid_from` | Every version, five years | Evaluation by measured time |
 | Alerts table | Partition `farm_id`, sort `raised_at` | Five years | Alert history |
 | Telemetry archive | Parquet, by `stream/year/month/day/` of arrival | Five years through a lifecycle rule | Pilot reports through Athena |
 
@@ -177,6 +175,8 @@ Alerts fire on the change of state. A reading out of range raises one alert, and
 | Aurora PostgreSQL | SQL | Billed while idle, more to operate | Discarded |
 
 Reports filter by `measured_at` and scan one extra day, because a buffered reading falls in the partition of the day it arrived.
+
+The [farmer history](farmer-history.md) defines how the application reads these tables, the drying lots that keep each harvest for five years, and the monthly pilot report built on the archive.
 
 Point-in-time recovery covers the tables, with a restore point about 5 minutes behind the current time.
 
@@ -212,8 +212,8 @@ Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, with o
 | Messages in the dead letter queue | Failed processing | Any |
 | `dropped_total` grows | Data lost at the edge | Yes, on the operations dashboard |
 | `measured_at` far from `received_at` | Node clock at fault | Yes, more than 5 minutes ahead or 25 hours behind |
-| Alerts not delivered | Required | Yes |
-| Latency from `measured_at` to alert | First objective of the platform | Yes |
+| Alerts not delivered | Required, from the delivery record | Yes, no handoff 5 minutes after the alert or a push failure |
+| Latency from `measured_at` to the handoff | First objective of the platform | Yes, a live alert above 5 minutes |
 
 ## 13. Cost
 
@@ -246,7 +246,7 @@ This module of the first plan implements box C07. It creates the IoT rule, the S
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
-| SMS fallback for alerts | Federation, with a price for Colombia | Without it, the alert waits for data on the phone |
+| A dedicated short code for SMS to Colombia | Federation, through AWS Support | Urgent alerts go by SMS over best-effort routes |
 | The share of farms outside coverage | Federation | Number of gateways, cost barely moves in the cloud |
 | Messages average 0.5 KB | First nodes | Linear effect on small amounts |
 | LoRa frequency plan, power and transmission limits for Colombia | Regulator, spectrum agency or an accredited laboratory, and the network survey | Radios and gateways are selected accordingly. See the LoRa path document for what is still unverified |

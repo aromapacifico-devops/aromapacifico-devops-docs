@@ -62,7 +62,7 @@ Sites at the edge hold their data until a path exists. A serverless platform in 
 | Zone | What lives there | Key decision |
 |---|---|---|
 | Field | Solar nodes, LoRa nodes, shared gateways, drones and phones | Each device buffers locally and needs no local server |
-| Collection centers | One LAN pattern repeated three times, with [perimeter firewall](../security/firewall-policy.md) and 100 Mbps WAN | The second octet is the only difference between centers |
+| Collection centers | One LAN pattern repeated three times, with [perimeter firewall](../security/firewall-policy.md) and a dedicated 100 Mbps WAN | The second octet is the only difference between centers |
 | Governance | Seven accounts under one AWS Organization | Controls apply from the root, and every account inherits them |
 | Production | IoT Core, API Gateway, functions, queues, DynamoDB, S3, Bedrock | No servers, no instances, no idle compute |
 | Network | One VPC per environment, with seven subnets and a VPN per center | The VPC exists for the path from the centers |
@@ -108,7 +108,7 @@ The buyer flow deserves a note. A buyer does not sign in, so the sack code works
 | Person in a photo | The object moves to a restricted prefix and skips inference | The capture is repeated |
 | Verification never arrives | The fumigation stays open and appears on the dashboard | Nothing |
 | Bad deployment | Pipeline rollback to the previous version | Nothing. Events wait in queues |
-| Table corrupted | Point-in-time restore to a new table | At most about 5 minutes, inside the 15-minute objective |
+| Table corrupted | Point-in-time restore to a new table, as the [recovery](recovery.md) design details | At most about 5 minutes, inside the 15-minute objective |
 | Region lost | Rebuild from code and the archive, in a planned effort | Outside the recovery objectives of the pilot |
 
 ## 6. Scale from 200 to 1,000 farms
@@ -121,27 +121,31 @@ The buyer flow deserves a note. A buyer does not sign in, so the sack code works
 | Ingestion endpoint | One | One | Nothing |
 | Node connections an hour | 200 | 1,000 | Nothing, each node keeps its own minute, far below the quota of 3,000 a second |
 
+The [ingestion sizing](../iot/ingestion-sizing.md) document shows the calculation behind these figures and the margin against each service quota.
+
 The stress point at scale sits in the field. A larger pilot needs more shared gateways and more brigades, and neither one changes the cloud.
 
 ## 7. Monthly cost of the cloud platform
 
-These figures come from the AWS price list for us-east-1 and from the volumes of the pilot. They cover the cloud platform and leave out the WAN links, drones and field hardware, which the cost document covers.
+These figures come from the AWS price list for us-east-1 and from the volumes of the pilot. The [price basis](../governance/price-basis.md) states the date of each price, the exchange rate and the tax treatment. They cover the cloud platform and leave out the WAN links, drones and field hardware, which the cost document covers.
 
 | Item | Normal month, USD | Harvest month, USD |
 |---|---|---|
 | Telemetry ingestion | 0.72 | 0.98 |
-| APIs for positions, sacks and queries | 0.64 | 1.34 |
+| APIs for positions, sacks and queries | 1.19 | 3.01 |
 | Inference | 2.63 | 15.75 |
 | New objects in S3, for that month | 0.11 | 0.65 |
+| Alert delivery, SMS at its upper bound | 2.03 | 10.17 |
+| Audit and the small event-driven pieces | 0.45 | 0.45 |
 | VPN, three connections | 109.50 | 109.50 |
 | Interface endpoints, three in two zones | 43.80 | 43.80 |
-| KMS, four keys | 4.00 | 4.00 |
+| KMS, five keys | 5.00 | 5.00 |
 | Secrets, four | 1.60 | 1.60 |
 | WAF, web ACL and three rules | 8.00 | 8.00 |
 | CloudWatch, alarms and logs | 2.20 | 2.20 |
-| **Total** | **173.20** | **187.83** |
+| **Total** | **177.23** | **201.11** |
 
-About 89 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. Removing the endpoints would save about USD 44 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
+About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links.
 
 ## 8. What the infrastructure code builds
 
@@ -172,5 +176,5 @@ Development, test and production come from the same code with different variable
 | Security | Identity and access, encryption and revocation, personal data and retention |
 | Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
 | Automation and change | Implementation scope, environments and promotion |
-| Workloads | Sensors, telemetry ingestion, drone operating mode, lot boundaries, harvest estimation, sack identity, sack states, custody chain, carrier application contract |
+| Workloads | Sensors, alert ranges, telemetry ingestion, alert to drone confirmation, drone operating mode, lot boundaries, harvest estimation, sack identity, sack states, custody chain, carrier application contract |
 | Decisions and assumptions | Decision records and assumption register |

@@ -177,7 +177,7 @@ The visitor network gets internet access and nothing else. Four layers apply, an
 
 The exceptions that visitors need to connect are three. The gateway of the VLAN answers their requests, DHCP gives them an address, and DNS answers their lookups through the firewall. Client isolation lets traffic go to the gateway, and nothing else. Consequences accepted on purpose are that visitors cannot print, cast to a screen or find any device of the center, and that two visitors cannot share files over the local network.
 
-Traffic of visitors is capped at 10 percent of the WAN, as the capacity section of the LAN document sets.
+Traffic of visitors is capped at 10 percent of the WAN, as the capacity section of the LAN document sets, and the [center WAN sizing](center-wan-sizing.md) gives the classes and the values.
 
 ## 8. Addressing services
 
@@ -263,3 +263,4 @@ If the validation fails for a model, the options are another model, a higher min
 | Vendor and academic papers on WPA3 transition mode | Downgrade of devices through a copied SSID in transition mode. The Wi-Fi Alliance specification text was not consulted |
 | Vendor articles on SSID count and beacon airtime | Background on beacon airtime. They disagree, and no limit is adopted from them |
 | [Collection center LAN](collection-center-lan.md), [cloud addressing](cloud-addressing.md), [center WAN capacity](../adr/center-wan-capacity.md) | Zones, ranges, routes, capacity and cloud endpoint rules |
+| [Collection center operations](collection-center-operations.md) | The label printer, the printing rule that stays pending and the stations that use the logistics zone |

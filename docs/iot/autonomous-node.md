@@ -361,7 +361,7 @@ The identity is provisioned in a controlled place before shipment. The key pair 
 | 6 | The node leaves provisioning mode, the debug ports are locked and the lock is read back | Same |
 | 7 | The register records the node, the certificate or the device EUI, the date and the staff involved. It holds no key | Same |
 
-Association of the node, the farm and the identity. The node identifier follows the form of the existing example, the department code and a sequence. The identity belongs to the node, so a node can be provisioned before its farm is known. The platform links the node to its farm, its department and its zones, which are attributes of the record of the node. The link is made when the node is assigned to a farm, by an authorized platform operator or by the installation step that links the node. The installer needs no secret for it.
+Association of the node, the farm and the identity. The node identifier follows the form of the existing example, the department code and a sequence. The identity belongs to the node, so a node can be provisioned before its farm is known. The platform links the node to its farm, its department, its zones, its lot and its GPS position, which are attributes of the record of the node. The position marks the focus a drone confirms when a reading of the node raises an alert. The link is made when the node is assigned to a farm, by an authorized platform operator or by the installation step that links the node. The installer needs no secret for it.
 
 The rollout of 200 farms uses this same procedure, one node at a time, and the farm module runs once for each node with its request. Fleet provisioning with a claim is not used. A claim is a credential shared by the nodes that use it, and a node provisioned before shipment has no need to register itself at the farm.
 
@@ -389,7 +389,7 @@ Checks before shipment and during installation.
 | When | Check |
 |---|---|
 | Before shipment | The node is registered, its identity is checked on the platform side as the steps above show, the debug lock is read back, the firmware version is read from the node and matches the approved release, the clock is set and the real-time clock holds, the probes are tested on a bench, the battery is charged and its voltage read, and the enclosure is closed and inspected |
-| At installation, before leaving the farm | The node reads its probes, joins the network and sends or drains its first message, the first reading appears on the platform for the right node and the right farm, the signal quality and the registration are read and recorded, and the farmer sees the node in the application |
+| At installation, before leaving the farm | The node reads its probes, joins the network and sends or drains its first message, the first reading appears on the platform for the right node and the right farm, the signal quality and the registration are read and recorded, the installer records the lot and the GPS position of the node from the phone, and the farmer sees the node in the application |
 | At installation, identity | The installer reads the node identifier from the label and confirms that it matches the register and the farm. No secret is read, typed or shown |
 
 The firmware version is read from the node during these checks. Whether the node reports it to the platform stays a proposal that needs the agreement of the owners of the ingestion design, together with the battery measurement.

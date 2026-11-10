@@ -17,8 +17,8 @@ def main():
     root = ET.parse(SOURCE).getroot()
     pages = {d.get("name"): d for d in root.findall("diagram")}
     errors = []
-    if len(pages) != 13:
-        errors.append(f"expected 13 pages, found {len(pages)}")
+    if len(pages) != 16:
+        errors.append(f"expected 16 pages, found {len(pages)}")
 
     deployment = pages["02 Implementation scope"]
     codes = Counter(c.get("value") for c in deployment.iter("mxCell"))

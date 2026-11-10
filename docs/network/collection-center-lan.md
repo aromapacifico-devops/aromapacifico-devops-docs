@@ -54,7 +54,7 @@ Each zone is a /24, as the reserved inventory defines, with one VLAN and one SSI
 | Local servers | Printing and network control | To be sized | 10.X.10.0/24 | 10 | Wired only |
 | Cloud link | Edge of the center | Firewall | 10.X.20.0/24 | 20 | Wired only |
 
-VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception. The [center WLAN](center-wlan.md) defines the security of each SSID, the trunks, the management of the equipment and the policy between zones.
+VLAN 1 is the default on most equipment and should carry no traffic, so Management uses VLAN 101 as an exception. The [center WLAN](center-wlan.md) defines the security of each SSID, the trunks, the management of the equipment and the policy between zones. [Collection center operations](collection-center-operations.md) defines what the logistics zone does in a day, the label printing and the work with no internet.
 
 Addresses inside each zone follow one rule. The first usable address is the gateway on the firewall, addresses 2 to 20 stay fixed for infrastructure, and DHCP serves from 21 upward. Every /24 offers 254 usable addresses, far more than the largest zone needs, so the plan leaves room with no rework.
 
@@ -83,9 +83,9 @@ The reference capacity per active client is 2 Mbps down and 0.5 Mbps up.
 | Visitors | 10 | 20 | 5 |
 | **Total** | **66** | **132** | **33** |
 
-If all 66 clients were active at once, down traffic would need 132 Mbps on a 100 Mbps link. Not all clients are active together, and the design controls the rest. Up to 40 active clients fit at the reference rate, leaving 20 Mbps for system traffic. Logistics and drone synchronization go first, and visitors are capped at 10 percent of the link. Up traffic of 33 Mbps fits with room to spare, which matters because drone objects travel up.
+If all 66 clients were active at once, down traffic would need 132 Mbps on a 100 Mbps link. Not all clients are active together, and the design controls the rest. Up to 40 active clients fit at the reference rate. They demand 80 Mbps down and 20 Mbps up, so before other traffic 20 Mbps down and 80 Mbps up remain. Logistics and drone synchronization go first, and visitors are capped at 10 percent of the link. Up traffic of 33 Mbps fits with room to spare, which matters because drone objects travel up. The [center WAN sizing](center-wan-sizing.md) calculates the scenarios, the reserve and the traffic classes by zone, and requires a dedicated link with a committed rate so that the classes hold in the download.
 
-Drone upload time follows from that margin. A batch of 500 photos of 3 MB is 1.5 GB, or 12,000 Mb. At 20 Mbps it takes about 10 minutes, so a brigade can sync on a center visit.
+Drone upload goes up, where 80 Mbps remain before other traffic. A batch of 500 photos of 3 MB is 1.5 GB, or 12,000 Mb. At an allocated 20 Mbps it takes about 10 minutes as an ideal calculation, which leaves out the overhead of the protocols and of the tunnel, so a brigade can sync on a center visit. The effective time is in the center WAN sizing.
 
 ## 5. Equipment
 

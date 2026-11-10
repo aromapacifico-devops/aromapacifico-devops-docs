@@ -339,7 +339,7 @@ No documented behavior states whether a Basics Station gateway keeps the frames 
 
 | Case | Expected delivery | Kind |
 |---|---|---|
-| Healthy link, a reading of the cycle | The node reads and then transmits in the same cycle. The reading reaches the platform after the time on air of the frame, the delay of the gateway and the network server, and the ingestion. The cloud part of the existing alert budget is about 96 seconds | The radio part and the delay of the gateway and the network server are to measure. The cloud part is a design value |
+| Healthy link, a reading of the cycle | The node reads and then transmits in the same cycle. The reading reaches the platform after the time on air of the frame, the delay of the gateway and the network server, and the ingestion. The cloud part of the alert budget has limits of about 6 seconds, plus the queue poll and the SNS dwell time measured per alert | The radio part and the delay of the gateway and the network server are to measure. The cloud part is a design value |
 | Alert on that reading | The alert path of the platform adds its own steps. The total depends on the radio part, which is not measured | Not stated until measured |
 | One frame lost | The platform does not see the reading, and the node does not know. The reading is sent again no earlier than two cycles after the first send, and only if the acknowledgement did not arrive, so a reading can be delayed by two hours or more | Calculation from the cycle |
 | Gateway link down | The readings wait in the node up to 24 hours. After the link returns, each node drains in the next cycles. The delivery time is the outage plus one cycle plus the drain time | Calculation, with the drain from section 6 |
