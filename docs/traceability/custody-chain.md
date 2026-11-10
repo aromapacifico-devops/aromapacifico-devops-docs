@@ -200,7 +200,7 @@ A code issued and not yet used exists as an item in `sacks` with version 0 and n
 | Two tables | The function can hold no permission to change or delete events | Two tables to create and restore together | **Chosen** |
 | One table with item types | One table | Update and delete permissions cover the events too, so only the code protects them | Discarded |
 
-Both tables are DynamoDB tables, the transactional database of the platform. Both must be restored to the same point, since issued codes live only in `sacks`.
+Both tables are DynamoDB tables, the transactional database of the platform. Both must be restored to the same point, since issued codes live only in `sacks`, as the [recovery](../architecture/recovery.md) design details.
 
 ## 10. Write path
 
