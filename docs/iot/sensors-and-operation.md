@@ -140,7 +140,7 @@ Times are estimates to validate in the first installations. The kit arrives asse
 
 ## 10. What the farmer sees
 
-The farmer distrusts leaving the notebook, so the application stays simple. It shows the state of the farm, the alerts in plain language and the history. Numbers appear on request.
+The farmer distrusts leaving the notebook, so the application stays simple. It shows the state of the farm, the alerts in plain language and the history. Numbers appear on request. The [farmer history](farmer-history.md) defines the three screens, the drying lots and the query contract.
 
 | Example alert | Meaning |
 |---|---|

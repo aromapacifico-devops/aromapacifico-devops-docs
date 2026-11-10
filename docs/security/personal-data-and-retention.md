@@ -71,7 +71,7 @@ Five years applies to readings, photos, flights, sack history and personal data.
 The pilot sets five years for personal data and gives no starting point. Every other record counts from the day it is written, and that clock does not fit a person who is still active, since deleting the identity of a farmer who keeps delivering coffee would break the service. Personal data therefore counts from the end of the relationship, which is the closing of the account or the last delivery. The term is a limit from that date, and a request from the person can shorten it.
 | Objects with a person | Restricted prefix, 30 days | None | Lifecycle rule at 30 days |
 
-Glacier Instant Retrieval was chosen over slower archive classes because a case review or a claim may need a photo at once. At USD 0.004 per GB a month against USD 0.023 for S3 Standard, it costs about 83 percent less and keeps retrieval in milliseconds. Objects stay in Standard for 90 days, which is also the minimum storage period of that class, so no early deletion charge applies.
+Glacier Instant Retrieval was chosen over slower archive classes because a case review or a claim may need a photo at once. At USD 0.004 per GB a month against USD 0.023 for S3 Standard, it costs about 83 percent less and keeps retrieval in milliseconds. Objects stay in Standard for 90 days, which is also the minimum storage period of that class, so no early deletion charge applies. The [persistence and archive](../architecture/persistence-and-archive.md) document details how each layer is read, restored and deleted.
 
 ## 4. Sack identifier rule
 
