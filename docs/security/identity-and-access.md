@@ -129,7 +129,7 @@ GitHub OIDC replaces stored keys. AWS trusts tokens issued for this organization
 
 ## 8. Device identities
 
-Each node and each ground station holds an X.509 certificate of its own, tied to one thing. The IoT policy uses the thing name, so a device can only publish on topics that carry its own identifier.
+Each node and each ground station holds an X.509 certificate of its own, tied to one thing. The IoT policy uses the thing name, so a device can only publish on topics that carry its own identifier. A ground station also signs each flight result with the private key of that certificate, and the platform checks the signature against the registry, so revoking the certificate stops both paths.
 
 | Stage | Action |
 |---|---|
@@ -153,11 +153,13 @@ A stolen device can only publish as itself, and revocation stops it. One certifi
 
 | Event | Where it is recorded | Retention |
 |---|---|---|
-| Read of a sack | Audit table, written by the function | Five years |
-| Change of a threshold | Audit table and CloudTrail | Five years |
-| Publication of telemetry | IoT Core logs and readings table | Five years |
-| Delivery of a flight object | S3 data events and case | Five years |
-| Fumigation authorization | Case and audit table | Five years |
+| Read of a sack | Audit event written by the query function | Five years |
+| Change of a threshold | Audit event with values before and after, plus CloudTrail data events on the ranges table | Five years |
+| Publication of telemetry | IoT Core log entry of each publication, for the farm thing groups | Five years |
+| Delivery of a flight object | Audit event of the URL grant, plus CloudTrail data events for `PutObject` | Five years |
+| Fumigation authorization | Case and audit event | Five years |
+
+Every record ends in a bucket of the log archive account under S3 Object Lock in compliance mode, which no account can alter for five years. [Audit of sensitive events](audit.md) defines each record, the path and the evidence queries.
 
 ## 11. Input for the security module
 

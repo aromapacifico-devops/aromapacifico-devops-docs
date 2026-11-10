@@ -905,8 +905,158 @@ def center_wlan():
     return p
 
 
+def drone_link():
+    p = Page("10 Drone mission link", 1700, 1460, "How a drone mission is preloaded, flown with no signal and published, with no evidence lost or counted twice")
+    drone, gs, api, kms, s3, case = 230, 520, 820, 1060, 1300, 1530
+    top, bottom = 70, 1270
+    bands = [("Preload at the municipal seat or collection center, online", 140, 404, "#EAF2F8", "#147EBA"),
+             ("At the lot, no signal needed", 560, 262, "#FEF9E7", "#B7950B"),
+             ("Synchronization on return, municipal seat or collection center", 838, 432, "#EAF6EC", "#2E7D32")]
+    for _, y, h, fill, stroke in bands:
+        p.zone("", 40, y, 1620, h, fill, stroke)
+    p.lifeline("Drone and controller", "Native log and evidence storage", drone, top, bottom, net="wireless_modem")
+    p.lifeline("Ground station", "Brigade laptop, encrypted store, journal", gs, top, bottom, net="pc")
+    p.lifeline("Mission API", "API Gateway and mission functions", api, top, bottom, icon="api_gateway", color=APP)
+    p.lifeline("AWS KMS", "Asymmetric signing key", kms, top, bottom, icon="key_management_service", color=SEC)
+    p.lifeline("Amazon S3", "Encrypted, versioned objects", s3, top, bottom, icon="s3", color=STORAGE)
+    p.lifeline("Case table", "DynamoDB, records and keys", case, top, bottom, icon="dynamodb", color=DATA)
+    for label, y, _, fill, _ in bands:
+        p._v(label, f"text;html=1;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor={INK};fillColor={fill};strokeColor=none;spacingLeft=6;", 50, y + 6, 560, 24)
+
+    p.message(gs, api, 190, "Sign in, Cognito with second factor", BIZ)
+    p.message(api, kms, 224, "Sign manifest digest", CTRL)
+    p.message(kms, api, 258, "ECDSA signature", CTRL, dashed=True)
+    p.message(api, gs, 292, "Signed manifest, download links", BIZ, dashed=True)
+    p.message(gs, s3, 326, "Download package files", OBJ)
+    p.message(s3, gs, 360, "Polygon, exclusions, route", OBJ, dashed=True)
+    p.note("<b>Check and store.</b> Signature with the pinned public key, every SHA-256, then one atomic move into the mission store", 70, 378, 400, 44)
+    p.message(gs, api, 444, "Station acknowledgement, package digest", BIZ)
+    p.message(gs, drone, 478, "Load mission, local link", BIZ)
+    p.message(drone, gs, 512, "Loaded digest read back", BIZ, dashed=True)
+
+    p.note("<b>Preflight.</b> Inside the window, highest revision, not suspended, same polygon and exclusion versions, free storage, and for a fumigation a human authorization for this revision", 70, 596, 400, 58)
+    p.note("<b>Flight.</b> The drone flies the loaded mission and writes its log, photos and evidence to its own storage", 70, 664, 400, 40)
+    p.message(drone, gs, 726, "Log and evidence, file by file", OBJ)
+    p.note("<b>Journal.</b> Each file copied, hashed and journaled. The drone copy stays until the station copy matches", 70, 744, 400, 44)
+    p.message(gs, 780, 804, "No path, upload waits", FAIL, dashed=True)
+
+    p.message(gs, api, 888, "Sign in again, object list with sizes and SHA-256", BIZ)
+    p.message(api, gs, 922, "Missing objects, fresh presigned URLs", BIZ, dashed=True)
+    p.message(gs, s3, 956, "PUT with SHA-256 checksum, one URL per object", OBJ)
+    p.message(s3, gs, 990, "Version ID, or rejected and retried", OBJ, dashed=True)
+    p.message(gs, api, 1024, "Completion, manifest signed by the station key", BIZ)
+    p.note("<b>Station identity.</b> Signature checked against the station certificate in the IoT registry. A revoked station cannot publish", 860, 1042, 400, 44)
+    p.message(api, s3, 1108, "Read checksum and version", CTRL)
+    p.message(s3, api, 1142, "Stored checksum, version ID", CTRL, dashed=True)
+    p.message(api, case, 1176, "Conditional write, flight record", BIZ)
+    p.message(api, gs, 1210, "Publication receipt", BIZ, dashed=True)
+    p.note("<b>Delete.</b> The station deletes its copy only after the receipt. A repeated request returns the same receipt", 70, 1226, 400, 36)
+
+    p.legend(40, 1286, 560, [(BIZ, False, "Mission, acknowledgement and record"), (OBJ, False, "Package files and flight evidence"),
+                             (CTRL, False, "Signing and verification"), (FAIL, False, "Failure, data stays local"), (CTRL, True, "Dashed line, an answer to a request")])
+    p.note("<b>Fumigation.</b> A fumigation package exists only after the prerequisite flight is published and a supervisor, distinct from the pilot, authorizes it. Inference never authorizes.", 620, 1286, 1040, 50)
+    p.note("<b>Large files.</b> Above 100 MB the station uses a multipart upload with a full-object CRC checksum, keeps its upload ID, and resends only missing parts. Verification then computes the SHA-256.", 620, 1350, 1040, 50)
+    return p
+
+
+def audit_path():
+    p = Page("11 Audit evidence path", 1860, 990, "How evidence of the four sensitive events reaches a store that no account can alter")
+    p.group("People and devices", 40, 80, 260, 640, stroke="#5D6D7E")
+    p.card("Buyer or app user", "Reads a sack", 60, 140, 220, 64, cid="src_app", net="mobile")
+    p.card("Platform operator", "Changes a threshold", 60, 280, 220, 64, cid="src_op", net="pc")
+    p.card("Farm node", "Publishes telemetry", 60, 420, 220, 64, cid="src_node", net="wireless_modem")
+    p.card("Ground station", "Delivers flight objects", 60, 560, 220, 64, cid="src_gs", net="pc")
+
+    p.group("Workload account, one per environment", 340, 80, 720, 640, stroke=INK, sw=2)
+    p.card("API Gateway", "Request ID, access log", 370, 140, 190, 64, cid="api", icon="api_gateway", color=APP)
+    p.card("Platform functions", "Query, domain, upload", 610, 140, 200, 64, cid="fn", icon="lambda", color=COMPUTE)
+    p.card("Audit log group", "Events, 90 days", 850, 140, 190, 64, cid="lg_app", icon="cloudwatch_2", color=MGMT)
+    p.card("Ranges table", "Alert thresholds", 610, 280, 200, 64, cid="ranges", icon="dynamodb", color=DATA)
+    p.card("IoT Core", "Broker", 370, 420, 190, 64, cid="iot", icon="iot_core", color=IOT)
+    p.card("IoT log group", "Publish-In, farm groups", 850, 420, 190, 64, cid="lg_iot", icon="cloudwatch_2", color=MGMT)
+    p.card("Flight object bucket", "Presigned uploads", 610, 560, 200, 64, cid="flights", icon="s3", color=STORAGE)
+
+    p.group("Log archive account", 1100, 80, 720, 640, stroke=SEC, sw=2, color=SEC)
+    p.card("Logs destination", "Receives subscriptions", 1130, 280, 200, 64, cid="dest", icon="cloudwatch_2", color=MGMT)
+    p.card("Firehose", "Decompress, one event per line", 1130, 420, 200, 64, cid="fh", icon="kinesis_data_firehose", color="#8C4FFF")
+    p.card("Organization trail", "Data events, digests", 1130, 560, 200, 64, cid="trail", icon="cloudtrail", color=MGMT)
+    p.card("Audit bucket", "Object Lock compliance, 5 years, audit key", 1380, 410, 230, 84, cid="bucket", icon="s3", color=STORAGE, impl=False, stroke=SEC)
+    p.card("Athena", "Evidence queries", 1650, 280, 150, 64, cid="athena", icon="athena", color="#8C4FFF")
+    p.card("Security role", "Read only", 1650, 560, 150, 64, cid="sec", icon="identity_and_access_management", color=SEC)
+
+    p.edge("src_app", "api", "1 Read a sack", BIZ, exit=(1, 0.5), entry=(0, 0.3))
+    p.edge("src_op", "api", "2 Change a threshold", BIZ, exit=(1, 0.5), entry=(0, 0.75), points=[(330, 312), (330, 188)])
+    p.edge("api", "fn", "", BIZ)
+    p.edge("fn", "lg_app", "Audit event", BIZ)
+    p.edge("fn", "ranges", "Write", BIZ, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("src_node", "iot", "3 Publish", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("iot", "lg_iot", "Publish-In entry", TEL)
+    p.edge("src_gs", "api", "4 Ask for a URL", OBJ, exit=(1, 0.25), entry=(0.1, 1), points=[(352, 576), (352, 240), (389, 240)])
+    p.edge("src_gs", "flights", "4 PUT with the URL", OBJ, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("lg_app", "dest", "Subscription", BIZ, exit=(1, 0.5), entry=(0, 0.3), points=[(1070, 172), (1070, 299)])
+    p.edge("lg_iot", "dest", "Subscription", TEL, exit=(1, 0.3), entry=(0, 0.75), points=[(1070, 439), (1070, 328)])
+    p.edge("dest", "fh", "", BIZ)
+    p.edge("fh", "bucket", "app/ and iot/", BIZ)
+    p.edge("ranges", "trail", "Table writes", CTRL, exit=(0.9, 1), entry=(0, 0.25), points=[(790, 530), (1090, 530), (1090, 576)])
+    p.edge("flights", "trail", "PutObject", CTRL, exit=(1, 0.5), entry=(0, 0.6))
+    p.edge("trail", "bucket", "AWSLogs/", CTRL, exit=(1, 0.5), entry=(0.5, 1), points=[(1495, 592)])
+    p.edge("sec", "athena", "Runs queries", CTRL, dashed=True, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("athena", "bucket", "Reads", CTRL, dashed=True, exit=(0.5, 1), entry=(1, 0.3), points=[(1725, 435)])
+
+    p.legend(40, 740, 560, [(BIZ, False, "Platform events, sack reads, thresholds, URL grants"), (TEL, False, "Telemetry publications"),
+                             (OBJ, False, "Flight object delivery"), (CTRL, False, "CloudTrail data events"), (CTRL, True, "Reading the evidence")])
+    p.note("<b>Immutable.</b> No user, root included, can delete or overwrite a locked version for five years. Only CloudTrail and the Firehose role of the log archive account write to the bucket.", 620, 740, 600, 64)
+    p.note("<b>Two records for objects.</b> The upload function names the drone operator when it grants the URL. CloudTrail names the signing role and proves the arrival. They join on the object key.", 1240, 740, 580, 64)
+    p.note("<b>Direct writes.</b> A write on the ranges table that did not come from a platform function appears in the trail and is flagged by the threshold query.", 620, 820, 600, 50)
+    p.note("<b>Workload accounts.</b> Each one sends its own events. Its roles hold no write access to the archive.", 1240, 820, 580, 50)
+    return p
+
+
+def lot_geometry():
+    p = Page("12 Lot geometry lifecycle", 1780, 760, "Lot polygon states: from no-fly zones to a published version that missions can use")
+    zones = [("Before the first flight", 40, 560, "#EAF2F8", "#147EBA"), ("Delimitation flight and review", 615, 565, "#FEF9E7", "#B7950B"),
+             ("In use by missions", 1195, 545, "#EAF6EC", "#2E7D32")]
+    for name, x, w, fill, stroke in zones:
+        p.zone(name, x, 70, w, 380, fill, stroke, size=13)
+    state = dict(w=180, h=84, size=12)
+    p.step("<b>DRAFT</b><br>Zones or polygon<br>in preparation", 70, 130, cid="draft", **state)
+    p.step("<b>EXCLUSIONS_READY</b><br>Only the delimitation flight<br><i>lot.exclusions.ready</i>", 360, 130, cid="excl", **state)
+    p.step("<b>SURVEYED</b><br>Candidate polygon<br>from the flight", 650, 130, cid="surv", **state)
+    p.step("<b>VALIDATED</b><br>Polygon and no-spray<br>strips accepted", 940, 130, cid="val", **state)
+    p.step("<b>PUBLISHED</b><br>Precision and estimation<br><i>lot.geometry.published</i>", 1230, 130, fill="#E8F5E9", stroke=TEL, cid="pub", **state)
+    p.step("<b>SUSPENDED</b><br>No new mission<br><i>lot.geometry.suspended</i>", 1520, 130, fill="#FDEDEC", stroke=FAIL, cid="susp", **state)
+    p.edge("draft", "excl", "zones reviewed", TEL)
+    p.edge("excl", "surv", "log stored", TEL)
+    p.edge("surv", "val", "checks pass", TEL)
+    p.edge("val", "pub", "published", TEL)
+    p.edge("pub", "susp", "safety reason", FAIL)
+    p.edge("excl", "draft", "", FAIL, exit=(0.5, 1), entry=(0.75, 1), points=[(450, 254), (205, 254)])
+    p.edge("surv", "draft", "", FAIL, exit=(0.5, 1), entry=(0.5, 1), points=[(740, 279), (160, 279)])
+    p.edge("val", "draft", "", FAIL, exit=(0.5, 1), entry=(0.25, 1), points=[(1030, 304), (115, 304)])
+    p.text("Correction or failed check returns the candidate to draft", 260, 256, 380, 20, size=11, color=FAIL)
+    p.edge("susp", "draft", "", OBJ, dashed=True, exit=(0.5, 1), entry=(0.11, 1), points=[(1610, 334), (90, 334)])
+    p.text("A replacement starts as a new draft, and the published version stays in use until it is replaced", 700, 336, 620, 20, size=11, color=OBJ)
+    p.note("<b>Supervisor.</b> Maps houses, the processing facility, roads and water as no-fly zones, or records that there are none.", 60, 372, 520, 60)
+    p.note("<b>Checks.</b> Flight log and map stored, valid GeoJSON, ring direction, no self-intersection, strips computed in metres in EPSG 9377.", 635, 372, 525, 60)
+    p.note("<b>Missions.</b> Each package carries this exact version. A fumigation also needs a closed prior log and a named supervisor.", 1215, 372, 505, 60)
+
+    p.group("No-spray strips for the drone, stored as versioned parameters", 580, 480, 1160, 250, stroke=FAIL, color=FAIL)
+    table = ("<table style='font-size:12px' cellpadding='4'><tr><td><b>Place</b></td><td><b>Drone</b></td><td><b>Ground</b></td><td><b>Basis</b></td></tr>"
+             "<tr><td>Rivers, streams, lakes</td><td>100 m</td><td>10 m</td><td>Decree 1843 of 1991, article 87</td></tr>"
+             "<tr><td>Springs</td><td>100 m</td><td>100 m</td><td>Decree 1076 of 2015, protective forest area</td></tr>"
+             "<tr><td>Houses and processing facility</td><td>100 m</td><td>10 m</td><td>Decree 1843, articles 87 and 102</td></tr>"
+             "<tr><td>Main roads</td><td>100 m</td><td>10 m</td><td>Decree 1843, article 87</td></tr>"
+             "<tr><td>People outside the operation</td><td>30 m, no flight</td><td></td><td>RAC 100, sections 100.310 and 100.410</td></tr></table>")
+    p._v(table, "text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;strokeColor=none;fillColor=none;", 600, 514, 700, 200)
+    p.note("<b>Ground fallback.</b> A focus inside the drone strip and outside the ground strip becomes a ground application by the brigade, with the same authorization. Inside the ground strip no product is applied.", 1320, 520, 400, 100, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Pending.</b> Strips for minor roads and narrower water strips with barriers wait for a legal review.", 1320, 634, 400, 70)
+    p.legend(40, 480, 520, [(TEL, False, "Normal path, conditional write"), (FAIL, False, "Correction, failure or suspension"), (OBJ, True, "Replacement by a new version")])
+    p.note("No state can be skipped, and a published version is never edited.", 40, 596, 520, 44)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
