@@ -23,10 +23,11 @@ Part B. The gateway and the site
 
 11. The gateway
 12. Delivery time
-13. Site study
-14. Calculations and their limits
-15. Assumptions and pending confirmations
-16. Sources
+13. Cost
+14. Site study
+15. Calculations and their limits
+16. Assumptions and pending confirmations
+17. Sources
 
 ---
 
@@ -74,13 +75,13 @@ Four different things decide whether a radio configuration can be used, and none
 
 | Source | What it says | Limit |
 |---|---|---|
-| Resolution 000028 of 2026 of the national spectrum agency, 26 January 2026, in the Official Gazette 53,390 of 6 February 2026, read in the compilation of the ministry | Updates the national table of frequency allocations for 902 to 928 MHz. It shows 915 to 928 MHz allocated to the fixed, amateur, mobile except aeronautical mobile and radiolocation services. Its considerations describe the 915 to 928 MHz segment as the one enabled for free use devices | An allocation table. It sets no emission limit |
+| Resolution 000028 of 2026 of the national spectrum agency, 26 January 2026, in the Official Gazette 53,390 of 6 February 2026, as compiled by the ministry | Updates the national table of frequency allocations for 902 to 928 MHz. It shows 915 to 928 MHz allocated to the fixed, amateur, mobile except aeronautical mobile and radiolocation services. Its considerations describe the 915 to 928 MHz segment as the one enabled for free use devices | An allocation table. It sets no emission limit |
 | Resolution 105 of 2020 of the national spectrum agency, title 4 on free use, in the compilation of the agency | Annex 1 sets the bands, the emission limits and the technical and operational conditions for free use. Use within them needs no permit. Devices must follow the technical standards that the communications regulator sets, or hold homologation certificates where that applies. Free use may not interfere with primary or secondary services and has no protection against interference | The compilation does not state its consolidation date and lists changes up to 2024. Changes after that date may exist |
 | The same compilation, Annex 1, section 3.6 on frequency hopping, digital modulation and hybrid devices, for 915 to 928 MHz | Frequency hopping devices with a hop channel bandwidth at 20 dB below 250 kHz must use at least 50 hop frequencies and keep the average occupancy of any frequency to 0.4 seconds in 20 seconds. With 250 kHz or more, at least 25 hop frequencies and 0.4 seconds in 10 seconds. The widest hop channel is 500 kHz. Digital modulation devices must have a bandwidth at 6 dB of at least 500 kHz. The conducted output power may not exceed 1 W for devices with at least 25 hop channels, 0.25 W for 13 to 24 hop channels and 1 W for digital modulation, reduced by the amount by which the gain of a directional antenna exceeds 6 dBi. Out of band emissions must be 20 dB below the in band level | The text of the annex. It is not a conformity opinion |
 
-What these texts do and do not settle. They give a conducted power limit and conditions that depend on how a device is classified, and they do not say how a LoRa device is classified. A LoRa uplink on a 125 kHz channel is not a digital modulation device in the sense of a 6 dB bandwidth of 500 kHz. It could meet the rule for frequency hopping devices only if it uses at least 50 hop frequencies and keeps the average occupancy of each frequency under the limit, which in practice means a dwell time of 0.4 seconds per transmission. A 500 kHz uplink channel, as in DR6, is nominally at the bandwidth that the digital modulation rule asks for, and whether its real bandwidth at 6 dB reaches 500 kHz is not shown. The agency studied LoRa in a report on smart meters and lists the AU915-928 and US902-928 band plans among those used in the world, and the report does not state which plan a Colombian device must use. Whether the homologation of the communications regulator applies to a LoRa module under free use was not found, and the available text refers it to the regulator.
+The texts give a conducted power limit and conditions that depend on how a device is classified, and they do not say how a LoRa device is classified. A LoRa uplink on a 125 kHz channel is not a digital modulation device in the sense of a 6 dB bandwidth of 500 kHz. It could meet the rule for frequency hopping devices only if it uses at least 50 hop frequencies and keeps the average occupancy of each frequency under the limit, which in practice means a dwell time of 0.4 seconds per transmission. A 500 kHz uplink channel, as in DR6, is nominally at the bandwidth that the digital modulation rule asks for, and whether its real bandwidth at 6 dB reaches 500 kHz is not shown. The agency studied LoRa in a report on smart meters and lists the AU915-928 and US902-928 band plans among those used in the world, and the report does not state which plan a Colombian device must use. Whether the homologation of the communications regulator applies to a LoRa module under free use was not found, and the available text refers it to the regulator.
 
-Conclusion. The conducted power limit of 1 W and the existence of the 915 to 928 MHz free use band are read in official texts. Whether a given LoRaWAN configuration complies, and whether homologation is required, are not settled, and a conformity opinion of the agency, of the regulator or of an accredited laboratory is needed. This document therefore chooses no frequency, no power and no transmission limit.
+The conducted power limit of 1 W and the existence of the 915 to 928 MHz free use band are read in official texts. Whether a given LoRaWAN configuration complies, and whether homologation is required, are not settled, and a conformity opinion of the agency, of the regulator or of an accredited laboratory is needed. This document therefore chooses no frequency, no power and no transmission limit.
 
 ### 4.2 Parameters of the LoRa Alliance
 
@@ -100,7 +101,7 @@ The maximum application payload depends on the data rate and on the dwell time s
 
 ### 4.3 What AWS supports
 
-AWS IoT Core for LoRaWAN supports the bands EU863-870, US902-928, AU915 and AS923-1, follows the regional parameters of the LoRa Alliance and advises working with compliance teams for regulatory requirements. It supports devices of LoRaWAN 1.0.x and 1.1 in classes A, B and C, gateways that run LoRa Basics Station 2.0.4 or later, a queue of downlinks for each device, gateway management through a configuration and update service, and firmware updates over the air for devices. A downlink queued for a class A device waits for the next uplink. The documented limit of a queued downlink is 242 bytes, which is a limit of the queue and not of the data rate in use.
+AWS IoT Core for LoRaWAN supports the bands EU863-870, US902-928, AU915 and AS923-1, follows the regional parameters of the LoRa Alliance and advises working with compliance teams for regulatory requirements. It supports devices of LoRaWAN 1.0.x and 1.1 in classes A, B and C, gateways that run LoRa Basics Station 2.0.4 or later, a queue of downlinks for each device, gateway management through a configuration and update service, and firmware updates over the air for devices. A downlink queued for a class A device waits for the next uplink. The documented limit of a queued downlink is 242 bytes. It is a limit of the queue, and the data rate in use sets its own limit.
 
 ### 4.4 Hardware
 
@@ -153,7 +154,7 @@ The decoder rebuilds the JSON message that the ingestion design already defines,
 
 ## 6. Size budget
 
-None of the rows below is a configuration approved for Colombia. The classification of LoRa under the national regulation is pending, and so are the regional plan, the dwell time setting and the compatibility of the hardware. The tables show what the regional parameters would allow under each regime, as inputs for the radio tests and the site study, and not what may be used. The real budget depends on the regional plan, the data rate, the dwell time setting, the overhead of the protocol and the control commands. The tables below use the data rates and payload limits of the AU915-928 section of RP002-1.0.2 as inputs, for the two dwell time regimes, and are not a statement that this plan is allowed or usable in Colombia.
+None of the rows below is a configuration approved for Colombia. The classification of LoRa under the national regulation is pending, and so are the regional plan, the dwell time setting and the compatibility of the hardware. The tables show what the regional parameters would allow under each regime, as inputs for the radio tests and the site study. What may be used depends on the pending items of section 4. The real budget depends on the regional plan, the data rate, the dwell time setting, the overhead of the protocol and the control commands. The tables below use the data rates and payload limits of the AU915-928 section of RP002-1.0.2 as inputs, for the two dwell time regimes, and are not a statement that this plan is allowed or usable in Colombia.
 
 Header of 21 bytes, cultivation record of 19 bytes and drying record of 7 bytes. The overhead of LoRaWAN on air is 13 bytes, which are the message header, the device address, the frame control, the frame counter, the port and the integrity code. The control commands that the network server may add in the options field of an uplink take up to 15 bytes of the payload, which the last column reserves.
 
@@ -324,7 +325,7 @@ Energy of the gateway, as a calculation with its load as a parameter, since the 
 | 5 W | 120 Wh | 450 Wh, 35 Ah | 750 Wh, 59 Ah | 56 W |
 | 10 W | 240 Wh | 900 Wh, 70 Ah | 1500 Wh, 117 Ah | 111 W |
 
-Behavior when the cellular link of the gateway fails. The documentation read does not say whether a Basics Station gateway keeps the frames it receives while its link to the network server is down, and this design does not assume it does. The design is the following.
+No documented behavior states whether a Basics Station gateway keeps the frames it receives while its link to the network server is down, and this design does not assume it does. The table gives the behavior when the cellular link of the gateway fails.
 
 | What | Behavior |
 |---|---|
@@ -343,11 +344,39 @@ Behavior when the cellular link of the gateway fails. The documentation read doe
 | One frame lost | The platform does not see the reading, and the node does not know. The reading is sent again no earlier than two cycles after the first send, and only if the acknowledgement did not arrive, so a reading can be delayed by two hours or more | Calculation from the cycle |
 | Gateway link down | The readings wait in the node up to 24 hours. After the link returns, each node drains in the next cycles. The delivery time is the outage plus one cycle plus the drain time | Calculation, with the drain from section 6 |
 | Outage longer than 23 hours | The oldest records are deleted and counted. The alert for a deleted reading is not generated | Design rule |
-| Objects | They travel by data mule, and their delivery time follows the route and not the radio | Defined by the drone design |
+| Objects | They travel by data mule, and their delivery time follows the route of the data mule | Defined by the drone design |
 
 The expected delivery time of readings is therefore one cycle at most with a healthy link and a received frame, and up to 24 hours with an outage. The figures that depend on radio and network latency are marked to measure, and no latency is assumed.
 
-## 13. Site study
+## 13. Cost
+
+The cloud bills each LoRaWAN message, and the farm pays no data plan of its own. The shared gateway carries the radio hardware and the only cellular plan of the vereda.
+
+### Cloud
+
+AWS IoT Core for LoRaWAN charges USD 0.000006 per message in us-east-1, which is USD 6 per million, from the AWS Price List API. The count below takes one uplink each hour, as section 15 assumes, and one downlink each hour for the acknowledgement as the worst case, since an acknowledgement is queued only when the persisted limit grows.
+
+| Item | Per node a month | 40 nodes a month | Kind |
+|---|---|---|---|
+| Uplinks, one each hour | 720 | 28,800 | Calculation |
+| Acknowledgement downlinks, at most one each hour | 720 | 28,800 | Calculation, worst case |
+| Configuration downlinks | A few, when the drying flag changes | A few hundred | Estimate |
+| Messages | About 1,440 | About 57,600 | Calculation |
+| Cost at USD 6 per million | About USD 0.009 | About USD 0.35 | Calculation |
+
+Firmware updates over the air bill per task, USD 0.006 each in the first 250,000, and no update is assumed in the monthly figure.
+
+### Hardware and fee per farm
+
+| Item | Cellular farm | LoRa farm | Shared by the vereda |
+|---|---|---|---|
+| Radio | Cellular module and antenna | LoRa module and antenna | |
+| Data plan | One SIM plan per node | None | One cellular plan for the gateway |
+| Gateway | None | None | Gateway, mast, antenna and the solar kit of section 11 |
+
+The rest of the node, its probes, battery and panel, is the same on both paths. A LoRa farm therefore replaces the cellular module and its monthly plan with a LoRa module and its share of the gateway, which is the cost of the gateway, its kit and its plan divided by the farms in range. The prices of the modules, the gateway and the plans belong to the hardware estimate of one farm, and the number of farms per gateway comes from the site study.
+
+## 14. Site study
 
 A study of each vereda must record the following before a gateway is placed. It claims no range, and the first rows depend on the regime of section 4.
 
@@ -363,7 +392,7 @@ A study of each vereda must record the following before a gateway is placed. It 
 | Radio test | Real frames from each farm location at the intended data rate, with the success rate and the margin | Installer |
 | Number of nodes per gateway | The real list of farms in range | Federation |
 
-## 14. Calculations and their limits
+## 15. Calculations and their limits
 
 The script `tools/lora_link_budget.py` prints every table of this document that comes from a calculation. It uses the data rates and the payload limits of RP002-1.0.2 as inputs, the time on air formula of the radio manufacturer, the layout of section 5, and scenarios for the number of nodes, the channels, the transmit power and the gateway load. The collision table uses pure random access with equal use of the channels, one spreading factor and no capture effect. Those are scenarios, and a simulation or a calculation does not replace a radio test in the field. The energy table counts only the time on air at a stated power and leaves out the receive windows and the controller.
 
@@ -402,7 +431,7 @@ Energy of the transmissions as a function of the transmit power, which is a scen
 | DR4 | 40 B | 0.185 s | 0.3 W | 0.015 mWh | 0.0004 Wh | 0.002 percent |
 | DR4 | 40 B | 0.185 s | 0.5 W | 0.026 mWh | 0.0006 Wh | 0.003 percent |
 
-## 15. Assumptions and pending confirmations
+## 16. Assumptions and pending confirmations
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
@@ -418,11 +447,12 @@ Energy of the transmissions as a function of the transmit power, which is a scen
 | Objects other than drone objects that travel from these farms | Federation | A separate path may be needed |
 | The sequence and the acknowledgement as designed hold with the real network server | A radio and network test | The reliability rules need a change before deployment |
 
-## 16. Sources
+## 17. Sources
 
 | Source | Publisher and date | Used for | Limits |
 |---|---|---|---|
-| Resolution 000028 of 2026 | National spectrum agency, 26 January 2026, Official Gazette of 6 February 2026, read in the ministry compilation | Allocation table for 902 to 928 MHz and the statement on the enabled free use segment | An allocation table |
+| AWS IoT price list for us-east-1, offer AWSIoT | AWS Price List API, publication of 3 October 2026 | USD 0.000006 per LoRaWAN message and USD 0.006 per firmware update task | Prices change, and the offer is read at each estimate |
+| Resolution 000028 of 2026 | National spectrum agency, 26 January 2026, Official Gazette of 6 February 2026, ministry compilation | Allocation table for 902 to 928 MHz and the statement on the enabled free use segment | An allocation table |
 | Resolution 105 of 2020, title 4 and Annex 1, section 3.6 | National spectrum agency, compilation PDF of the agency and the ministry compilation of the text | Free use conditions, 915 to 928 MHz power limits and hopping and bandwidth rules, homologation clause | The compilation date is not stated. Later changes may exist. Not a conformity opinion |
 | Impact analysis on free use spectrum for smart meters | National spectrum agency, undated | The agency lists the AU915-928 and US902-928 LoRa plans among those used in the world | Does not set a plan for Colombia |
 | LoRaWAN Regional Parameters RP002-1.0.2 and v1.0.3 revision A | LoRa Alliance, 2020 and earlier | Colombia in the country table, AU915-928 data rates, payload limits, dwell time, default EIRP | They differ for Colombia. Not a Colombian rule |

@@ -2,7 +2,7 @@
 
 ## Context
 
-A farm out of coverage sends its readings over LoRa to a shared gateway. The node keeps readings for 24 hours at most and deletes a reading only after it knows the platform has it. A LoRa node has no Device Shadow, its frames are short, and the data rate, the payload limit and the transmission rules depend on a regional plan and on regulation that are not settled. A radio acknowledgement shows that a frame reached a gateway or the network server, and not that the platform stored the reading.
+A farm out of coverage sends its readings over LoRa to a shared gateway. The node keeps readings for 24 hours at most and deletes a reading only after it knows the platform has it. A LoRa node has no Device Shadow, its frames are short, and the data rate, the payload limit and the transmission rules depend on a regional plan and on regulation that are not settled. A radio acknowledgement shows that a frame reached a gateway or the network server. It does not show that the platform stored the reading.
 
 ## Options
 

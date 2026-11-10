@@ -188,7 +188,7 @@ LoRa carries short frames, far below the 0.5 KB of the JSON message. The node th
 
 The frame, its size budget, the acknowledgement of stored readings and the configuration of the node are defined in the [LoRa path of the farms out of coverage](../network/lora-out-of-coverage.md).
 
-Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, they send about 7,200 crop messages a month, which costs under USD 0.05.
+Billing is USD 6 per million LoRaWAN messages. If 40 farms use this path, with one uplink and at most one acknowledgement downlink each hour, they send about 57,600 messages a month, which costs about USD 0.35.
 
 ## 11. What fails and what happens
 
