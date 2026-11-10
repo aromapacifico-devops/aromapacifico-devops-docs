@@ -2,7 +2,7 @@
 
 This document specifies the farm node by requirements and classes of components. It states what the node does at the farm and at the drying site, which sensors and interfaces it needs, how its cycle, buffer and recovery work as requirements on the hardware, what the radio module must offer, how the energy balance and the solar kit are sized, what the enclosure must withstand, how the identity, the configuration and the firmware are protected, and the minimum list of materials for one farm. It is written so that a supplier can be asked to show compatibility and to quote, and it names no brand and no model.
 
-The cellular variant is specified in full. The LoRa variant is specified only as far as the shared parts and the radio interface contract, and it stays incomplete until the design of the farms out of coverage defines its frame, its transmission limits and its configuration.
+The cellular variant is specified in full. The LoRa variant shares the node and the radio interface contract, and the [LoRa path of the farms out of coverage](../network/lora-out-of-coverage.md) defines its frame, its acknowledgement, its time and its configuration. Its radio parameters stay pending until the regulation and the hardware are confirmed.
 
 ## Contents
 
@@ -160,7 +160,7 @@ The radio module is a transport. The controller owns the clock, the buffer, the 
 
 Where the secure connection is built, in the controller or in the cellular module, is not fixed. It decides where the private key lives and how much memory the controller needs, and it is one of the compatibility checks of section 7.
 
-The LoRa variant is not complete. Its frame and its size limit, its transmission limits and the time it may spend on air, its configuration path and the way the node reports the counters of the buffer are still to be defined by the design of the farms out of coverage. This document does not fill them in.
+The [LoRa path of the farms out of coverage](../network/lora-out-of-coverage.md) defines the LoRa side of this contract, with the frame and its size budget, the cumulative acknowledgement, the time of a reading, the configuration path and the counters of the buffer. The data rate, the payload limit and the time on air stay pending until the regulation and the hardware are confirmed.
 
 ## 7. Modem and radio alternatives
 
@@ -501,16 +501,16 @@ The cellular node reads its configuration from the Device Shadow, as approved, a
 | Topic | Cellular | LoRa | Status of the LoRa side |
 |---|---|---|---|
 | Radio | Cellular module | LoRa module | Interface contract only |
-| Message | JSON of about 0.5 KB per reading, over MQTT with TLS | Compact binary frame | Frame to be defined |
-| Confirmation | Per message, from the broker | To be defined | To be defined |
-| Configuration | Device Shadow | A path that needs no shadow | To be defined |
-| Time | Network time, NTP as a fallback, real-time clock | Clock of the node, and the network may not give time | To be defined |
-| Buffer and counters | Same rules, 24 hours, `dropped_total` | Same rules, and the counter must travel in the compact frame | To be defined |
-| Energy of a transmission | Assumed 1.5 W for 45 to 120 seconds | To be measured with the module | To be defined |
+| Message | JSON of about 0.5 KB per reading, over MQTT with TLS | Compact binary frame of version 1 with several readings | Defined in the LoRa path |
+| Confirmation | Per message, from the broker | Cumulative acknowledgement after the platform stores the readings | Defined in the LoRa path |
+| Configuration | Device Shadow | Downlink with a version, and the applied version reported in each frame | Defined in the LoRa path |
+| Time | Network time, NTP as a fallback, real-time clock | Real-time clock, with capture, transmission and reception kept apart | Defined in the LoRa path. Synchronization over LoRa is pending |
+| Buffer and counters | Same rules, 24 hours, `dropped_total` | Same rules, with `dropped_total` and `held_before` in the frame | Defined in the LoRa path |
+| Energy of a transmission | Assumed 1.5 W for 45 to 120 seconds | Under 0.01 percent of the ceiling at the scenarios of the LoRa path | To measure with the module |
 | Firmware update | Section 10 | Options in section 10 | To be decided |
 | Gateway | None. The node uses the operator network | A gateway shared by the vereda with a backhaul | Defined by the other design |
 
-The LoRa variant is not complete while its frame, its transmission limits, its configuration and its update are undefined.
+The LoRa variant stays pending for its radio parameters, which wait on the regulation and the hardware, and for the choice of its firmware update.
 
 ## 12. Minimum bill of materials and installation in one visit
 
