@@ -191,7 +191,7 @@ Events are sorted by `captured_at`, then by the position of the event along the 
 | Table | Key | Holds | Written by |
 |---|---|---|---|
 | `sack_events` | Partition `sack_code`, sort `event_id` | Every event, unchanged | Domain function, insert only |
-| `sacks` | Partition `sack_code` | Current state, version, gaps, farm and current trip | Domain function |
+| `sacks` | Partition `sack_code` | Current state, version, gaps, farm, current trip and the date from which the sack may be deleted | Domain function |
 
 A code issued and not yet used exists as an item in `sacks` with version 0 and no state.
 
@@ -246,7 +246,7 @@ No role of the platform can change or delete an event. DynamoDB ties the permiss
 
 One limit remains. A policy cannot forbid `PutItem` from replacing an existing item. That protection comes from the condition `attribute_not_exists` on each insert, so it depends on the code of the function. Deployment controls cover that code, and the audit design covers access to the tables.
 
-The five-year deletion runs through a service process and no application role, under the design of persistence.
+The five-year deletion runs through a service process and no application role, under the [persistence and archive](../architecture/persistence-and-archive.md) design.
 
 ## 12. Sacks of a trip
 
