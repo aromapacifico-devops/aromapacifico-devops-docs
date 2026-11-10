@@ -959,8 +959,51 @@ def drone_link():
     return p
 
 
+def lot_geometry():
+    p = Page("11 Lot geometry lifecycle", 1780, 760, "Lot polygon states: from no-fly zones to a published version that missions can use")
+    zones = [("Before the first flight", 40, 560, "#EAF2F8", "#147EBA"), ("Delimitation flight and review", 615, 565, "#FEF9E7", "#B7950B"),
+             ("In use by missions", 1195, 545, "#EAF6EC", "#2E7D32")]
+    for name, x, w, fill, stroke in zones:
+        p.zone(name, x, 70, w, 380, fill, stroke, size=13)
+    state = dict(w=180, h=84, size=12)
+    p.step("<b>DRAFT</b><br>Zones or polygon<br>in preparation", 70, 130, cid="draft", **state)
+    p.step("<b>EXCLUSIONS_READY</b><br>Only the delimitation flight<br><i>lot.exclusions.ready</i>", 360, 130, cid="excl", **state)
+    p.step("<b>SURVEYED</b><br>Candidate polygon<br>from the flight", 650, 130, cid="surv", **state)
+    p.step("<b>VALIDATED</b><br>Polygon and no-spray<br>strips accepted", 940, 130, cid="val", **state)
+    p.step("<b>PUBLISHED</b><br>Precision and estimation<br><i>lot.geometry.published</i>", 1230, 130, fill="#E8F5E9", stroke=TEL, cid="pub", **state)
+    p.step("<b>SUSPENDED</b><br>No new mission<br><i>lot.geometry.suspended</i>", 1520, 130, fill="#FDEDEC", stroke=FAIL, cid="susp", **state)
+    p.edge("draft", "excl", "zones reviewed", TEL)
+    p.edge("excl", "surv", "log stored", TEL)
+    p.edge("surv", "val", "checks pass", TEL)
+    p.edge("val", "pub", "published", TEL)
+    p.edge("pub", "susp", "safety reason", FAIL)
+    p.edge("excl", "draft", "", FAIL, exit=(0.5, 1), entry=(0.75, 1), points=[(450, 254), (205, 254)])
+    p.edge("surv", "draft", "", FAIL, exit=(0.5, 1), entry=(0.5, 1), points=[(740, 279), (160, 279)])
+    p.edge("val", "draft", "", FAIL, exit=(0.5, 1), entry=(0.25, 1), points=[(1030, 304), (115, 304)])
+    p.text("Correction or failed check returns the candidate to draft", 260, 256, 380, 20, size=11, color=FAIL)
+    p.edge("susp", "draft", "", OBJ, dashed=True, exit=(0.5, 1), entry=(0.11, 1), points=[(1610, 334), (90, 334)])
+    p.text("A replacement starts as a new draft, and the published version stays in use until it is replaced", 700, 336, 620, 20, size=11, color=OBJ)
+    p.note("<b>Supervisor.</b> Maps houses, the processing facility, roads and water as no-fly zones, or records that there are none.", 60, 372, 520, 60)
+    p.note("<b>Checks.</b> Flight log and map stored, valid GeoJSON, ring direction, no self-intersection, strips computed in metres in EPSG 9377.", 635, 372, 525, 60)
+    p.note("<b>Missions.</b> Each package carries this exact version. A fumigation also needs a closed prior log and a named supervisor.", 1215, 372, 505, 60)
+
+    p.group("No-spray strips for the drone, stored as versioned parameters", 580, 480, 1160, 250, stroke=FAIL, color=FAIL)
+    table = ("<table style='font-size:12px' cellpadding='4'><tr><td><b>Place</b></td><td><b>Drone</b></td><td><b>Ground</b></td><td><b>Basis</b></td></tr>"
+             "<tr><td>Rivers, streams, lakes</td><td>100 m</td><td>10 m</td><td>Decree 1843 of 1991, article 87</td></tr>"
+             "<tr><td>Springs</td><td>100 m</td><td>100 m</td><td>Decree 1076 of 2015, protective forest area</td></tr>"
+             "<tr><td>Houses and processing facility</td><td>100 m</td><td>10 m</td><td>Decree 1843, articles 87 and 102</td></tr>"
+             "<tr><td>Main roads</td><td>100 m</td><td>10 m</td><td>Decree 1843, article 87</td></tr>"
+             "<tr><td>People outside the operation</td><td>30 m, no flight</td><td></td><td>RAC 100, sections 100.310 and 100.410</td></tr></table>")
+    p._v(table, "text;html=1;align=left;verticalAlign=top;whiteSpace=wrap;fontSize=12;strokeColor=none;fillColor=none;", 600, 514, 700, 200)
+    p.note("<b>Ground fallback.</b> A focus inside the drone strip and outside the ground strip becomes a ground application by the brigade, with the same authorization. Inside the ground strip no product is applied.", 1320, 520, 400, 100, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Pending.</b> Strips for minor roads and narrower water strips with barriers wait for a legal review.", 1320, 634, 400, 70)
+    p.legend(40, 480, 520, [(TEL, False, "Normal path, conditional write"), (FAIL, False, "Correction, failure or suspension"), (OBJ, True, "Replacement by a new version")])
+    p.note("No state can be skipped, and a published version is never edited.", 40, 596, 520, 44)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), lot_geometry()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

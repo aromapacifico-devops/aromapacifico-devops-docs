@@ -15,6 +15,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Sack state model](diagrams/08-sack-state-model.drawio.png) | Which states can a sack pass through, and what does a rejection do |
 | [Center WLAN](diagrams/09-center-wlan.drawio.png) | Which SSID lands on which VLAN, and what can each zone reach |
 | [Drone mission link](diagrams/10-drone-mission-link.drawio.png) | How is a drone mission preloaded, flown with no signal and published |
+| [Lot geometry lifecycle](diagrams/11-lot-geometry-lifecycle.drawio.png) | Which states can a lot polygon pass through, and which strips keep spraying away |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
