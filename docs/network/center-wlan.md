@@ -177,7 +177,7 @@ The visitor network gets internet access and nothing else. Four layers apply, an
 
 The exceptions that visitors need to connect are three. The gateway of the VLAN answers their requests, DHCP gives them an address, and DNS answers their lookups through the firewall. Client isolation lets traffic go to the gateway, and nothing else. Consequences accepted on purpose are that visitors cannot print, cast to a screen or find any device of the center, and that two visitors cannot share files over the local network.
 
-Traffic of visitors is capped at 10 percent of the WAN, as the capacity section of the LAN document sets.
+Traffic of visitors is capped at 10 percent of the WAN, as the capacity section of the LAN document sets, and the [center WAN sizing](center-wan-sizing.md) gives the classes and the values.
 
 ## 8. Addressing services
 
