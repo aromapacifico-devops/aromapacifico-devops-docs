@@ -103,7 +103,7 @@ A center uses `POST /centers/{center_id}/events`, and a carrier uses `POST /trip
 
 | Event | Fields in `data` |
 |---|---|
-| `registered` | `farm_id`, `lot_id`, `weight_kg` |
+| `registered` | `farm_id`, `lot_id`, `weight_kg`, and `drying_lot_id` when the coffee dried under a node |
 | `registered_at_center` | `center_id`, `farm_id`, `weight_kg` |
 | `handed_to_carrier` | `trip_id` |
 | `arrived_at_center` | `trip_id`, `center_id` |
@@ -119,6 +119,8 @@ A center uses `POST /centers/{center_id}/events`, and a carrier uses `POST /trip
 | `reweighed` | `weight_kg` |
 | `label_reprinted` | `center_id`, `reason_code`, `observation` |
 | `reported_missing` | `trip_id`, `note` |
+
+`drying_lot_id` links the sack to the drying lot whose summary gives the buyer the drying variables. The application offers the lots of the farm it already holds, so the field works with no connection, and the [farmer history](../iot/farmer-history.md) defines the lot. A sack registered at a center carries no lot.
 
 The five facts the pilot names map to these events. Registration with weight and identifier is `registered`, the handover is `handed_to_carrier`, arrival is `arrived_at_center` with its reception decision, departure is `dispatched_to_port` with `picked_up`, and delivery is `delivered_accepted` or `delivered_rejected`.
 
