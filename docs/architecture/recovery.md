@@ -74,7 +74,7 @@ A restore follows these steps.
 | 1 | The alarm fires and a person confirms the failure | 15 minutes |
 | 2 | The platform operator and a reviewer agree on the restore point and approve the restore | 30 minutes |
 | 3 | Both tables restore to the same second, under new names | 90 minutes |
-| 4 | Time to live, point-in-time recovery, alarms, tags and permissions are set again on the new tables through the infrastructure code | 30 minutes |
+| 4 | Point-in-time recovery, alarms, tags and permissions are set again on the new tables through the infrastructure code | 30 minutes |
 | 5 | Counts of events and sacks are compared with the damaged tables, and a sample of sacks is replayed | 30 minutes |
 | 6 | The function reads the new table names, and the public query is checked | 15 minutes |
 | | Total | 3 hours 30 minutes |

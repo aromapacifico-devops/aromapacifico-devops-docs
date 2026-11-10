@@ -142,7 +142,7 @@ Calculated from the AWS price list for us-east-1, at the end of year five and wi
 | Readings and positions archive in S3 | Under 10 GB | Under 0.05 |
 | **Total** | | **About 7** |
 
-Five years of retention costs about USD 7 a month at its peak, so no part of it needs trimming for savings. The storage of the first 25 GB of a DynamoDB account carries no charge, and the table above leaves that allowance out to show the cost without it.
+Five years of retention costs about USD 7 a month at its peak, so no part of it needs trimming for savings. Continuous backup of the sack tables adds USD 3.24 a month at the same point, as the [recovery](recovery.md) design calculates. The storage of the first 25 GB of a DynamoDB account carries no charge, and the table above leaves that allowance out to show the cost without it.
 
 ## 8. Assumptions and pending confirmations
 
