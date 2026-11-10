@@ -117,7 +117,7 @@ No gateway and no module is selected. Compatibility of a module and a gateway wi
 | Does a given module and gateway pair comply and hold a certificate | Pending |
 | Does the network server support the plan, the functions and the downlink needed | Documented for the bands and the downlink queue. Not tested |
 
-Until these items are settled the frame budget below is shown for the regimes that could apply, and the solution is not declared ready for deployment.
+Until these items are settled the frame budget below is shown for the regimes that could apply, as a calculation with its conditions, and the solution is not declared ready for deployment. A calculated data rate or a calculated frame size is not an approval of that configuration.
 
 ## 5. The versioned frame
 
@@ -130,7 +130,7 @@ The node sends a compact binary frame that carries one or more readings, with a 
 | epoch | 1 | Changes when the sequence cannot continue, see section 7 |
 | first_seq | 4 | Sequence of the first record of the frame. The other records follow in order |
 | count | 1 | Number of records in the frame |
-| held_before | 2 | Number of records older than the first one that the node still holds, and so does not declare lost |
+| held_before | 2 | Number of records older than the first one of the frame that the node still holds as pending. Records older than the oldest pending one are no longer in the node, because they were confirmed or because they expired |
 | dropped_total | 2 | Records that the node deleted because they were 24 hours old, counted since the node started, saturating at 65535 |
 | config_version | 1 | Version of the configuration that the node has applied, 0 for the factory configuration |
 | frame_time | 4 | Time of the node clock when it sent the frame, in seconds since 1 January 1970 UTC, and 4294967295 when the clock has no valid time |
@@ -153,7 +153,7 @@ The decoder rebuilds the JSON message that the ingestion design already defines,
 
 ## 6. Size budget
 
-The real budget depends on the regional plan, the data rate, the dwell time setting, the overhead of the protocol and the control commands. The tables below use the data rates and payload limits of the AU915-928 section of RP002-1.0.2 as inputs, for the two dwell time regimes, and are not a statement that this plan is allowed or usable in Colombia.
+None of the rows below is a configuration approved for Colombia. The classification of LoRa under the national regulation is pending, and so are the regional plan, the dwell time setting and the compatibility of the hardware. The tables show what the regional parameters would allow under each regime, as inputs for the radio tests and the site study, and not what may be used. The real budget depends on the regional plan, the data rate, the dwell time setting, the overhead of the protocol and the control commands. The tables below use the data rates and payload limits of the AU915-928 section of RP002-1.0.2 as inputs, for the two dwell time regimes, and are not a statement that this plan is allowed or usable in Colombia.
 
 Header of 21 bytes, cultivation record of 19 bytes and drying record of 7 bytes. The overhead of LoRaWAN on air is 13 bytes, which are the message header, the device address, the frame control, the frame counter, the port and the integrity code. The control commands that the network server may add in the options field of an uplink take up to 15 bytes of the payload, which the last column reserves.
 
@@ -167,7 +167,7 @@ Header of 21 bytes, cultivation record of 19 bytes and drying record of 7 bytes.
 | DR5 | SF7 / 125 kHz | 222 B | 222 B | 10 | 28 | 10 | 28 | 9 |
 | DR6 | SF8 / 500 kHz | 222 B | 222 B | 10 | 28 | 10 | 28 | 9 |
 
-Under the dwell limit, DR0 and DR1 are not allowed and DR2 cannot carry even one record with this header, so only DR3 and faster rates are usable, with one cultivation record in a frame at DR3. Those rates have a smaller link margin than the slowest ones. If the dwell limit applies, the range that a long spreading factor would give is not available, and the site study must be done at DR3 or faster.
+The regime with a 400 ms dwell limit is a scenario that was calculated because one reading of the regulation could lead to it. It is not shown to apply, and it is not a configuration for Colombia. If it did apply, DR0 and DR1 would not be allowed and DR2 could not carry even one record with this header, so only DR3 and faster rates would be usable, with one cultivation record in a frame at DR3. Those rates have a smaller link margin than the slowest ones, so the range that a long spreading factor gives would not be available. This is a condition to check in the site study, and it states no range.
 
 Time on air of a full frame, from the formula of the radio manufacturer.
 
@@ -204,7 +204,7 @@ Drain of one day of readings after an outage of 23 hours, with the attempt windo
 | Crop and drying, 30 readings | DR5 | no dwell limit | 2 | 0.56 s | 0.6 s | yes |
 | Crop and drying, 30 readings | DR5 | dwell limit | 2 | 0.56 s | 20.6 s | yes |
 
-A drain that does not fit in one window continues in the next cycles, since the records stay in the node until they are acknowledged.
+The window of 120 seconds is a reference taken from the cellular path and is not a rule of LoRa. A drain that does not fit in one window continues in the next cycles, since the pending records stay in the node until they are acknowledged or expire.
 
 A shorter header for the continuation frames of one drain would fit more records in a dwell limited frame. It is possible in a later version of the frame and is not part of version 1.
 
@@ -213,12 +213,12 @@ A shorter header for the continuation frames of one drain would fit more records
 | Item | Rule |
 |---|---|
 | Identity | The network server identifies the node by its device identifier, and the platform maps it to the node identifier. The frame does not carry it |
-| Sequence | Each record of a node has a sequence number of 32 bits that grows by one. The node continues from the last record in its log after a restart, as the buffer rules already say |
-| Epoch | If the log is lost and the sequence cannot continue, the node starts a new epoch with sequence 1. The platform keys a record by node, epoch and sequence, and ignores acknowledgements of another epoch |
+| Sequence | Each record of a node has a sequence number of 32 bits that grows by one. After a restart with an intact log, the node continues from the last record in its log, in the same epoch, as the buffer rules already say. A restart with a lost log starts a new epoch |
+| Epoch | If the log is lost and the sequence cannot continue, the node starts a new epoch with sequence 1. The platform keys a record by node, epoch and sequence. When it sees a higher epoch, it closes the previous one. A sequence of the closed epoch that it never stored is counted as lost, since the node can no longer send it, and the acknowledgement queued for the old epoch is removed. A frame of a lower epoch that arrives late is stored and is not acknowledged. The epoch counter has 8 bits, and after 256 changes the platform treats the node as replaced |
 | Duplicates | The platform stores a record once, by a conditional write keyed by node, epoch and sequence. A repeat is accepted and ignored |
 | Order | Frames can arrive in any order and a record is stored by its key. The platform does not rely on arrival order. The alert state keeps the existing rule of the newer reading |
-| Gaps | A gap in the stored sequences is either a record in flight, a frame that was lost or a record that the node deleted. The field `held_before` of each frame tells which, since a record older than the oldest the node holds is gone |
-| Counting losses | The platform counts a loss from the sequences it holds and from `held_before`. It does not rely on `dropped_total` alone, since a record that the platform stored and the node deleted for lack of an acknowledgement is counted by the node as dropped |
+| Gaps | A sequence that the platform does not hold is in one of three states. It is open, which means in flight or lost, if it is not older than the oldest record that the node reports holding. It is declared expired, if it is older than that and was never stored, because the node deleted it at the 24 hour limit. It is stored. The field `held_before` of each frame gives the oldest record that the node holds, and so separates the first two states |
+| Counting losses | The platform counts as lost the sequences that it declared expired and never stored. It does not rely on `dropped_total` alone, since a record that the platform stored and that the node deleted at 24 hours, because the acknowledgement did not arrive, is counted by the node as dropped and is not lost |
 
 ## 8. Time of a reading
 
@@ -237,27 +237,52 @@ Recovery of the time. After a restart the real-time clock on backup power keeps 
 
 ## 9. The acknowledgement
 
-The node sends its frames without asking for a confirmation of each one. The platform acknowledges readings with one cumulative message that it emits after the readings are stored. The acknowledgement confirms one thing.
+The node sends its frames without asking for a confirmation of each one. The platform acknowledges readings with one cumulative message that it emits after the readings are stored.
 
-What the acknowledgement confirms. Every record of the node and the epoch with a sequence up to the acknowledged value is either stored by the platform or is older than the oldest record that the node reported holding. It is emitted by the ingestion step, after the readings were written to the readings table and the write was confirmed, and not before. That is the point of the path that the acknowledgement refers to. The acceptance of a request to send a downlink by the network server, the acknowledgement of a radio frame by a gateway and the arrival of a frame at the network server do not mean that a reading was stored.
+### Three states of a reading
+
+A reading that the node produced is in one of three states, and only the first one means delivery.
+
+| State | Where the reading is | What it means | Delivered |
+|---|---|---|---|
+| Persisted and confirmed | The platform stored it, and an acknowledgement told the node, which deleted its copy | The platform has the reading | Yes |
+| Pending | In the node, younger than 24 hours, not yet covered by an acknowledgement. The platform may or may not have it | Unknown to the node | Not known |
+| Expired | Deleted by the node when it reached 24 hours with no acknowledgement. The node counts it in `dropped_total` | The node gave up its copy. The platform may hold it if the frame arrived and the acknowledgement did not | No. It is not delivery, and the platform decides from what it stored |
+
+The rule of retention has one exception that is stated here once. A pending reading stays in the node until it is confirmed, and the only case in which it leaves the node without a confirmation is the limit of 24 hours that the pilot sets, where it becomes expired. Expiry is a loss of the copy of the node, counted and visible, and it is never taken as delivery.
+
+### What the acknowledgement says
+
+The acknowledgement has two values for a node and an epoch. The first is the declared floor, the oldest sequence that the node reported holding as pending in the last frame the platform used. Sequences below the floor are not covered by the message. They were confirmed earlier or they expired, and the platform keeps for each of them whether it stored it or declared it expired. The second is the persisted limit, the largest sequence such that every sequence from the floor to it is stored by the platform. The message therefore tells the node that the records from the floor to the persisted limit are stored, and it does not tell it that everything numbered below the limit was delivered.
 
 | Step | Rule |
 |---|---|
-| Emission | After a write succeeds, the platform computes the largest sequence below which every record is stored or declared gone, and, if it changed, it replaces the acknowledgement waiting for the node and queues the new one |
-| Content | The version, the epoch and the acknowledged sequence, and no other data |
-| Transport | A class A downlink, queued for the node and sent in the receive windows after its next uplink. The queued downlink in unacknowledged mode is enough, since the next uplink brings a newer acknowledgement |
-| Use by the node | The node deletes records with a sequence up to the acknowledged one and no others. It ignores an acknowledgement of another epoch, and one lower than a previous one |
-| Largest contiguous stretch | The acknowledged value is the end of the largest stretch that has no hole. A stored record above a hole stays in the node until the hole is filled or declared gone, so no unconfirmed record is deleted |
+| Emission | After a write is confirmed by the readings table, the platform computes the floor and the persisted limit for the node and the epoch. If the persisted limit grew, it replaces the acknowledgement waiting for the node and queues the new one. The acceptance of a request to send a downlink by the network server, the acknowledgement of a radio frame by a gateway and the arrival of a frame at the network server are not emission points |
+| Content | The version, the epoch, the declared floor and the persisted limit, 10 bytes, and no other data |
+| Transport | A class A downlink, queued for the node and sent in the receive windows after its next uplink. The unacknowledged mode of the queue is enough, since the next uplink brings a newer acknowledgement |
+| Use by the node | The node deletes the pending records from its oldest one up to the persisted limit, and no others. A pending record above a hole stays in the node, although the platform may already hold it, until the hole is stored or expires |
+| Late, repeated or out of order acknowledgements | An acknowledgement of another epoch is ignored. One whose persisted limit is not higher than the highest one already applied is ignored. One whose persisted limit is beyond the last sequence that the node assigned is invalid and ignored. One for records that the node already deleted has no effect. After a restart with an intact log, the node applies an acknowledgement of its epoch as usual, since the stored records remain true |
+| Restart and epoch | After a restart with an intact log nothing changes. If the log was lost, the node starts a new epoch, and the platform closes the old one, removes its waiting acknowledgement and counts its open sequences as lost |
 
-Loss and delay of the acknowledgement. The acknowledgement can be lost or arrive late, since it travels only after an uplink and the windows are short. Nothing is deleted without it, so the effect is a repeat of records that the platform already has, which it ignores. The next acknowledgement covers them. A node that never receives one keeps its records until they reach 24 hours.
+### Loss and delay of the acknowledgement
 
-Retry and airtime. The node does not repeat a frame in the same cycle. A record that was sent is not sent again before two cycles, since the acknowledgement of its first send is not known before the second cycle transmits. After that, the node resends the records that remain unacknowledged, oldest first, up to the number of frames that fits in the attempt window of 120 seconds at the data rate in use, which section 6 calculates with the spacing between uplinks of the regime. A maximum number of sends for each record and a daily airtime budget are parameters that the radio tests set. The regulation read in section 4 sets a conducted power limit and, by one reading, a dwell time per transmission. No duty cycle limit was found, and none is assumed.
+The acknowledgement can be lost or arrive late, since it travels only after an uplink and the windows are short. The effect is that the node keeps records that the platform already has and sends them again, which the platform ignores and which the next acknowledgement covers. If no acknowledgement ever arrives, the node keeps its records until they expire, and the platform holds whatever frames arrived.
 
-Expiry. The rule of 24 hours stays. Before each attempt the node deletes records of 24 hours or more and adds them to `dropped_total`, with or without an acknowledgement. The platform may hold a record that the node counted as dropped, so the true loss is the gap in the stored sequences, as section 7 says.
+### Retry and airtime
 
-What the design does not guarantee. It does not guarantee that every reading arrives. A reading is lost if no frame carrying it reaches the platform within 24 hours, because of range, a collision, a gateway outage or a platform outage. The design makes the loss visible and counted, and it never deletes an unconfirmed record early.
+The node does not repeat a frame in the same cycle. A record that was sent is not sent again before two cycles, since the acknowledgement of its first send is not known before the second cycle transmits. After that, the node resends the pending records, oldest first, up to the number of frames that fits in the attempt window of 120 seconds at the data rate in use, which section 6 calculates with the spacing between uplinks of the regime. The window of 120 seconds is taken from the cellular path as a reference and is not a rule of LoRa. A maximum number of sends for each record and a daily airtime budget are parameters that the radio tests set. The regulation read in section 4 sets a conducted power limit and, by one reading, a dwell time per transmission, and the regime that applies is pending. No duty cycle limit was found, and none is assumed.
 
-Is it viable. The downlink queue and the receive windows are documented for class A in the network server and in the regional parameters, and the size of the acknowledgement is far below any limit. The viability with the real plan, gateway and network server needs a radio test, and no such test was run.
+### Expiry and the count of losses
+
+Before each attempt the node deletes pending records of 24 hours or more, marks them as expired and adds them to `dropped_total`, with or without an acknowledgement. The platform may hold a record that the node counted as dropped. The true loss is the set of sequences that the platform declared expired and never stored, and the loss of a closed epoch, as section 7 says. `dropped_total` is therefore an upper bound.
+
+### What the design does not guarantee
+
+It does not guarantee that every reading arrives. A reading is lost if no frame carrying it reaches the platform within 24 hours, because of range, a collision, a gateway outage or a platform outage, and the node then discards it as expired. The design makes the loss visible and counted, keeps every pending reading until the limit of 24 hours and treats expiry as a loss and never as delivery.
+
+### Is it viable
+
+The downlink queue and the receive windows are documented for class A in the network server and in the regional parameters, and the size of the acknowledgement is far below any limit. The viability with the real plan, gateway and network server needs a radio test, and no such test was run.
 
 ## 10. Configuration of the node
 
@@ -329,7 +354,7 @@ A study of each vereda must record the following before a gateway is placed. It 
 | Item | What is recorded | Who |
 |---|---|---|
 | Regulation and approval | The configuration of the radio, the certificates of the equipment and the opinion that section 4 needs | The agency, the regulator or an accredited laboratory |
-| Data rates that the link must work at | DR3 or faster if the dwell limit applies | Equipment supplier, with the datasheet sensitivity |
+| Data rates that the link must work at | The rates that the verified regime allows. DR3 or faster if a 400 ms dwell limit were to apply | Equipment supplier, with the datasheet sensitivity |
 | Distance and line of sight | Distance of each farm to the high point, and obstacles on the path, with the terrain profile | Installer |
 | Terrain and vegetation | Slopes, ridges and vegetation that block or reflect the signal | Installer |
 | Mast and antenna | Height, antenna gain, cable loss, and the 6 dBi rule of the conducted power | Installer |
@@ -384,7 +409,7 @@ Energy of the transmissions as a function of the transmit power, which is a scen
 | Which class of the regulation a LoRa device falls in, and whether homologation applies | The national spectrum agency and the communications regulator, or an accredited laboratory, with the supplier test reports | No frequency, power or limit can be chosen, and the solution is not ready for deployment |
 | Whether Annex 1 of the free use resolution was changed after the compilation read | The national spectrum agency | The conditions of section 4 change |
 | Regional plan and revision implemented by the module, the gateway and the network server | Suppliers and the network server documentation | The payload limits and the data rates of section 6 change |
-| Dwell time of 400 ms applies | The conformity opinion above | Only DR3 and faster are usable and the link margin falls |
+| Whether a dwell time of 400 ms applies | The conformity opinion above | If it applies, only DR3 and faster would be usable and the link margin falls. If it does not, the budget of the other regime applies |
 | Support of the time synchronization over LoRa | The network server documentation or a test | The time of a node with a lost clock stays an estimate |
 | Whether a Basics Station gateway keeps frames while its link is down | The Semtech documentation or a bench test | The loss during a backhaul outage may be larger, and the design already assumes it keeps none |
 | Latency of the gateway, the network server and the ingestion | Measurement | The delivery times of section 12 stay unstated |
