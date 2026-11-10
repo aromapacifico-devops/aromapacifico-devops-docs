@@ -1,10 +1,10 @@
 # Collection center operations
 
-This document defines how a collection center receives, inspects, accepts or rejects, labels and dispatches sacks, and how it sizes its stations for 400 sacks a day in harvest. It covers the flow of reception with arrival kept apart from the decision of each sack, the weights and what they mean, the reasons for a rejection, a sack that arrives with no code and the printing of its label, the control of reprints, the work during an internet outage and the reconciliation after it, the capacity by stage with its bottleneck, and the assumptions that the first harvest must replace. It is a design. No application and no equipment are built or selected here.
+This document defines how a collection center receives, inspects, accepts or rejects, labels and dispatches sacks, and how it sizes its stations for 400 sacks a day in harvest. It covers the flow of reception with arrival kept apart from the decision of each sack, the weights and what they mean, the reasons for a rejection, a sack that arrives with no code and the printing of its label, the control of reprints, the work during an internet outage and the reconciliation after it, the capacity by stage with its bottleneck, and the assumptions that the first harvest must replace. No application or equipment is selected here.
 
-![Operating flow of a collection center](../architecture/diagrams/10-center-operation.drawio.png)
+![Operating flow of a collection center](../architecture/diagrams/13-center-operation.drawio.png)
 
-**Contents**
+## Contents
 
 1. Terms and origin of the figures
 2. What is reused
@@ -16,7 +16,7 @@ This document defines how a collection center receives, inspects, accepts or rej
 8. Work with no internet
 9. Capacity for 400 sacks a day
 10. Assumptions and pending confirmations
-11. Criteria of the story and their evidence
+11. Cost
 12. Sources
 
 ## 1. Terms and origin of the figures
@@ -38,7 +38,7 @@ This document defines how a collection center receives, inspects, accepts or rej
 
 | Label | Meaning |
 |---|---|
-| Case | Data of the case or of an earlier decision of the project |
+| Case | Data of the pilot definition or of a decision of the platform |
 | Assumed | A proposed assumption, approved as an assumption, to replace with the first harvest |
 | Pending | Not known, with who confirms it |
 
@@ -68,10 +68,10 @@ Arrival and the decision on each sack are two different moments. The carrier rec
 | 4. Weigh | Center operator | Reception station | None, the weight goes in the decision | No change |
 | 5. Inspect | Center operator | Reception station | None | No change |
 | 6. Accept | Center operator | Reception station | `received_accepted` with `center_id` and `weight_kg` | `at_center_accepted` |
-| 6. Reject | Center operator | Reception station | `received_rejected` with `center_id`, a reason code and an observation | `at_center_rejected` |
+| 6. Reject | Center operator | Reception station | `received_rejected` with `center_id`, `weight_kg`, `reason_code` and `observation` | `at_center_rejected` |
 | 7. Stack the sack | Center operator | Dispatch area or return area | None | No change |
-| 8. Correct a decision, before dispatch | Center operator | Reception station | `reception_corrected_to_accepted` or `reception_corrected_to_rejected`, with a reason | The other of the two states |
-| 9. Return a rejected sack | Center operator | Return area | `returned_to_farm` with `center_id` and a reason | `in_preparation` |
+| 8. Correct a decision, before dispatch | Center operator | Reception station | `reception_corrected_to_accepted` or `reception_corrected_to_rejected`, with `reason_code` and `observation` | The other of the two states |
+| 9. Return a rejected sack | Center operator | Return area | `returned_to_farm` with `center_id`, `reason_code` and `observation` | `in_preparation` |
 | 10. Dispatch for the port | Center operator and carrier | Dispatch station | `dispatched_to_port` with `center_id` and `carrier_id`, for each sack, in groups of 30, and `picked_up` by the carrier | `in_transit_to_port` |
 
 Special paths.
@@ -82,12 +82,12 @@ Special paths.
 | The code is well formed and was never issued | The event is stored as an anomaly for review, and the sack waits |
 | The code is issued and has no registration or handover yet | The event is stored with a gap, which closes when the missing event arrives |
 | The sack has no label at all | It follows the path of a sack with no code, section 6 |
-| The label is unreadable and the code is unknown | The sack is held in the waiting area. Whether it is registered as a sack with no code, leaving the original code unused, or tied to the original record by another means is not decided and is pending |
+| The label is unreadable and the code is unknown | The sack is held in the waiting area while the carrier and the farm try to identify it. If it is still unknown at the end of its reception, it is registered as a sack with no code, with a new code and the observation `unreadable label`. The original code keeps its earlier events and becomes a gap, which the review at 48 hours links to the new code or retires. Nobody guesses or types a code that cannot be read |
 | The decision was a mistake | A correction before dispatch with a reason, as the sack states allow. After dispatch it can no longer change |
 | A rejected sack goes back | `returned_to_farm` returns it to the farm with the same code, and the rejection stays in the history |
 | A sack is not found at pickup | `reported_missing` marks it for review |
 
-Every event of this flow already exists in the sack states, and every movement is a valid transition there. The names and the transitions were compared by hand with the tables of the sack states and the custody chain.
+Every event of this flow already exists in the sack states, and every movement is a valid transition there.
 
 ## 4. Weights
 
@@ -96,7 +96,7 @@ The farm weight and the reception weight are two readings of two scales, and the
 | Item | Rule |
 |---|---|
 | Farm weight | Recorded at registration and kept in the registration event and in the sack record. It is never overwritten |
-| Reception weight | Recorded at reception in the event of the decision. The event of an accepted sack carries it. The event of a rejected sack has no weight field in the custody chain, so the weight of a rejected sack is written in the observation until the data design adds a field |
+| Reception weight | Recorded at reception in the event of the decision, `weight_kg` on both an accepted and a rejected sack |
 | Difference | The platform shows the difference as a fact. It applies no tolerance, since no tolerance is defined in the case |
 | Gross or net | The documents record a weight and do not say whether it is gross or net. Until the Federation confirms, both weights are the reading of the scale for the sack as it is handled, with its packaging and its label, so they are on the same basis and their difference is comparable |
 | Tare | The platform subtracts no tare. The weight of the sack material is not known. If the Federation defines a net weight and a tare, a field for the basis of the weight is a decision of the data design |
@@ -115,9 +115,9 @@ The reasons are a short list of provisional categories, each with a code, and an
 | `identity` | The label does not match the record, or the sack cannot be tied to its record | |
 | `other` | Any other reason, with a required observation | |
 
-The custody chain stores one `reason` field on these events, so the code and the observation travel together in it, as a code followed by the text. A structured pair of fields is a decision of the data design. A correction takes one of `entry_error`, `new_information`, `recheck` or `other`, and a return takes one of `rejected_at_center`, `farm_request` or `other`. Both carry an observation.
+The custody chain stores the code in `reason_code` and the text in `observation` on each of these events, so reports can count rejections by reason. A correction takes one of `entry_error`, `new_information`, `recheck` or `other`, and a return takes one of `rejected_at_center`, `farm_request` or `other`. Both carry an observation.
 
-What the official sources say, and their scope. Publications of the coffee research institute of the Federation describe a purchase system that prices dry parchment coffee by a yield factor, the kilograms of parchment needed for a 70 kg sack of green coffee of export grade, with reference values that differ between publications, 92.8 in an article of 2017 and 94 in an article of 2025, and with discounts for a high factor. This is a way that cooperatives of growers price coffee. It is not shown to be the reception criterion of the pilot, it is not adopted here as a requirement, and no particular commercial standard is presented as universal. A summary of a search also mentions a classification of defects and a moisture range in other documents, which were not read in full and are not cited.
+What the official sources say, and their scope. Publications of the coffee research institute of the Federation describe a purchase system that prices dry parchment coffee by a yield factor, the kilograms of parchment needed for a 70 kg sack of green coffee of export grade, with reference values that differ between publications, 92.8 in an article of 2017 and 94 in an article of 2025, and with discounts for a high factor. This is how cooperatives of growers price coffee. The reception criteria of the pilot stay with the Federation, and the design adopts no commercial standard as one.
 
 ## 6. A sack that arrives with no code
 
@@ -132,7 +132,7 @@ Four things are kept apart, and each one can fail on its own without creating a 
 
 Order. Assignment and registration come first, so a print failure leaves a registered sack with no label, which a reprint of the same code repairs. Printing does not create the sack. When the link is up, the registration request and the assignment of the code can be one call, as the sack identity design describes. They are separated here only to say what happens when each one fails.
 
-The code sheet. The sack identity design calls the printed output of this flow the code sheet. In this document it is the label printed for one sack. A separate flow, in the custody chain design, prints blocks of labels for farms on the same printer. That flow is outside this story, its printer time is not in the printer table of section 9, and it must be added when the Federation says how many labels it prints and how often.
+The code sheet. The sack identity design calls the printed output of this flow the code sheet. In this document it is the label printed for one sack. A separate flow, in the custody chain design, prints blocks of labels for farms on the same printer. That flow belongs to the custody chain design. Its printer time joins the printer table of section 9 once the Federation says how many labels it prints and how often.
 
 One label only. The sheet that the printer produces carries one adhesive label for the sack. No second identical adhesive label is printed, since two identical labels could end on different sacks. If the Federation wants a receipt for the person who brought the sack, it is a separate slip. The slip is not adhesive, has another format, carries the words that it is not a sack label, has no QR and is never used to identify a sack. Whether the slip is needed is pending, and the design does not require it.
 
@@ -143,7 +143,7 @@ The sack then goes through reception as any other sack, with its decision. A sac
 | Item | Rule |
 |---|---|
 | Code | A reprint keeps the code of the sack. It never creates a sack and never draws a code |
-| Record | `label_reprinted`, which carries `center_id` today. The reason, `damaged`, `lost`, `wrong_label` or `other`, with an observation, is an added field that the data design must confirm |
+| Record | `label_reprinted` with `center_id`, `reason_code`, one of `damaged`, `lost`, `wrong_label` or `other`, and `observation` |
 | Old label | The previous label is withdrawn or voided when that is possible, so two labels with the same code do not travel. If it cannot be removed, it is marked as void and the new one is attached next to it |
 | Verification | The new label is scanned after it is attached, as in section 6 |
 | Count | The platform counts the reprints of each sack |
@@ -262,7 +262,7 @@ What the people at reception stations can do in the busiest hour. The day has 8 
 How to read the table.
 
 - The 63 sacks are the 150 arrivals of the busiest hour minus the 87 that 4 people serve in that hour. They are in the queue at its end.
-- The queue then clears while the arrivals of the other hours, 35.7 an hour, keep coming. The spare capacity of 4 people is 87.3 minus 35.7, which is 51.6 sacks an hour, so 63 sacks clear in 1.2 hours. An earlier version of this document used the average of 50 an hour for the hours that follow, and that gave 1.7 hours. It counted the busiest hour twice, since the 400 sacks of the day already include its 150. The 1.7 hours holds only if the other hours also brought 50 sacks an hour, which makes 450 sacks and is not the case.
+- The queue then clears while the arrivals of the other hours, 35.7 an hour, keep coming. The spare capacity of 4 people is 87.3 minus 35.7, which is 51.6 sacks an hour, so 63 sacks clear in 1.2 hours. The 400 sacks of the day already include the 150 of the busiest hour, so the other hours bring 35.7 an hour and never the average of 50.
 - The longest wait is that of the last sack that arrives in the busiest hour, the queue divided by the rate of service, 43 minutes with 4 people. It assumes that sacks are served in the order they arrive.
 - The model uses hourly averages and fixed times. A crew whose hourly capacity covers the volume can serve it under these assumptions, and that does not show that nobody waits when sacks arrive in bunches inside the hour or when the time of a step varies. The first harvest must show it.
 - Adding the average station work for sacks with no code and for reprints, 8 seconds a sack, 4 people serve 83 sacks an hour and the backlog is 67.
@@ -291,7 +291,7 @@ Operating proposal for the design. The numbers are the ones above, and the choic
 | Hours | 8 hours a day, assumed | The hours of the center are pending, and the position of the busiest hour in the day is unknown |
 | Waiting area | Room for the queue, 63 sacks with 4 people and 19 with 6 | The size of a sack and of the area are not known |
 
-Having devices for 22 clients does not show that the center has enough people, scales or inspection capacity, and this document does not claim it.
+Devices for 22 clients say nothing about people, scales or inspection capacity, which the table above sizes.
 
 Load of the label printer. The speed of the printer is not known, and the 30 seconds for a label are an assumption.
 
@@ -311,10 +311,7 @@ Load of the label printer. The speed of the printer is not known, and the 30 sec
 | Number of people and of scales at a center | Pending | Federation | The center may need waiting capacity or more people, see section 9 |
 | Utilization targets of 70 and 85 percent | Assumed | Team | Units needed change |
 | Inspection criteria and the reasons of section 5 | Pending | Federation | The categories are replaced |
-| Reason field of `label_reprinted` and a structured reason on the other events | Pending | The author of the custody chain design, who owns that data contract. This document does not change it | The reason stays in the observation or in the existing `reason` field |
 | Weight basis, gross or net, tare and tolerances | Pending | Federation | A field for the basis and a rule for the difference may be needed |
-| Weight of a rejected sack | Pending | The author of the custody chain design | The weight stays in the observation |
-| Label that is unreadable with an unknown code | Pending | Team | The sack stays held, see section 3 |
 | Receipt slip | Pending | Federation | Not needed by the design |
 | Printer model, speed, address, protocol and port | Pending | Equipment selection and the printing rule | Printing from the logistics zone cannot be commissioned until the rule is enabled. It blocks operation and does not block this design |
 | Label printing for farms, how many and how often | Pending | Federation | The printer load of section 9 rises |
@@ -322,19 +319,9 @@ Load of the label printer. The speed of the printer is not known, and the 30 sec
 | Inspection happens after arrival, in the same place | Pending, from the sack states | Center operation | Arrival and reception may merge |
 | Two days of outage as the size of the reserve | Assumed | Team | The reserve changes in proportion |
 
-## 11. Criteria of the story and their evidence
+## 11. Cost
 
-The story asks for a design. The table separates what the design still lacks, the assumptions that this delivery states and accepts, and the checks that come when a center starts to operate.
-
-| Literal criterion | Where it is answered | Gaps in the design | Assumptions accepted for this delivery | Checks to start operating |
-|---|---|---|---|---|
-| Flow of reception, acceptance and rejection | Sections 3 to 5 and the diagram. Every event and transition exists in the sack states, compared by hand with its tables | None for the flow. The reasons are provisional categories, and the structured reason field is a pending decision of the data contract | Provisional reason codes, the weight shown as a difference with no tolerance | The Federation confirms the categories, the inspection criteria, the weight basis and the tolerances |
-| Printing of code sheets for sacks that arrive with no code | Sections 6 to 8. Four steps with a failure for each, one label per sack, a retry that creates no sack and no code, reprints, and blocks of codes with exhaustion, loss, replenishment and reconciliation | Printing of block sheets for farms is not sized, see section 6 | The label printed for one sack is the code sheet of the identity design. A review from the third reprint. A reserve of 80 codes | The printing rule enabled with address, protocol and port, the printer chosen, a test reception, and a time study of the steps |
-| Capacity of 400 sacks a day per center in harvest | Section 9 and the script. Stations and capacity by stage, the bottleneck, a crew proposal with wait, hours and waiting area, and the comparison with the devices | None | Times, 8 hours, the busiest hour at 3 times the average, shares of sacks with no code and reprints, utilization targets | Time study at the first center, the crew and hours of the center, the real position of the busiest hour |
-
-Printing. The design of the printing is complete for the documentary criterion, since it states the steps, the failures, the single label, the reprint and the offline blocks. Putting the printer into operation is blocked. The rule from the logistics zone to the label printer is pending, and until it is enabled no center can print from that zone. Nothing here opens a permission.
-
-Additions requested for the design and not criteria of the story. The inspection detail, the work with no internet, the reserve of codes and the reconciliation, which cite the decisions already taken.
+Reception events reach the platform through the same API as every other sack event, and the platform overview counts them in its line for positions, sacks and queries, about USD 1.34 in a harvest month for the whole pilot. The design adds no cloud resource. The scales, the reception devices, the label printer and the labels are equipment and consumables of the center, and their prices are pending with the equipment selection.
 
 ## 12. Sources
 
@@ -342,4 +329,4 @@ Additions requested for the design and not criteria of the story. The inspection
 |---|---|---|
 | The sack states, custody chain, sack identity and carrier application contract of this repository | Events, states, rules and the flows reused here | Design documents |
 | The collection center LAN and WLAN documents | Zones, devices and the pending printing rule | The printing rule is pending |
-| Cenicafé, article on the economic losses in the processing of coffee, Revista Cenicafé 76(2), 2025, and a Cenicafé leaflet of 2017 on the quality of coffee in cherry | The yield factor as a way to price dry parchment coffee, with reference values of 94 and 92.8 | A pricing method of cooperatives of growers, with values that differ. Not a reception criterion of this pilot and not adopted as one |
+| Cenicafé, [article on the economic losses in the processing of coffee](https://publicaciones.cenicafe.org/index.php/cenicafe/article/download/4980/5284), Revista Cenicafé 76(2), 2025, and a Cenicafé leaflet of 2017 on the quality of coffee in cherry | The yield factor as a way to price dry parchment coffee, with reference values of 94 and 92.8 | A pricing method of cooperatives of growers, with values that differ, which the design keeps apart from reception |

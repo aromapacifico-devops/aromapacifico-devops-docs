@@ -120,7 +120,7 @@ def main():
         day_share = SACKS_PER_DAY * rec / 3600 / (people * DAY_HOURS)
         print(f"| {people} | {full:.0f} | {backlog:.0f} sacks | {clear} | {wait} | {day_share:.0%} |")
     full4 = 4 * 3600 / rec
-    print(f"\nThe 63 sacks are {peak_per_hour:.0f} arrivals minus the {full4:.1f} that 4 people serve in the hour. If the 7 other hours also brought the average of {avg_per_hour:.0f} an hour, which counts the busiest hour twice and gives 450 sacks, the same backlog would take {(peak_per_hour - full4) / (full4 - avg_per_hour):.1f} hours to clear.")
+    print(f"\nThe 63 sacks are {peak_per_hour:.0f} arrivals minus the {full4:.1f} that 4 people serve in the hour. The 400 sacks of the day include them, so the 7 other hours bring the rest, never the daily average of {avg_per_hour:.0f} an hour.")
     extra = station_nc * nc + 40 * REPRINT_SHARE
     full4b = 4 * 3600 / (rec + extra)
     print(f"Adding the average station work for sacks with no code and reprints, {extra:.0f} seconds a sack, 4 people serve {full4b:.1f} an hour and the backlog is {peak_per_hour - full4b:.0f} sacks.")
