@@ -98,15 +98,18 @@ The source calls its figures indicative and does not say whether they include IV
 
 **Mobile data of the farm nodes.** No Colombian operator publishes a price for machine connections. A multi-operator IoT connectivity provider lists data from EUR 0.0025 per MB and covers two Colombian networks, and it does not publish a monthly fee per SIM or the price of the card. At 5.5 MB a month for a node, data alone costs about EUR 0.014, so 200 nodes cost about EUR 2.75 a month. The fee per SIM is the figure that decides the cost, and only a quote provides it.
 
+A prepaid plan of a global IoT connectivity provider lists a one-time payment of $14 for 10 years of service with 500 MB of data at up to 1 Mbit/s, and a card at $1 or $2. The page shows a dollar sign without naming the currency, says nothing about taxes, and does not name Colombia among its covered countries, so coverage needs confirmation. At 5.5 MB a month, 500 MB lasts about 91 months, or 7.6 years, so a node needs a data top-up before the tenth year, and the price of a top-up is not published.
+
 ## 6. Hardware references
 
-Only one hardware listing could be read directly on the retrieval date.
+Two hardware listings could be read directly on the retrieval date.
 
 | Item | Reference | Price as listed | Notes |
 |---|---|---|---|
+| Cellular module with LTE-M and NB-IoT | Quectel BG95-M3 in mini PCIe format, at a US distributor | USD 35.86 for one unit | A mini PCIe board and not the bare surface-mount module the node would use. The listing does not state tax, and import duties are extra |
 | Outdoor LoRaWAN gateway | RAK7289 V2 WisGate Edge Pro at a European retailer, offered with 8 or 16 channels and several backhaul options | EUR 537.76 for the listing | Includes German VAT of 19 percent, shipping extra. The variant for the Colombian frequency plan is not fixed |
 
-No verified listing price could be read for the cellular module of the node, the multiparameter probe, the solar kit and the spraying drone, since the listings found either did not open or showed prices in other currencies and without a stated tax. The hardware and drone estimates request quotes for those items and record them with their date.
+No verified listing price could be read for the bare cellular module, the multiparameter probe, the solar kit and the spraying drone, since the listings found either did not open or came from marketplaces and resellers whose pages could not be checked. The hardware and drone estimates request quotes for those items and record them with their date.
 
 ## 7. Cost assumptions
 
@@ -127,7 +130,7 @@ No verified listing price could be read for the cellular module of the node, the
 | Operator prices in pesos include IVA or not, as the quote says | Operators | Same effect on the connectivity lines |
 | Import duties and IVA on hardware | Federation and customs agent | Hardware cost rises by the duties and IVA |
 | Prices in the operator article hold for the municipalities of the pilot | Operator quotes | The connectivity lines change |
-| The fee per SIM of the IoT connectivity provider | Quote | Mobile data cost changes, and the fee may exceed the data cost |
+| Colombian coverage, taxes and top-up price of the prepaid IoT plan, and the fee per SIM of the other providers | Quote | Mobile data cost changes, and the fee may exceed the data cost |
 
 ## Sources
 
@@ -137,3 +140,5 @@ No verified listing price could be read for the cellular module of the node, the
 - Edatel, article on dedicated and shared business internet, published 19 February 2026.
 - Onomondo, pricing page.
 - IoT-shop, RAK7289 V2 WisGate Edge Pro listing.
+- DigiKey, listing of the Quectel BG95M3LA-MINIPCIE module.
+- 1NCE, pricing page of the IoT Lifetime Flat plan.
