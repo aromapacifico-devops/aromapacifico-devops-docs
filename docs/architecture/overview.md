@@ -87,6 +87,26 @@ Sites at the edge hold their data until a path exists. A serverless platform in 
 
 **A person decides.** Functions confirm, classify and estimate. Only a named person authorizes a fumigation, and no trigger can do it. This follows from the risk of the action, since a wrong fumigation cannot be undone.
 
+### Key decisions
+
+Each choice has a decision record with its alternatives, and the [decision index](../adr/README.md) lists all of them. These are the ones that shape the platform most.
+
+| Subject | Decision | Why |
+|---|---|---|
+| [Primary and second cloud](../adr/cloud-platform.md) | AWS `us-east-1`, with Azure East US prepared and idle | Managed IoT, serverless and inference services fit a small, intermittent load, and the second cloud costs nothing while idle |
+| [Out-of-coverage farms](../adr/out-of-coverage-connectivity.md) | A LoRaWAN gateway shared by the vereda for readings, and a data mule for objects | No new base station and no weekly visit |
+| [Mobile network generation](../adr/mobile-network-generation.md) | No dependence on 2G or 3G, and the modem chosen with the operator | The access network keeps changing during the pilot |
+| [Farm node connection](../adr/farm-node-connection.md) | One cycle each hour, configuration through a Device Shadow | A sleeping node saves energy and still receives its configuration |
+| [Telemetry storage](../adr/telemetry-storage.md) | DynamoDB for 90 days and S3 for five years | Fast reads for recent data and cheap retention for the rest |
+| [Sack event history](../adr/sack-event-history.md) | The sack state is derived from its insert-only events | A late or repeated event can never corrupt a sack |
+| [Drone operating mode](../adr/drone-operating-mode.md) | Area work for polygons and estimates, precision work for foci | The drone flies where a sensor points, which costs far less than sweeping farms |
+| [Flight log and fumigation](../adr/flight-log-and-fumigation.md) | One stored log before authorization and another before closure | No fumigation starts or closes on a missing record |
+| [Managed inference](../adr/managed-inference.md) | Bedrock for analysis and Rekognition as a person filter | No model is trained, and no person reaches the model |
+| [Inference failure policy](../adr/inference-failure-policy.md) | Four receives, a dead letter queue for each function and rule, no state change on failure | A failure leaves the case as it was and is visible to an operator |
+| [Center cloud link](../adr/center-cloud-link.md) | Static site-to-site VPN on a virtual private gateway, with a dedicated link and shared fiber as fallback | Center traffic stays private at a fixed monthly cost |
+| [Public lookup path](../adr/public-lookup-path.md) | Function URL behind CloudFront with a web firewall, capped by five reserved copies | The only public service has a ceiling on load and on cost |
+| [Infrastructure code scope](../adr/infrastructure-code-scope.md) | Telemetry ingestion and the focus confirmation function as the coded patterns | They prove the critical paths within the 100 hours |
+
 <div class="diagram"><img src="diagrams/00-platform-overview.drawio.png" alt="Target platform on AWS, from the farm to the port of Buenaventura"><p>The complete platform, from the farm to the port of Buenaventura. Section 17 shows where each required element appears.</p></div>
 
 ## 4. The six flows
@@ -165,6 +185,25 @@ Each kind of site has its protocol, its local buffer and its behavior with no si
 
 The [farm connectivity](../network/farm-connectivity.md), [out-of-coverage LoRa path](../network/lora-out-of-coverage.md), [drone mission link](../network/drone-mission-link.md), [carrier tracking](../network/carrier-tracking.md) and [port delivery](../network/port-delivery.md) designs detail each row. No part of the design depends on a mobile generation that an operator is retiring, as the [mobile network validity](../network/mobile-network-validity.md) shows.
 
+**Store-and-forward on the farm node.** The node writes every reading to encrypted flash before its modem powers on, so a failed connection loses nothing, as the [farm connectivity](../network/farm-connectivity.md) design defines.
+
+| Rule | Behavior |
+|---|---|
+| Write first | The reading reaches the flash before the modem powers on |
+| Purge before connecting | Each hourly cycle deletes records of 24 hours or more, then connects |
+| Count what is deleted | Each deleted record adds one to `dropped_total`, so the platform knows what is missing |
+| Drain oldest first | Up to 10 unconfirmed messages at a time |
+| Delete on confirmation | A record leaves the buffer only after IoT Core confirms it |
+| Sequence survives restarts | Duplicates and gaps stay detectable after a reboot |
+
+| Length of the outage | What reaches the platform | Delay |
+|---|---|---|
+| Under 1 hour | Everything | 1 hour at most |
+| 1 to 23 hours | Everything | The outage, plus up to 1 hour |
+| Over 24 hours | The readings of the last 23 hours, and the older ones counted | Up to 1 hour after the signal returns |
+
+The platform evaluates each reading on arrival, so an alert from a buffered reading goes out at the drain, within the 24-hour limit, and it carries the time of the reading.
+
 <div class="diagram"><img src="diagrams/03-connectivity-and-centers.drawio.png" alt="Connectivity and centers"><p>How each site connects and what happens with no signal.</p></div>
 
 **Collection centers.** Each center starts with no network, and one [LAN pattern](../network/collection-center-lan.md) repeats in Cauca, Huila and Tolima, changing only the second octet, 41, 42 or 43.
@@ -186,6 +225,28 @@ Each zone has its own SSID on its own VLAN, as the [center WLAN](../network/cent
 **Link to the cloud.** Each center reaches the cloud through a static site-to-site VPN with two tunnels on the virtual private gateway. Only logistics and the local servers reach the private endpoints of the platform, and the second tunnel takes over when one fails, as the [center cloud link](../network/center-cloud-link.md) defines.
 
 <div class="diagram"><img src="diagrams/18-center-cloud-link.drawio.png" alt="Center cloud link"><p>Routes, names and tunnels between a center and the cloud, and what happens when the link fails.</p></div>
+
+**Firewall policy.** Traffic between a center and the cloud meets independent barriers, the perimeter firewall of the center, the tunnel routes, the security groups of the endpoints and the network ACLs of the subnets, and the public lookup has its own web firewall. The [firewall policy](../security/firewall-policy.md) lists 38 rules. This summary groups them by enforcement point.
+
+| Rules | Source | Destination | Port | Action | Duration |
+|---|---|---|---|---|---|
+| CTR-01, CTR-02 | Logistics `10.X.3.0/24` and local servers `10.X.10.0/24` | Endpoint subnets of the environment | TCP 443 | Allow | Permanent |
+| CTR-03 | Logistics | Label printer in `10.X.10.0/24` | One port, set by the printer model | Allow | Pending |
+| CTR-04 to CTR-06 | Management, support and transport | Internet | TCP 443 | Allow | Permanent |
+| CTR-07 | Visitors `10.X.5.0/24` | Internet | TCP 80 and 443 | Allow | Permanent |
+| CTR-09, CTR-10 | Visitors | Private ranges and the firewall itself | Any | Deny | Permanent |
+| CTR-11 to CTR-13 | Public address of the firewall | Outside addresses of both tunnels | UDP 500, UDP 4500, ESP | Allow | Permanent |
+| CTR-16 | Administration hosts `10.X.10.11` to `10.X.10.20` | Firewall administration | TCP 443 and 22 | Allow | Permanent |
+| CTR-17 | One administration host | Update service of the firewall vendor | TCP 443 | Allow | Temporary, one maintenance window |
+| CTR-18 | Any | Any | Any | Deny and log | Permanent |
+| TUN-01 to TUN-04 | Logistics and local servers only | Endpoint subnets only, through the virtual private gateway | Route | Allow, and no route for any other range | Permanent |
+| SG-01 to SG-03 | Center source ranges | IoT Core, S3 and private API endpoints | TCP 443 | Allow | Permanent in production, temporary in development and test |
+| SG-04, SG-05 | Endpoints and the default group | Any | Any | Deny | Permanent |
+| NACL-01 to NACL-04 | Center source ranges | Endpoint subnets, with the reserved subnets closed | TCP 443 in, ephemeral ports back | Allow, and deny everything else | Permanent |
+| WAF-01 | Any address | Sack lookup | More than 300 requests in 5 minutes | Block | Permanent |
+| WAF-02, WAF-03 | Any address | Public edge | Common attacks and known bad inputs | Block | Permanent |
+
+The infrastructure code builds the cloud rules, SG-01 to SG-05, NACL-01 to NACL-04 and the cloud routes of TUN-03. The center rules load from one installation template that is the same for the three centers. Farm nodes, drones away from a center and carriers reach public endpoints, where device certificates, Cognito tokens and TLS are the control. A temporary rule needs an owner, a reason and an end date, and no rule changes in production from 05:00 to 18:00 in a harvest week.
 
 **Cloud addressing.** Each environment has its own /16 outside the centers' ranges, and every one holds the seven required subnets. The [cloud addressing](../network/cloud-addressing.md) plan grows from 200 to 1,000 farms with no change, since farms hold no VPC addresses.
 
