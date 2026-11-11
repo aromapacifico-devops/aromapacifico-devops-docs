@@ -227,7 +227,7 @@ Each function has its own execution role. The table states the exact actions and
 | `sqs:ReceiveMessage`, `sqs:DeleteMessage`, `sqs:GetQueueAttributes` | Its work queue | Its work queue | Its work queue | Its work queue |
 | `s3:GetObjectVersion` | `focus/*` | `verification/*` | `estimation/*` | `crop/*` and `drying/*` |
 | `s3:PutObject` | `restricted/*` | `restricted/*` | `restricted/*` and `estimation/derived/*` | None |
-| `s3:DeleteObjectVersion` | `focus/*` | `verification/*` | `estimation/*` | None |
+| `s3:DeleteObject`, `s3:DeleteObjectVersion` | `focus/*` | `verification/*` | `estimation/*` | None |
 | `rekognition:DetectLabels` | Resource `*` | Resource `*` | Resource `*` | None |
 | `bedrock:InvokeModel` | Configured inference profile and associated foundation models | Same | Same | None |
 | `dynamodb:PutItem` | Case table | Case table | Case table | Readings table |
@@ -280,7 +280,7 @@ Focus confirmation is the function implemented as the infrastructure pattern. It
 | Read the persisted object | `s3:GetObjectVersion` on `focus/*` |
 | Write the result | `dynamodb:PutItem` on the case table |
 | Invoke managed inference | `rekognition:DetectLabels` and `bedrock:InvokeModel` |
-| Handle a person | `s3:PutObject` on `restricted/*` and `s3:DeleteObjectVersion` on the source version |
+| Handle a person | `s3:PutObject` on `restricted/*` and `s3:DeleteObject` with `s3:DeleteObjectVersion` on the source version |
 | Publish completion | `events:PutEvents` for `inference.completed` |
 | Failure queue | Focus work queue with a dead letter queue and redrive |
 | Failure signal | CloudWatch alarm on failed invocations and dead letter messages |
@@ -346,11 +346,11 @@ Per 1,000 images                                  = USD 1.7524
 | Verification | 500 images in a harvest month | 500 x 0.0017524 | 0.88 |
 | Harvest estimation | 20,000 images in a harvest | 20,000 x 0.0017524 | 35.05 |
 | Estimation orthomosaic function | 200 runs, about 5 minutes at 4 GB | 200 x 300 x 4 x 0.0000166667, plus requests | 4.00 |
-| Telemetry reconciliation | 108,000 readings, up to 864,000 range reads | 432,000 read units x 0.125 / 1,000,000 | 0.05 |
+| Telemetry reconciliation | 108,000 readings, up to 864,000 range queries | 864,000 x 0.5 read unit x 0.125 / 1,000,000 | 0.05 |
 | Telemetry writes | 108,000 write units | 108,000 x 0.625 / 1,000,000 | 0.07 |
 | Telemetry function | 1,440 runs of 1 second at 256 MB | 360 GB-seconds x 0.0000166667, plus requests | 0.01 |
 
-Focus and verification add Lambda request and duration charges below USD 0.02 at these volumes and the duration profile already used in the cost analysis. SQS, EventBridge and case table writes stay below USD 0.01 for the drone functions. The four functions add about USD 45.16 in an estimation harvest and about USD 14.90 per average harvest month for the three vision workloads, with telemetry below USD 0.15 a month.
+Focus and verification add Lambda request and duration charges below USD 0.02 at these volumes and the duration profile already used in the cost analysis. SQS, EventBridge and case table writes stay below USD 0.01 for the drone functions. The 8,500 images of the three vision functions cost USD 14.90 in an average harvest month. The estimation function adds USD 1.00 a month when its USD 4.00 campaign cost spreads over four months. All four functions add about USD 45.31 in an estimation harvest and about USD 16.03 in an average harvest month.
 
 A normalized cost per 1,000 harvest invocations belongs to the consolidated inference cost analysis. This document keeps the rates, the volumes and the calculations visible without defining that reporting unit.
 
@@ -370,11 +370,11 @@ A normalized cost per 1,000 harvest invocations belongs to the consolidated infe
 | Assumption | Why it is reasonable | If false | Confirms |
 |---|---|---|---|
 | About 50 photos cover a focus, 20 a verification and 100 an estimation flight | They come from the existing mission designs and the pilot volume | Inference and storage cost scale with the real photo count | Brigades, on the first flights |
-| The model and prompt produce useful labels for focus, damage and tree count | Similar visual tasks are within the model capabilities, and the prompts are versioned | Labels move to review or estimation falls back to field counts | Agronomy review against field checks |
+| The model and prompt produce useful labels for focus, damage and tree count | The documented model capabilities include image question answering, object detection and object counting, and the prompts are versioned | Labels move to review or estimation falls back to field counts | Agronomy review against field checks |
 | The 80 percent coverage threshold is enough to judge a treatment | It leaves a margin for blurred or restricted photos | The threshold changes in configuration and more attempts are planned | Agronomy review with field checks |
-| A person filter confidence threshold set low is safe for privacy | A false positive repeats a capture, while a false negative sends a person to inference | The threshold changes and capture planning adjusts | Review with real images |
-| Each vision call uses about 50 text input tokens and 240 output tokens | A short versioned instruction and a compact result fit that profile | Bedrock cost changes in proportion, while Rekognition stays fixed | Consolidated cost analysis from the usage returned by the first calls |
-| A telemetry run takes about 1 second at 256 MB, with one object per stream in each 15-minute window | Firehose buffers for 900 seconds and the monthly archive is 54 MB | Lambda cost and batch count change, with no change to threshold outcomes | First archived batches in the test environment |
+| A person filter confidence threshold set low is safe for privacy | A false positive repeats a capture, while a false negative sends a person to inference | The threshold changes and capture planning adjusts | Platform operator, with agronomy review on real images |
+| Each vision call uses about 50 text input tokens and 240 output tokens | A short versioned instruction and a compact result fit that profile | Bedrock cost changes in proportion, while Rekognition stays fixed | Cost analysis owner, from the usage returned by the first calls |
+| A telemetry run takes about 1 second at 256 MB, with one object per stream in each 15-minute window | Firehose buffers for 900 seconds and the monthly archive is 54 MB | Lambda cost and batch count change, with no change to threshold outcomes | Platform operator, from the first archived batches in the test environment |
 
 ## 16. Sources
 
