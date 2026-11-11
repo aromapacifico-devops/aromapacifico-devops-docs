@@ -14,4 +14,4 @@ The headline unit is 1,000 images analyzed, USD 1.89 in harvest with the run ove
 
 ## Consequences
 
-The figure follows what the bill follows and compares directly with a quote or another model. A single figure for all function runs would be set by the telemetry objects and would hide the vision cost. The fumigation photos stay out because no function reads them. The monthly cloud cost and the [pilot cost](../governance/pilot-cost.md) use USD 16.26 for an average harvest month and keeps USD 45.95 as the ceiling of the estimation month.
+The figure follows what the bill follows and compares directly with a quote or another model. A single figure for all function runs would be set by the telemetry objects and would hide the vision cost. The fumigation photos stay out because no function reads them. The monthly cloud cost and the [pilot cost](../governance/pilot-cost.md) use USD 16.26 for an average harvest month, and the pilot cost keeps USD 45.95 as the ceiling of the estimation month.
