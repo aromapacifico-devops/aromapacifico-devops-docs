@@ -514,7 +514,7 @@ The LoRa variant stays pending for its radio parameters, which wait on the regul
 
 ## 12. Minimum bill of materials and installation in one visit
 
-The list gives classes, quantities and required specifications. It has no prices and no models.
+The list gives classes, quantities and required specifications. It has no prices and no models. The [farm hardware and fee](../governance/farm-hardware-and-fee.md) estimate lists the prices read for these classes and what is still to quote.
 
 | Item | Quantity | Required specification |
 |---|---|---|

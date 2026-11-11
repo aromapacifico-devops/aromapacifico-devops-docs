@@ -374,7 +374,7 @@ Firmware updates over the air bill per task, USD 0.006 each in the first 250,000
 | Data plan | One SIM plan per node | None | One cellular plan for the gateway |
 | Gateway | None | None | Gateway, mast, antenna and the solar kit of section 11 |
 
-The rest of the node, its probes, battery and panel, is the same on both paths. A LoRa farm therefore replaces the cellular module and its monthly plan with a LoRa module and its share of the gateway, which is the cost of the gateway, its kit and its plan divided by the farms in range. The prices of the modules, the gateway and the plans belong to the hardware estimate of one farm, and the number of farms per gateway comes from the site study.
+The rest of the node, its probes, battery and panel, is the same on both paths. A LoRa farm therefore replaces the cellular module and its monthly plan with a LoRa module and its share of the gateway, which is the cost of the gateway, its kit and its plan divided by the farms in range. The prices of the modules, the gateway and the plans belong to the hardware estimate of one farm, and the number of farms per gateway comes from the site study. The [farm hardware and fee](../governance/farm-hardware-and-fee.md) estimate prices them with assumed numbers of farms for each gateway and no claim of radio coverage.
 
 ## 14. Site study
 
