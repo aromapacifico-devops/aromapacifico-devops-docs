@@ -20,3 +20,4 @@ Cloud names reach a center through the endpoint-specific names of the interface 
 - Failover between the two tunnels depends on the health checks of the firewall, since there is no BGP liveness check. No recovery time is promised, and both tunnels share the WAN link and the firewall of the center.
 - The routes and the names are design read in documentation and are not tested. The first center must show the names, the ports of IoT Core, presigned URLs for S3 and the failover.
 - A change to BGP, to a resolver in the cloud or to a different link type needs a new record.
+- The IoT Core leg stays open until the port decision of the firewall policy owner is taken, since the rules admit TCP 443 only and the interface endpoint of IoT Core is not documented to carry MQTT on 443. The S3 leg depends on how the upload function chooses the host that it signs.

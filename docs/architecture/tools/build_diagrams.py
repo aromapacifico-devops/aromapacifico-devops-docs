@@ -335,7 +335,7 @@ def overview():
     p.edge("web", "waf", "", BIZ, exit=(0, 0.5), entry=(1, 0.15), points=[(2195, 588), (2195, 636)], width=2)
     p.edge("cf", "wa", "", BIZ, exit=(0.5, 0), entry=(0.5, 1), width=2)
     p.edge("waf", "cf", "", BIZ, width=2)
-    p.edge("cf", "api", "⑤ read-only API", BIZ, exit=(0, 0.25), entry=(0.5, 0), points=[(1700, 642), (1700, 606), (682, 606)], width=2)
+    p.edge("cf", "dom", "⑤ signed lookup", BIZ, exit=(0, 0.25), entry=(0.5, 0), points=[(1700, 642), (1700, 606), (1082, 606)], width=2)
     p.edge("fw", "vgw", "③ ④", OBJ, exit=(1, 0.5), entry=(0, 0.5), points=[(562, 1110), (562, 1058)], width=2)
     p.edge("vgw", "obj", "④", OBJ, exit=(0.3, 0), entry=(0.3, 1), width=2)
     p.edge("vgw", "api", "③", BIZ, exit=(0.6, 0), entry=(0.85, 1), points=[(714, 1000), (782, 1000), (782, 730), (739, 730)], width=2)
@@ -448,7 +448,7 @@ def end_to_end():
     p.edge("web", "cf", "reports", BIZ, exit=(1, 0.5), entry=(1, 0.25), points=[(1760, 276), (1760, 383)])
     p.edge("farmer", "cf", "history", BIZ, exit=(1, 0.5), entry=(1, 0.75), points=[(1795, 146), (1795, 409)])
     p.edge("buyer", "cf", "HTTPS", BIZ, exit=(0.5, 0), entry=(0.5, 1))
-    p.edge("cf", "api", "public API behind WAF, read-only buyer view", BIZ, exit=(0, 0.5), entry=(0.5, 0), points=[(1560, 396), (1560, 310), (816, 310)])
+    p.edge("cf", "domfn", "function URL behind WAF, read-only buyer view", BIZ, exit=(0, 0.5), entry=(0.5, 0), points=[(1560, 396), (1560, 310), (1136, 310)])
 
     p.group("Azure East US: prepared, idle", 1580, 630, 240, 240, stroke="#0078D4", dashed=True, sw=2)
     p.azure("IoT Hub", 1604, 664, "iot/IoT_Hub.svg")
@@ -1194,8 +1194,111 @@ def alert_delivery():
     return p
 
 
+def fumigation_order():
+    p = Page("16 Fumigation order states", 2740, 900, "Fumigation order states: from a confirmed focus to a closure that only a person can sign")
+    zones = [("Before authorization", 40, 490, "#EAF2F8", "#147EBA", "z1"), ("Authorized, no product applied", 580, 490, "#EAF6EC", "#2E7D32", "z2"),
+             ("Application in the field, with no connection", 1120, 490, "#FEF9E7", "#B7950B", "z3"), ("Record, verification and closure", 1660, 1040, "#F4ECF7", "#6A1B9A", "z4")]
+    for name, x, w, fill, stroke, cid in zones:
+        p.zone(name, x, 190, w, 520, fill, stroke, cid=cid, size=13)
+    st = dict(w=170, h=76, size=12)
+    red, grey, green = dict(fill="#FDEDEC", stroke=FAIL), dict(fill="#F2F3F4", stroke=CTRL), dict(fill="#E8F5E9", stroke=TEL)
+    p.step("<b><font style=\"font-size:10px\">PREREQUISITE_PENDING</font></b><br>order created<br>by a supervisor", 60, 260, cid="pre", **st)
+    p.step("<b><font style=\"font-size:10px\">READY_FOR_HUMAN_REVIEW</font></b><br>polygon, log, farmer<br>and permits checked", 320, 260, cid="ready", **st)
+    p.step("<b><font style=\"font-size:10px\">AUTHORIZED</font></b><br>named supervisor,<br>second factor", 600, 260, cid="auth", **st)
+    p.step("<b><font style=\"font-size:10px\">PACKAGE_PRELOADED</font></b><br>station and drone,<br>or brigade phone", 860, 260, cid="pkg", **st)
+    p.step("<b><font style=\"font-size:10px\">EXECUTING</font></b><br>inside the package<br>window", 1140, 260, cid="exec", **st)
+    p.step("<b><font style=\"font-size:10px\">EXECUTED_PENDING_SYNC</font></b><br>log closed<br>in the field", 1400, 260, cid="eps", **st)
+    p.step("<b><font style=\"font-size:10px\">FLIGHT_RECORD_PERSISTED</font></b><br>record verified,<br>planned product lot", 1720, 260, cid="frp", **st)
+    p.step("<b><font style=\"font-size:10px\">VERIFICATION_PENDING</font></b><br>stays open with<br>no verification file", 1980, 260, cid="vp", **st)
+    p.step("<b><font style=\"font-size:10px\">VERIFIED</font></b><br>verification<br>record stored", 2240, 260, cid="ver", **st)
+    p.step("<b><font style=\"font-size:10px\">CLOSED</font></b><br>outcome and any<br>follow-up order", 2500, 260, cid="closed", **green, **st)
+    p.step("<b><font style=\"font-size:10px\">REJECTED</font></b><br>supervisor or<br>farmer refused", 320, 80, cid="rej", **grey, **st)
+    p.step("<b><font style=\"font-size:10px\">CANCELLED</font></b><br>withdrawn<br>before takeoff", 660, 80, cid="can", **grey, **st)
+    p.step("<b><font style=\"font-size:10px\">EXPIRED</font></b><br>window ended,<br>no product applied", 900, 80, cid="exp", **grey, **st)
+    p.step("<b><font style=\"font-size:10px\">BLOCKED</font></b><br>safety condition<br>failed", 320, 480, cid="blk", **red, **st)
+    p.step("<b><font style=\"font-size:10px\">ABORTED</font></b><br>applicator stopped<br>the application", 1140, 480, cid="abo", **red, **st)
+    p.step("<b><font style=\"font-size:10px\">PARTIAL</font></b><br>part of the area<br>treated", 1400, 480, cid="par", **red, **st)
+    p.step("<b><font style=\"font-size:10px\">SYNC_REVIEW_REQUIRED</font></b><br>failed check or<br>other product lot", 1720, 480, cid="syn", **red, **st)
+
+    p.edge("pre", "ready", "checks pass", TEL)
+    p.edge("ready", "auth", "authorizes", BIZ, width=2)
+    p.edge("auth", "pkg", "both acks", TEL)
+    p.edge("pkg", "exec", "takeoff", BIZ)
+    p.edge("exec", "eps", "log closed", BIZ)
+    p.edge("eps", "frp", "record published", TEL)
+    p.edge("frp", "vp", "planned", TEL)
+    p.edge("vp", "ver", "stored", TEL)
+    p.edge("ver", "closed", "closes", BIZ, width=2)
+
+    p.edge("ready", "rej", "refuses", BIZ, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("pre", "rej", "farmer refuses", BIZ, exit=(0.5, 0), entry=(0, 0.5), points=[(145, 118)])
+    p.edge("z1", "can", "", BIZ, exit=(0.97, 0), entry=(0, 0.5), points=[(515, 118)])
+    p.edge("z2", "can", "cancels", BIZ, exit=(0.3, 0), entry=(0.394, 1))
+    p.edge("z2", "exp", "window ends", CTRL, exit=(0.8, 0), entry=(0.424, 1))
+    p.edge("ready", "blk", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("pre", "blk", "", FAIL, exit=(0.7, 1), entry=(0, 0.263), points=[(179, 500)])
+    p.edge("auth", "blk", "", FAIL, exit=(0.5, 1), entry=(1, 0.5), points=[(685, 518)])
+    p.edge("pkg", "blk", "polygon, permit or package fails", FAIL, exit=(0.5, 1), entry=(1, 0.5), points=[(945, 518)])
+    p.edge("blk", "pre", "", BIZ, exit=(0, 0.75), entry=(0.3, 1), points=[(111, 537)])
+    p.edge("exec", "abo", "aborts", FAIL, exit=(0.3, 1), entry=(0.3, 0))
+    p.edge("abo", "exec", "", BIZ, exit=(0.7, 0), entry=(0.7, 1))
+    p.edge("eps", "par", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("abo", "par", "product applied", FAIL, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("eps", "syn", "", FAIL, exit=(1, 0.8), entry=(0, 0.5), points=[(1650, 321), (1650, 518)])
+    p.edge("syn", "frp", "accepted", BIZ, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("syn", "par", "incomplete", BIZ, exit=(0.3, 1), entry=(0.8, 1), points=[(1771, 600), (1536, 600)])
+    p.edge("par", "vp", "requests verification", BIZ, exit=(0.3, 1), entry=(0.5, 1), points=[(1451, 660), (2065, 660)])
+    p.text("revise", 130, 514, 60, 20, size=11, color=BIZ)
+    p.text("retry", 1268, 420, 60, 20, size=11, color=BIZ)
+
+    p.legend(40, 740, 560, [(TEL, False, "Platform function, conditional write"), (BIZ, False, "Person, with the group and second factor checked"),
+                            (FAIL, False, "Safety stop or failure"), (CTRL, False, "Scheduler at the end of the window")])
+    p.note("<b>Only a supervisor</b> moves an order to AUTHORIZED or CLOSED, and only the supervisor or the farmer to REJECTED. No model, function, event or upload can authorize.", 640, 740, 640, 60, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Not drawn.</b> READY_FOR_HUMAN_REVIEW expires when its proposed window ends. ABORTED expires when no product left the tank. BLOCKED and EXPIRED can be revised or cancelled, and READY, AUTHORIZED and PACKAGE_PRELOADED can be revised. All 40 moves are in fumigation-order-transitions.json.", 1320, 740, 860, 76)
+    p.note("<b>Audit.</b> Every move, allowed or denied, writes one fumigation.transition event to the log archive.", 2220, 740, 480, 60)
+    return p
+
+
+def public_query():
+    p = Page("17 Public query", 2000, 860, "How a buyer reads one sack by code, and what limits bulk reads of the public query")
+    p.zone("Public internet", 40, 80, 260, 600, "#FDEDEC", FAIL, dashed=True)
+    p.card("Buyer phone", "Scans the QR, no sign-in", 60, 150, 220, 64, cid="buyer", net="mobile")
+    p.card("Direct caller", "Calls the function URL address", 60, 560, 220, 64, cid="direct", net="pc", stroke=FAIL, dashed=True)
+
+    p.zone("CloudFront edge", 360, 80, 490, 600, "#F4ECF7", NET)
+    p.card("AWS WAF web ACL", "300 per address in 5 min, managed rules", 440, 140, 180, 84, cid="waf", icon="waf", color=SEC)
+    p.card("Distribution", "Page cached, lookup path not cached", 670, 140, 160, 84, cid="cf", icon="cloudfront", color=NET)
+
+    p.zone("AWS us-east-1, production account", 890, 80, 830, 600, "#EBF5FB", INK)
+    p.card("Query page bucket", "S3, read by the distribution only", 950, 140, 210, 84, cid="page", icon="s3", color=STORAGE)
+    p.card("Lookup function", "Function URL, IAM auth, 5 reserved copies", 950, 320, 210, 84, cid="fn", icon="lambda", color=COMPUTE)
+    p.card("Buyer view table", "buyer_views, GetItem only", 1240, 330, 200, 64, cid="table", icon="dynamodb", color=DATA)
+    p.card("Audit log group", "One event per lookup", 1500, 330, 200, 64, cid="audit", icon="cloudwatch_2", color=MGMT)
+    p.card("CloudWatch alarms", "Over 1,500 in 5 min, any throttle", 1240, 500, 210, 64, cid="alarm", icon="cloudwatch_2", color=MGMT)
+
+    p.zone("Operations", 1760, 80, 200, 600, "#F2F3F4", CTRL)
+    p.card("Platform operator", "Blocks addresses or sets 0 copies", 1775, 500, 170, 64, cid="op", net="pc")
+
+    p.edge("buyer", "waf", "HTTPS, page and lookup", BIZ, exit=(1, 0.5), entry=(0, 0.5), points=[(400, 182)])
+    p.edge("waf", "cf", "allowed", BIZ)
+    p.edge("cf", "page", "page, signed", OBJ)
+    p.edge("cf", "fn", "lookup, signed", BIZ, exit=(0.5, 1), entry=(0, 0.5), points=[(750, 362)])
+    p.edge("fn", "table", "GetItem", BIZ, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("fn", "audit", "audit event", BIZ, exit=(0.5, 0), entry=(0.5, 0), points=[(1055, 290), (1600, 290)])
+    p.edge("fn", "alarm", "invocations, throttles", CTRL, dashed=True, exit=(0.5, 1), entry=(0, 0.5), points=[(1055, 532)])
+    p.edge("alarm", "op", "notify", CTRL, dashed=True)
+    p.edge("direct", "fn", "unsigned, refused with 403", FAIL, dashed=True, exit=(1, 0.5), entry=(0.2, 1), points=[(992, 592)])
+
+    p.legend(40, 710, 420, [(BIZ, False, "Lookup of one sack"), (OBJ, False, "Query page, cached at the edge"),
+                            (FAIL, True, "Request that never reaches the function"), (CTRL, True, "Alarm and response")])
+    p.note("<b>Peak.</b> 30 lookups a minute, 0.5 a second, 0.1 copies running on average. With 5 reserved copies a buyer meets a refusal about once in ten million lookups. The ceiling is 25 a second, about 50 times the peak", 500, 710, 470, 64)
+    p.note("<b>Bulk reads.</b> Codes of 60 random bits. A month of guesses at the ceiling finds about 0.0002 valid codes, and each hit shows one buyer view with no personal data", 1000, 710, 460, 64)
+    p.note("<b>Response.</b> First a temporary rule blocks the addresses. If they are too many, reserved copies go to 0 and every lookup gets 429. Then back to 5", 1490, 710, 470, 64)
+    return p
+
+
 def center_cloud_link():
-    p = Page("16 Center cloud link", 1700, 1080, "How a collection center reaches the cloud: tunnels, routes, names and what happens when the link fails")
+    p = Page("18 Center cloud link", 1700, 1080, "How a collection center reaches the cloud: tunnels, routes, names and what happens when the link fails")
     p.group("Collection center", 30, 60, 560, 560, stroke=FAIL, dashed=True, sw=2)
     p.step("<b>Logistics</b><br>10.X.3.0/24<br>stations", 60, 110, 250, 70, fill="#F2F8FC", stroke="#147EBA", cid="log")
     p.step("<b>Local servers</b><br>10.X.10.0/24<br>label printer", 330, 110, 230, 70, fill="#F2F8FC", stroke="#147EBA", cid="srv")
@@ -1242,7 +1345,7 @@ def center_cloud_link():
 
 
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), center_cloud_link()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

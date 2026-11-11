@@ -257,7 +257,7 @@ The telemetry ingestion module of the first plan creates these resources togethe
 | Resource | Setting |
 |---|---|
 | Event source mapping of the ingestion queue | Batch size 10, batching window 0 seconds, batch item failures reported |
-| SNS platform applications | One for Firebase Cloud Messaging, one for the Apple push service when an iPhone application exists, with success and failure feedback roles and a success sample rate of 100 |
+| SNS platform applications | One for Firebase Cloud Messaging, one for the Apple push service when an iPhone application exists, with success and failure feedback roles and a success sample rate of 100. The operator creates them with the AWS CLI under the names the module fixes, since SNS checks the credential at creation |
 | Delay queue for delivery checks | Delay of 300 seconds, with a dead letter queue |
 | Delivery status and delivery check functions | Execution roles from the security module |
 | Log groups of push and SMS status | Retention of 30 days, encrypted with the platform key |
@@ -265,7 +265,7 @@ The telemetry ingestion module of the first plan creates these resources togethe
 | SMS configuration set | Event destination to CloudWatch Logs |
 | API route | `POST /alerts/{alert_id}/receipt` on the platform API, with the farmer group |
 
-The credentials of the push services are secrets. They are loaded into SNS outside the infrastructure code, so they never reach the state.
+The credentials of the push services are secrets, and SNS rejects a platform application whose credential the push service does not accept. The applications are therefore created outside the infrastructure code, so a credential never reaches the state. The module creates the two status log groups that SNS writes to and builds the ARN the ingestion function publishes under.
 
 ## 14. Assumptions and pending confirmations
 

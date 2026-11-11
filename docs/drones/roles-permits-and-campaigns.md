@@ -150,7 +150,7 @@ The platform accepts an authorization only when all of these hold.
 | The farmer accepted the visit | The farmer is never surprised by a spraying flight |
 | The pilot, the drone and the campaign hold valid permits | No flight leaves under an expired permit |
 
-The order then carries the farm, the lot, the reason, the window, the operator, the pilot, the drone, the flight authorization reference and the identity of the authorizer. After the flight, the platform also stores who flew, the product lot used and the closure of the flight log. No automated trigger can authorize.
+The order then carries the farm, the lot, the reason, the window, the operator, the pilot, the drone, the flight authorization reference and the identity of the authorizer. After the flight, the platform also stores who flew, the product lot used and the closure of the flight log. No automated trigger can authorize. The [fumigation order](fumigation-order.md) defines the fields, the records and the states of the order.
 
 ## 7. Campaigns
 

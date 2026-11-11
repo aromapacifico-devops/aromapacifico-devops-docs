@@ -100,7 +100,7 @@ The workload is serverless, so most services run outside the VPC. The VPC exists
 | Data | Reserved | DynamoDB is reached by a gateway endpoint |
 | Object storage | Reserved, holds the route association | S3 does not live in a subnet |
 | Administration | Reserved | Available for administrative endpoints |
-| Public query | Reserved | CloudFront and API Gateway run outside the VPC |
+| Public query | Reserved | CloudFront and the lookup function run outside the VPC |
 
 Functions stay outside the VPC unless they need a private resource. Inside it, they would need interface endpoints or a NAT gateway to reach AWS services, adding hourly cost with no isolation gain, since IAM and TLS protect those calls.
 
