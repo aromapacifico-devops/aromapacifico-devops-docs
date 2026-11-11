@@ -294,7 +294,7 @@ The design adopts the minimal alternative, with X-Ray active tracing at 5 percen
 | Normal month | 0.38 | 0.21 | 1.80 | 0.00 | 0.12 | 2.13 | USD 0.10 |
 | Harvest month | 0.86 | 0.47 | 1.80 | 0.00 | 0.28 | 2.55 | USD 0.10 |
 
-At list price, with no free tier, this is USD 2.13 in a normal month and USD 2.55 in a harvest month before any alarm. The normal month is USD 0.07 under the reference and one alarm passes it. The harvest month is USD 0.35 over before alarms, and each alarm adds USD 0.10. The design records that gap for the cost owner instead of adjusting the reference. The free tier is not used in these figures. The set of kept metrics is confirmed with the alarm design, and the checker verifies that each kept metric is a custom signal of the catalog and does not exceed its full series.
+At list price, with no free tier, this is USD 2.13 in a normal month and USD 2.55 in a harvest month before any alarm. The normal month is USD 0.07 under the reference and one alarm passes it. The harvest month is USD 0.35 over before alarms, and each alarm adds USD 0.10. The design records that gap for the cost owner instead of adjusting the reference. The free tier is not used in these figures. The set of kept metrics is confirmed with the alarm design, and the checker verifies that each kept metric is a custom signal of the catalog and does not exceed its full series. The [service level objectives](service-levels.md) are computed from these logs and service metrics with saved queries, and add no metric.
 
 ### X-Ray active tracing
 

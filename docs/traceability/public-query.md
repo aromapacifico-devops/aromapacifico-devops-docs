@@ -135,7 +135,7 @@ Both alarms notify the platform operator. The audit events give the codes and ou
 | 2 | If the abuse comes from too many addresses to list, set reserved concurrency to 0 | Every lookup receives 429, and the page says the query is unavailable for a while |
 | 3 | When the traffic falls, remove the reservation of 0 and set it back to 5 | The query returns at once |
 
-Both steps are incident actions, so they are allowed during a harvest week. The switch-off counts as unavailability of the query, and it must end within the 4 hours of its recovery objective.
+Both steps are incident actions, so they are allowed during a harvest week. The switch-off counts as unavailability of the query, and it must end within the 4 hours of its recovery objective. The [service level objectives](../architecture/service-levels.md) charge every lookup refused during the switch-off to the error budget of the query.
 
 ## 7. What fails and what happens then
 

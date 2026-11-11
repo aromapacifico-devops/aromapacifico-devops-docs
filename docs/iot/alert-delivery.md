@@ -214,7 +214,7 @@ Each figure is a filter over the fields of section 7, so the objectives and alar
 | Undelivered alert | Any alert | `push_handoff_at` is missing 5 minutes after `raised_at`, or `push_status` is a failure with no delivered SMS |
 | Readings lost at the edge | Every node | Growth of `dropped_total`, a count of readings that never raised their possible alert |
 
-Each figure is split by `link`, so cellular and LoRa farms are reported apart until the LoRa radio delay is measured. The live alert latency is the figure of the delivery objective. The receipt figure shows how often the phone itself is reachable, which depends on the coverage of the farmer and stays outside the control of the platform.
+Each figure is split by `link`, so cellular and LoRa farms are reported apart until the LoRa radio delay is measured. The live alert latency is the figure of the delivery objective. The receipt figure shows how often the phone itself is reachable, which depends on the coverage of the farmer and stays outside the control of the platform. The [service level objectives](../architecture/service-levels.md) set the target, window and error budget of the delivery objective.
 
 | Alarm | Fires when | Signal |
 |---|---|---|
