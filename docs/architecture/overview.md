@@ -177,7 +177,7 @@ Development, test and production come from the same code with different variable
 | Network and connectivity | Farm connectivity, mobile network validity, out-of-coverage LoRa path, drone mission link, carrier tracking, port delivery, collection center LAN, center WLAN, center WAN sizing, center cloud link, cloud addressing |
 | Automation and change | Implementation scope, environments and promotion, delivery pipelines, release notes and change policy |
 | Workloads | Sensors, alert ranges, telemetry ingestion, ingestion sizing, alert delivery, farmer history, alert to drone confirmation, drone operating mode, drone roles and permits, lot boundaries, focus confirmation, fumigation order, post-fumigation verification, harvest estimation, flight objects, inference functions, failure policy, sack identity, sack states, custody chain, views by actor, public query, carrier application contract, collection center operations, persistence and archive, recovery |
-| Observability | Observability design, service level objectives |
+| Observability | Observability design, operational alarms, service level objectives |
 | Cost | Price basis, monthly cloud cost, farm hardware and monthly amount, drone campaign cost, inference cost |
 | Design system | Visual identity, design system applied to the three views |
 | Decisions and assumptions | Decision records and assumption register |
