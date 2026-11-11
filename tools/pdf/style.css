@@ -1,0 +1,129 @@
+/* Print style of the Aroma Pacifico documents, from docs/design/visual-identity.md. */
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;900&family=Roboto+Mono:wght@400;700&display=swap");
+
+:root {
+  --brand-red: #8C0303;
+  --brand-pacific: #0378A6;
+  --brand-sun: #F29F05;
+  --surface-canvas: #FBF9F5;
+  --surface-muted: #F5F2EB;
+  --surface-border: #E7E5E4;
+  --text-primary: #161412;
+  --text-secondary: #44403C;
+  --text-muted: #78716C;
+}
+
+@page {
+  size: A4;
+  margin: 20mm 18mm 18mm 18mm;
+  @bottom-right { content: counter(page) " / " counter(pages); font-family: "Outfit", sans-serif; font-size: 8pt; color: var(--text-muted); }
+}
+@page :first {
+  margin: 0;
+  @bottom-left { content: none; }
+  @bottom-right { content: none; }
+}
+
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body {
+  margin: 0;
+  font-family: "Outfit", system-ui, "Segoe UI", Roboto, sans-serif;
+  font-size: 10pt;
+  line-height: 1.55;
+  color: var(--text-primary);
+  background: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cover, one full page with the brand at the top and the waves at the foot. */
+.cover {
+  position: relative;
+  height: 297mm;
+  padding: 26mm 22mm 0 22mm;
+  box-sizing: border-box;
+  page-break-after: always;
+  overflow: hidden;
+}
+.cover-logo { display: block; width: 72mm; margin: 0 0 52mm auto; }
+.cover-kicker {
+  margin: 0 0 4mm 0;
+  font-weight: 900;
+  font-size: 13pt;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cover-title {
+  margin: 0 0 8mm 0;
+  font-weight: 900;
+  font-size: 40pt;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  border: none;
+}
+.cover-subtitle { margin: 0 0 3mm 0; font-size: 14pt; color: var(--text-secondary); max-width: 140mm; }
+.cover-date { margin: 0; font-size: 11pt; color: var(--text-muted); }
+.cover-waves { position: absolute; left: 0; bottom: 0; width: 100%; }
+
+/* Headings carry the three colors of the isotype as a thin band. */
+h2 {
+  font-weight: 600;
+  font-size: 16pt;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 9mm 0 4mm 0;
+  padding-bottom: 2mm;
+  border-bottom: 2px solid;
+  border-image: linear-gradient(90deg, var(--brand-red) 0 18%, var(--brand-sun) 18% 36%, var(--brand-pacific) 36% 54%, var(--surface-border) 54%) 1;
+  page-break-after: avoid;
+}
+h3 { font-weight: 600; font-size: 12pt; margin: 6mm 0 2.5mm 0; page-break-after: avoid; }
+
+/* The purpose and the contents list fill the first page after the cover. */
+#contents + ol { padding-left: 7mm; margin-bottom: 0; page-break-after: always; }
+#contents + ol li { margin: 0 0 2.2mm 0; font-size: 11pt; }
+#contents + ol a { color: var(--text-primary); }
+
+p { margin: 0 0 3mm 0; }
+ul, ol { margin: 0 0 3mm 0; padding-left: 6mm; }
+li { margin-bottom: 1mm; }
+strong { font-weight: 600; }
+
+a { color: var(--brand-pacific); text-decoration: none; overflow-wrap: anywhere; }
+
+code {
+  font-family: "Roboto Mono", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  background: var(--surface-muted);
+  border-radius: 1mm;
+  padding: 0.2mm 1mm;
+}
+pre {
+  background: var(--surface-muted);
+  border: 1px solid var(--surface-border);
+  border-radius: 2mm;
+  padding: 3mm 3.5mm;
+  font-size: 8pt;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2.5mm 0 5mm 0;
+  font-size: 8.8pt;
+  line-height: 1.4;
+}
+tr { page-break-inside: avoid; }
+thead th {
+  background: var(--brand-pacific);
+  color: #ffffff;
+  font-weight: 600;
+  text-align: left;
+  padding: 2mm 2.5mm;
+}
+td { padding: 1.8mm 2.5mm; border-bottom: 1px solid var(--surface-border); vertical-align: top; }
+tbody tr:nth-child(even) td { background: var(--surface-canvas); }
+td strong { color: var(--text-primary); }

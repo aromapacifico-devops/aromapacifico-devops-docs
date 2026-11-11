@@ -10,7 +10,7 @@ A recovers only the marginal cash cost. B adds the cash cost of the gateways and
 
 ## Decision
 
-Option C, as a provisional proposal of the team. It recovers everything recurring with no margin and no financing, and the initial investment is presented apart. In the base scenario its known part is USD 11.75 a farm a month at 200 farms and USD 11.07 at 1,000.
+Option C, as a provisional proposal of the team. It recovers everything recurring with no margin and no financing, and the initial investment is presented apart. In the base scenario its known part is USD 11.77 a farm a month at 200 farms and USD 11.07 at 1,000.
 
 ## Consequences
 

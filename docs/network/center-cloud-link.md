@@ -227,7 +227,7 @@ If a service needs a private DNS name, or if the local record turns out to be un
 | Endpoint interfaces | At least 2, one for each address that the endpoint holds |
 | Price | USD 0.125 for each interface and hour, plus USD 0.40 per million queries, from the Route 53 pricing page read on 2026-11-10, which names no Region |
 | Monthly cost of one endpoint, 730 hours | 2 × 0.125 × 730 = USD 182.50, plus queries and the private hosted zone |
-| Against the cloud cost | The normal month of the production line in the cost document is USD 177.05, so one endpoint in production would add about 103 percent. One more endpoint in test raises it again |
+| Against the cloud cost | The normal month of the production line in the cost document is USD 181.78, so one endpoint in production would add about 100 percent. One more endpoint in test raises it again |
 | Work added | A private hosted zone with an alias record for the IoT name, and a conditional forwarder on three firewalls |
 
 The adoption needs a decision of the user, the cost document and the firewall policy.

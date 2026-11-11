@@ -148,7 +148,7 @@ Names follow `{client}-{project}-{env}-{type}-{name}`.
 | NAT gateway | Not used | 0 |
 | **Total** | | **153.30** |
 
-This is about 87 percent of the monthly cloud cost of a normal month, so any review of cost starts here. A NAT gateway in each zone was avoided, which would have added hourly and per-GB charges.
+This is about 84 percent of the monthly cloud cost of a normal month, so any review of cost starts here. A NAT gateway in each zone was avoided, which would have added hourly and per-GB charges.
 
 ## 11. Assumptions and pending confirmations
 

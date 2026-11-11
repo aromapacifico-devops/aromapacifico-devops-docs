@@ -45,25 +45,30 @@ Rates are the on-demand prices of `us-east-1` read on the retrieval date of the 
 | Carrier positions | 216,000 requests through the API, function and table writes | 0.58 | 0.58 |
 | Sack events | Transactional writes, reads and the trip index, with events grouped by truck. Center requests use the private REST API at USD 3.50 per million and add at most 0.03 | 0.20 | 0.81 |
 | Public sack queries | Per million requests through the function URL, 0.60 web firewall, 1.03 function and 0.06 table read, which is 1.70. CloudFront requests stay inside its free tier | 0.23 | 0.92 |
-| Inference | 1,500 or 9,000 images at USD 1.75 per 1,000, with the person filter | 2.63 | 15.75 |
+| Inference | 5,781 or 5,895 function runs over 870 or 8,500 images, with the person filter, function time, the harvest orthomosaic and the telemetry batch, from the [inference cost](inference-cost.md) | 1.63 | 16.26 |
 | New objects in S3 | Storage and uploads of the images of the month | 0.11 | 0.65 |
 | Alert delivery | 40 or 200 SMS at USD 0.05087, plus push, logs and queues under USD 0.01 | 2.03 | 10.17 |
 | Ranges, cases and delivery queues | Reads and writes of the small tables, under USD 0.05 together | 0.05 | 0.05 |
 | Audit logs and trail | Sack reads, telemetry entries, delivery stream, storage and trail events, at the busiest case | 0.40 | 0.40 |
-| **Variable lines** | | **6.95** | **30.31** |
+| Operational telemetry | Platform logs, saved queries, six custom metrics and X-Ray at 5 percent, from the [observability](../architecture/observability.md) design | 2.13 | 2.55 |
+| **Variable lines** | | **8.08** | **33.37** |
 | Site-to-site VPN | 3 connections × USD 0.05 × 730 hours | 109.50 | 109.50 |
 | Interface endpoints | 3 endpoints × 2 zones × USD 0.01 × 730 hours | 43.80 | 43.80 |
 | KMS | 5 keys × USD 1.00, four platform keys and one to sign drone packages | 5.00 | 5.00 |
 | Secrets Manager | 4 secrets × USD 0.40 | 1.60 | 1.60 |
 | Web firewall | 1 web ACL at USD 5.00 and 3 rules at USD 1.00 | 8.00 | 8.00 |
-| CloudWatch | Allowance for alarms at USD 0.10 each and platform logs at USD 0.50 per GB ingested | 2.20 | 2.20 |
+| CloudWatch alarms and dashboard | 28 alarms at USD 0.10 and one operations dashboard at USD 3.00, from the [operational alarms](../architecture/operational-alarms.md) and [dashboards](../architecture/dashboards.md) designs | 5.80 | 5.80 |
 | Cognito | Within the free allowance of 10,000 monthly users with direct sign-in | 0.00 | 0.00 |
-| **Fixed lines** | | **170.10** | **170.10** |
-| **Cloud platform, production** | | **177.05** | **200.41** |
+| **Fixed lines** | | **173.70** | **173.70** |
+| **Cloud platform, production** | | **181.78** | **207.07** |
 
-The network lines, VPN and endpoints, are 153.30 and make up about 87 percent of a normal month. Variable cost is small, so the serverless design leaves the savings in the network, and the demonstration environments exist only while the team uses them, which protects the credits. Removing the endpoints would save USD 43.80 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
+The network lines, VPN and endpoints, are 153.30 and make up about 84 percent of a normal month. Variable cost is small, so the serverless design leaves the savings in the network, and the demonstration environments exist only while the team uses them, which protects the credits. Removing the endpoints would save USD 43.80 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
 
 The audit line and the alert delivery line are upper bounds. A normal month spends less on audit than the busiest case, and the SMS line assumes that every urgent alert reaches the phone only by SMS.
+
+The tunnel keys of the three VPN connections live in Secrets Manager, which the VPN service manages at no extra charge, so they add nothing to the four secrets of the platform.
+
+The CloudFront flat-rate Free plan includes the web ACL, five rules with managed rules counted, and rate limiting by address, for USD 0. It allows 1 million requests a month, and the public lookup makes about three requests per lookup, so a harvest month reaches about 1.6 million. Above the allowance AWS may serve the traffic from fewer edge locations, which would slow the lookup in the busiest weeks, so the platform keeps the pay-as-you-go web ACL of USD 8.00.
 
 Cognito stays free while the users who sign in directly stay under 10,000 a month, and the pilot has a few hundred. Users who federate through an external identity provider are billed beyond the first 50.
 
@@ -85,9 +90,9 @@ The platform key of each environment encrypts its state, so the bootstrap create
 
 | Item | Normal month | Harvest month |
 |---|---|---|
-| Cloud platform, production | 177.05 | 200.41 |
+| Cloud platform, production | 181.78 | 207.07 |
 | Dedicated links of three centers, at the exchange rate of the price basis | 229 to 321 | 229 to 321 |
-| **Platform with links** | **406 to 498** | **430 to 522** |
+| **Platform with links** | **411 to 503** | **436 to 528** |
 | Development and test, 80 hours each in a month | 9.24 | 9.24 |
 | Platform keys of shared, development and test, kept by the bootstrap | 3.00 | 3.00 |
 | Stored history and its backup, added at the end of year five | About 10.2 | About 10.2 |
@@ -100,7 +105,8 @@ The stored history is the cost of keeping five years of records, and it grows fr
 |---|---|
 | Public queries at half the ceiling | 0.46 less |
 | No SMS, every urgent alert confirmed on the phone | 10.17 less |
-| Images double | 15.75 more for inference, 0.65 more for storage |
+| Images double | 15.08 more for inference, 0.65 more for storage |
+| All 200 harvest estimation flights in the same month | 29.69 more for inference, 45.95 in that month instead of 16.26 |
 | Sack events not grouped by truck, one request per event | 0.46 more |
 | Peso at its strongest in the last 120 published rates | Links 246 to 345 |
 | IVA on every line | Up to 19 percent more |
@@ -115,10 +121,12 @@ The stored history is the cost of keeping five years of records, and it grows fr
 | SMS reaches the phone only for urgent alerts | Federation | The SMS line changes, up to its upper bound |
 | Users who sign in directly stay under 10,000 a month | Federation | Cognito costs USD 0.015 per user above the allowance |
 | Cost of the dedicated links | Operator quotes | The totals with links change |
-| CloudWatch alarms and platform logs stay within USD 2.20 a month | Team, when the operational alarms are defined | Each extra alarm adds USD 0.10 and each extra GB of logs USD 0.50 |
+| The team keeps 28 alarms and one dashboard | Team | Each alarm adds or removes USD 0.10 and each dashboard USD 3.00 |
 
 ## Sources
 
 - [Price basis](price-basis.md), for rates, exchange rate and tax.
 - The cost sections of the [telemetry ingestion](../iot/telemetry-ingestion.md), [farm connectivity](../network/farm-connectivity.md), [carrier tracking](../network/carrier-tracking.md), [custody chain](../traceability/custody-chain.md), [alert delivery](../iot/alert-delivery.md), [drone mission link](../network/drone-mission-link.md), [audit](../security/audit.md), [center WAN sizing](../network/center-wan-sizing.md) and [environments and promotion](../architecture/environments-and-promotion.md) documents of this platform.
-- AWS, Amazon Cognito pricing page, for the free allowance of direct sign-in users.
+- AWS, [Amazon Cognito pricing](https://aws.amazon.com/cognito/pricing/), for the free allowance of direct sign-in users.
+- AWS, [CloudFront flat-rate pricing plans](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/flat-rate-pricing-plan.html), for the allowances of the Free plan and what happens above them.
+- AWS, [Site-to-Site VPN pre-shared key management with Secrets Manager](https://aws.amazon.com/blogs/networking-and-content-delivery/aws-site-to-site-vpn-secure-pre-shared-key-psk-management-with-aws-secrets-manager/), for the tunnel keys at no extra cost.
