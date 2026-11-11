@@ -1,0 +1,455 @@
+{
+  "start": "-PT24H",
+  "periodOverride": "inherit",
+  "variables": [
+    {
+      "type": "pattern",
+      "pattern": "prod",
+      "inputType": "select",
+      "id": "environment",
+      "label": "Environment",
+      "defaultValue": "prod",
+      "visible": true,
+      "values": [
+        {
+          "label": "prod",
+          "value": "prod"
+        },
+        {
+          "label": "test",
+          "value": "test"
+        },
+        {
+          "label": "dev",
+          "value": "dev"
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "type": "text",
+      "x": 0,
+      "y": 0,
+      "width": 24,
+      "height": 2,
+      "properties": {
+        "markdown": "## Pilot operations\nEnvironment is chosen above. Alarm owners and first actions are in `docs/architecture/operational-alarms.md`. Service level objectives and the lists of silent farms, overdue orders and center events come from saved Logs Insights queries, opened from **Logs Insights > Saved queries**, since a log widget bills a query on every load."
+      }
+    },
+    {
+      "type": "alarm",
+      "x": 0,
+      "y": 2,
+      "width": 24,
+      "height": 6,
+      "properties": {
+        "title": "Alarms of the register",
+        "sortBy": "stateUpdatedTimestamp",
+        "alarms": [
+          "<arn of AL-01>",
+          "<arn of AL-03>",
+          "<arn of AL-04>",
+          "<arn of AL-05>",
+          "<arn of AL-06>",
+          "<arn of AL-07>",
+          "<arn of AL-08>",
+          "<arn of AL-13>",
+          "<arn of AL-14>",
+          "<arn of AL-15>",
+          "<arn of AL-16>",
+          "<arn of AL-17>",
+          "<arn of AL-18>",
+          "<arn of AL-19>",
+          "<arn of AL-20>",
+          "<arn of AL-21>",
+          "<arn of AL-22>",
+          "<arn of AL-23>",
+          "<arn of AL-24>",
+          "<arn of AL-25>",
+          "<arn of AL-26>",
+          "<arn of AL-27>",
+          "<arn of AL-28>",
+          "<arn of AL-29>",
+          "<arn of AL-30>",
+          "<arn of AL-33>",
+          "<arn of AL-34>",
+          "<arn of AL-35>"
+        ]
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 8,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT SUM(Invocations) FROM SCHEMA(\"AWS/Lambda\", FunctionName) WHERE tag.Environment = 'prod' GROUP BY tag.CostCenter",
+              "label": "Invocations",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "A-02 Function invocations",
+        "stat": "Sum"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 12,
+      "y": 8,
+      "width": 12,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT SUM(Errors) FROM SCHEMA(\"AWS/Lambda\", FunctionName) WHERE tag.Environment = 'prod' GROUP BY tag.CostCenter",
+              "label": "Errors",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "A-02 Function errors",
+        "stat": "Sum"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 14,
+      "width": 6,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "<custom namespace>",
+            "<I-01 metric>"
+          ]
+        ],
+        "view": "singleValue",
+        "region": "<region>",
+        "period": 86400,
+        "stat": "Maximum",
+        "title": "I-01 Nodes silent over 24 hours"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 6,
+      "y": 14,
+      "width": 9,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT MAX(ApproximateAgeOfOldestMessage) FROM SCHEMA(\"AWS/SQS\", QueueName) WHERE tag.Environment = 'prod' AND tag.CostCenter = 'fincas' GROUP BY QueueName",
+              "label": "Age, s",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "I-02 Age of the oldest message in farm queues"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 15,
+      "y": 14,
+      "width": 9,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT MAX(ApproximateNumberOfMessagesVisible) FROM SCHEMA(\"AWS/SQS\", QueueName) WHERE tag.Environment = 'prod' GROUP BY tag.CostCenter, QueueName",
+              "label": "Messages",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "I-03 Visible messages by cost center and queue, dead letter queues included"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 20,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "<custom namespace>",
+            "<I-06 metric>"
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "stat": "Maximum",
+        "title": "I-06 Time from reading to handoff of a live alert"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8,
+      "y": 20,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "<custom namespace>",
+            "<I-07 metric>"
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "stat": "Sum",
+        "title": "I-07 Alerts not delivered"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16,
+      "y": 20,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "<custom namespace>",
+            "<I-08 metric>"
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "stat": "Sum",
+        "title": "I-08 Urgent SMS not delivered"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 26,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT SUM(Errors) FROM SCHEMA(\"AWS/Lambda\", FunctionName) WHERE tag.Environment = 'prod' AND tag.CostCenter = 'drones' GROUP BY FunctionName",
+              "label": "Errors",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "A-08 Errors of drone and inference functions",
+        "stat": "Sum"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8,
+      "y": 26,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT SUM(FailedInvocations) FROM SCHEMA(\"AWS/Events\", RuleName) WHERE tag.Environment = 'prod' AND tag.CostCenter = 'drones' GROUP BY RuleName",
+              "label": "Failed",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "A-07 Events a rule could not deliver",
+        "stat": "Sum"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16,
+      "y": 26,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT MAX(ApproximateNumberOfMessagesVisible) FROM SCHEMA(\"AWS/SQS\", QueueName) WHERE tag.Environment = 'prod' AND tag.CostCenter = 'drones' GROUP BY QueueName",
+              "label": "Messages",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "F-06 Drone work and dead letter queues"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 32,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT MIN(TunnelState) FROM SCHEMA(\"AWS/VPN\", VpnId) WHERE tag.Environment = 'prod' AND tag.CostCenter = 'acopio' GROUP BY VpnId",
+              "label": "Tunnels up",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "W-01 State of the center tunnels"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8,
+      "y": 32,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/ApiGateway",
+            "5XXError",
+            "ApiName",
+            "<center api name>"
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "stat": "Sum",
+        "title": "A-01 Server errors of the center API"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16,
+      "y": 32,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "<custom namespace>",
+            "<A-04 metric>"
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "stat": "Sum",
+        "title": "A-04 Custody gaps and anomalies"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 0,
+      "y": 38,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            {
+              "expression": "SELECT SUM(WriteThrottleEvents) FROM SCHEMA(\"AWS/DynamoDB\", TableName) WHERE tag.Environment = 'prod' GROUP BY tag.CostCenter",
+              "label": "Throttled writes",
+              "id": "q1"
+            }
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "title": "D-02 Write throttles of the tables",
+        "stat": "Sum"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 8,
+      "y": 38,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "AWS/Lambda",
+            "Throttles",
+            "FunctionName",
+            "<lookup function>"
+          ],
+          [
+            ".",
+            "Errors",
+            ".",
+            "."
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 300,
+        "stat": "Sum",
+        "title": "A-03 Throttles and errors of the public sack query"
+      }
+    },
+    {
+      "type": "metric",
+      "x": 16,
+      "y": 38,
+      "width": 8,
+      "height": 6,
+      "properties": {
+        "metrics": [
+          [
+            "<custom namespace>",
+            "<D-05 metric>"
+          ]
+        ],
+        "view": "timeSeries",
+        "region": "<region>",
+        "period": 86400,
+        "stat": "Sum",
+        "title": "D-05 Deletion runs failed or limited"
+      }
+    }
+  ]
+}
