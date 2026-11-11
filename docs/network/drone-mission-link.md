@@ -316,6 +316,8 @@ S3 data events record each object delivery. The case history records package iss
 
 A failed verification moves the execution to `SYNC_REVIEW_REQUIRED`, keeps the case from closing and raises an operational alert. The source files stay on the station. Transient AWS errors are retried automatically. Signature, schema, hash and authorization failures go to review. Inference starts only on a verified object, and an object that shows a person moves to the restricted prefix and never reaches a managed model.
 
+The [flight objects](../drones/flight-objects.md) design fixes the storage side of this section, with the bucket map, the storage events, the conditional writes, the quarantine and the schema of the flight record.
+
 ## 9. Fumigation gate
 
 The rule "no fumigation without a closed flight log" refers to the delimitation or confirmation flight that comes before the fumigation. The fumigation flight closes its own log later. The [pest to fumigation diagram](../architecture/diagrams/04-pest-to-fumigation.drawio.png) shows the whole path from the alert to the closed case.

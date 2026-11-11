@@ -1,0 +1,377 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flight-object-events.schema.json",
+  "title": "Flight object events on the platform bus",
+  "description": "Detail of the events that the verification and completion functions publish. EventBridge adds id, account, region and resources on delivery.",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "source",
+        "detail-type",
+        "time",
+        "detail"
+      ],
+      "properties": {
+        "version": {
+          "const": "0"
+        },
+        "source": {
+          "const": "aroma.flights"
+        },
+        "detail-type": {
+          "const": "flight.object.verified"
+        },
+        "time": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "detail": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "execution_id",
+            "mission_type",
+            "artifact_id",
+            "key",
+            "version_id",
+            "size",
+            "sha256",
+            "check"
+          ],
+          "properties": {
+            "execution_id": {
+              "type": "string",
+              "pattern": "^exec-[a-z0-9-]{3,40}$"
+            },
+            "mission_type": {
+              "enum": [
+                "DELIMITATION",
+                "FOCUS_CONFIRMATION",
+                "FUMIGATION",
+                "VERIFICATION",
+                "HARVEST_ESTIMATION"
+              ]
+            },
+            "artifact_id": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]{3,60}$"
+            },
+            "key": {
+              "type": "string",
+              "pattern": "^(delimitation|focus|fumigation|verification|estimation)/[a-z0-9-]+/exec-[a-z0-9-]+/[a-z0-9.-]+$"
+            },
+            "version_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "size": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sha256": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "check": {
+              "enum": [
+                "stored_sha256",
+                "computed_sha256"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "source",
+        "detail-type",
+        "time",
+        "detail"
+      ],
+      "properties": {
+        "version": {
+          "const": "0"
+        },
+        "source": {
+          "const": "aroma.flights"
+        },
+        "detail-type": {
+          "const": "flight.object.rejected"
+        },
+        "time": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "detail": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "execution_id",
+            "mission_type",
+            "artifact_id",
+            "key",
+            "version_id",
+            "reason_code",
+            "quarantine_key"
+          ],
+          "properties": {
+            "execution_id": {
+              "type": "string",
+              "pattern": "^exec-[a-z0-9-]{3,40}$"
+            },
+            "mission_type": {
+              "enum": [
+                "DELIMITATION",
+                "FOCUS_CONFIRMATION",
+                "FUMIGATION",
+                "VERIFICATION",
+                "HARVEST_ESTIMATION"
+              ]
+            },
+            "artifact_id": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9-]{3,60}$"
+                }
+              ]
+            },
+            "key": {
+              "type": "string",
+              "pattern": "^(delimitation|focus|fumigation|verification|estimation)/[a-z0-9-]+/exec-[a-z0-9-]+/[a-z0-9.-]+$"
+            },
+            "version_id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reason_code": {
+              "enum": [
+                "size_mismatch",
+                "sha256_mismatch",
+                "not_declared"
+              ]
+            },
+            "quarantine_key": {
+              "type": "string",
+              "pattern": "^quarantine/.+/[^/]+$"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "source",
+        "detail-type",
+        "time",
+        "detail"
+      ],
+      "properties": {
+        "version": {
+          "const": "0"
+        },
+        "source": {
+          "const": "aroma.flights"
+        },
+        "detail-type": {
+          "const": "flight.record.published"
+        },
+        "time": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "detail": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "flight_record_id",
+            "mission_type",
+            "mission_id",
+            "execution_id",
+            "anchor",
+            "farm_id",
+            "lot_id",
+            "outcome",
+            "record"
+          ],
+          "properties": {
+            "flight_record_id": {
+              "type": "string",
+              "pattern": "^flight-record-[a-z0-9-]{3,40}$"
+            },
+            "mission_type": {
+              "enum": [
+                "DELIMITATION",
+                "FOCUS_CONFIRMATION",
+                "FUMIGATION",
+                "VERIFICATION",
+                "HARVEST_ESTIMATION"
+              ]
+            },
+            "mission_id": {
+              "type": "string",
+              "pattern": "^mission-[a-z0-9-]{3,40}$"
+            },
+            "execution_id": {
+              "type": "string",
+              "pattern": "^exec-[a-z0-9-]{3,40}$"
+            },
+            "anchor": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "kind",
+                "id"
+              ],
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "farm_id",
+                    "case_id",
+                    "order_id"
+                  ]
+                },
+                "id": {
+                  "type": "string"
+                }
+              }
+            },
+            "farm_id": {
+              "type": "string",
+              "pattern": "^farm-[a-z0-9-]{3,40}$"
+            },
+            "lot_id": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^lot-[a-z0-9-]{3,40}$"
+                }
+              ]
+            },
+            "outcome": {
+              "enum": [
+                "SUCCESS",
+                "PARTIAL",
+                "ABORTED",
+                "FAILED"
+              ]
+            },
+            "record": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "key",
+                "version_id",
+                "sha256"
+              ],
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "pattern": "^(delimitation|focus|fumigation|verification|estimation)/[a-z0-9-]+/exec-[a-z0-9-]+/[a-z0-9.-]+$"
+                },
+                "version_id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "sha256": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "version",
+        "source",
+        "detail-type",
+        "time",
+        "detail"
+      ],
+      "properties": {
+        "version": {
+          "const": "0"
+        },
+        "source": {
+          "const": "aroma.flights"
+        },
+        "detail-type": {
+          "const": "flight.record.review_required"
+        },
+        "time": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+        },
+        "detail": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "execution_id",
+            "mission_type",
+            "flight_record_id",
+            "reason_code"
+          ],
+          "properties": {
+            "execution_id": {
+              "type": "string",
+              "pattern": "^exec-[a-z0-9-]{3,40}$"
+            },
+            "mission_type": {
+              "enum": [
+                "DELIMITATION",
+                "FOCUS_CONFIRMATION",
+                "FUMIGATION",
+                "VERIFICATION",
+                "HARVEST_ESTIMATION"
+              ]
+            },
+            "flight_record_id": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "type": "string",
+                  "pattern": "^flight-record-[a-z0-9-]{3,40}$"
+                }
+              ]
+            },
+            "reason_code": {
+              "enum": [
+                "signature_invalid",
+                "certificate_revoked",
+                "schema_invalid",
+                "object_missing",
+                "object_conflict",
+                "object_rejected",
+                "outcome_failed",
+                "product_lot_differs"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

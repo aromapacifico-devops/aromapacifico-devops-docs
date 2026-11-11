@@ -1461,8 +1461,64 @@ def signals_and_correlation():
     return p
 
 
+def flight_object_transport():
+    p = Page("21 Flight object transport", 2000, 860, "Where each flight object lives, and which events carry it from the ground station to a published flight record")
+    p.note("<b>Written once, counted once.</b> Every mission object lands at its final key with a conditional write. Verification and publication run from events and conditional writes, so a repeated upload, event or completion request changes nothing.", 40, 58, 1920, 40, fill="#F4F6F7", stroke="#AEB6BF", size=12)
+
+    p.zone("A. Field and upload point", 30, 110, 300, 610, "#F4F6F7", "#566573")
+    p.card("Ground station", "Journal keeps each file until the receipt", 50, 300, 260, 70, "gs", net="pc")
+    p.note("Uploads at a municipal seat over the public endpoint, or at a center through the tunnel and the S3 interface endpoint.", 50, 570, 260, 80, fill="#FFFFFF", stroke="#AEB6BF")
+
+    p.zone("B. Platform API", 360, 110, 320, 610, "#F4F6F7", "#566573")
+    p.card("Upload function", "Stores the intent, signs one URL per missing object", 390, 180, 260, 70, "up", icon="lambda", color=COMPUTE)
+    p.card("Completion function", "Signed manifest, completion rule", 390, 470, 260, 70, "comp", icon="lambda", color=COMPUTE)
+
+    p.zone("C. Flight object bucket", 710, 110, 520, 610, "#F4F6F7", "#566573")
+    p.card("&lt;prefix&gt;-s3-flights", "Objects key, versioning, TLS 1.2 or later", 740, 150, 380, 64, "bkt", icon="s3", color=STORAGE)
+    p.group("Station uploads, written once", 740, 240, 460, 170, stroke=OBJ, cid="mission")
+    for i, name in enumerate(("delimitation/", "focus/", "fumigation/", "verification/", "estimation/")):
+        p.chip(name, 760 + (i % 3) * 145, 280 + (i // 3) * 50, w=130)
+    p.group("Platform writes, written once", 740, 425, 460, 90, stroke=BIZ)
+    for i, name in enumerate(("packages/", "geometry/", "estimation/derived/")):
+        p.chip(name, 760 + i * 145, 465, w=130)
+    p.group("Kept 30 days", 740, 530, 460, 110, stroke=FAIL, cid="short")
+    p.chip("restricted/", 760, 570, w=130, stroke=FAIL)
+    p.chip("quarantine/", 905, 570, w=130, stroke=FAIL)
+
+    p.zone("D. Events and records", 1260, 110, 710, 610, "#F4F6F7", "#566573")
+    p.card("Default event bus", "S3 Object Created", 1290, 150, 230, 64, "dbus", icon="eventbridge", color=APP)
+    p.card("Verification queue", "One message per object", 1290, 250, 230, 60, "vq", icon="sqs", color=APP)
+    p.card("Dead letter queue", "After the retries", 1560, 250, 190, 60, "vdlq", icon="sqs", color=APP)
+    p.card("Verification function", "Size and SHA-256 against the intent", 1290, 350, 230, 64, "vfn", icon="lambda", color=COMPUTE)
+    p.card("Case table", "Intents, results, flight records", 1290, 470, 230, 64, "cases", icon="dynamodb", color=DATA)
+    p.card("Platform bus", "aroma.flights events", 1560, 560, 190, 64, "pbus", icon="eventbridge", color=APP)
+    p.card("Order function", "Moves the fumigation order", 1770, 470, 180, 64, "ofn", icon="lambda", color=COMPUTE)
+    p.card("Inference queues", "By mission type", 1770, 640, 180, 64, "inf", icon="sqs", color=APP)
+
+    p.edge("gs", "up", "1 intent", OBJ, exit=(0.5, 0), entry=(0, 0.5), points=[(180, 215)])
+    p.edge("gs", "mission", "2 PUT, If-None-Match", OBJ, exit=(1, 0.25), entry=(0, 0.55), points=[(700, 317), (700, 333)])
+    p.edge("bkt", "dbus", "3 Object Created", BIZ, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("dbus", "vq", "4 route", BIZ, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("vq", "vfn", "5 receive", BIZ, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("vq", "vdlq", "redrive", FAIL, dashed=True, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("vfn", "cases", "record result", BIZ, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("vfn", "pbus", "6 verified or rejected", BIZ, exit=(1, 0.5), entry=(0.5, 0), points=[(1655, 382)])
+    p.edge("vfn", "short", "move on mismatch", FAIL, dashed=True, exit=(0, 0.5), entry=(1, 0.5), points=[(1245, 382), (1245, 585)])
+    p.edge("gs", "comp", "7 completion", OBJ, exit=(0.5, 1), entry=(0, 0.5), points=[(180, 505)])
+    p.edge("comp", "mission", "8 flight-record.json", BIZ, exit=(1, 0.5), entry=(0, 0.85), points=[(690, 505), (690, 384)])
+    p.edge("comp", "cases", "9 record item", BIZ, exit=(0.7, 1), entry=(0.5, 1), points=[(572, 670), (1405, 670)])
+    p.edge("comp", "pbus", "10 published", BIZ, exit=(0.35, 1), entry=(0.5, 1), points=[(481, 700), (1655, 700)])
+    p.edge("pbus", "ofn", "order moves", BIZ, exit=(1, 0.3), entry=(0.5, 1), points=[(1860, 579)])
+    p.edge("pbus", "inf", "by mission type", BIZ, exit=(1, 0.8), entry=(0, 0.5), points=[(1760, 611), (1760, 672)])
+
+    p.legend(30, 740, 460, [(OBJ, False, "Station requests and uploads"), (BIZ, False, "Platform writes and events"), (FAIL, True, "Quarantine and redrive")])
+    p.note("<b>Lifecycle.</b> Mission, package and polygon objects stay 90 days in S3 Standard, then Glacier Instant Retrieval when they reach 128 KB, and expire after five years. Restricted and quarantined objects expire after 30 days.", 520, 740, 700, 96, fill="#FFF8E1", stroke="#D6B656")
+    p.note("<b>No closure without a record.</b> Only the published record of the whole flight moves an order. An upload, a storage event or a verified object never does.", 1250, 740, 720, 96, fill="#FDEDEC", stroke=FAIL)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link(), inference_functions(), signals_and_correlation()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link(), inference_functions(), signals_and_correlation(), flight_object_transport()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

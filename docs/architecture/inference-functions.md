@@ -362,7 +362,7 @@ A normalized cost per 1,000 harvest invocations belongs to the consolidated infe
 | Region and data exit | Objects are screened for people before a vision call, and every result records model and prompt version | Service Region, transfer mechanism, legal basis and data exit statement |
 | Consolidated cost | Rates, token profile, volumes and per-workload calculation | The cost per 1,000 invocations and its budget line |
 | Infrastructure code | Pattern resources, exact actions, prefixes and result contract | Terraform resources, role changes, alarm values and plan evidence |
-| Object transport | Function input scopes `focus/`, `verification/`, `estimation/`, `crop/`, `drying/`, `restricted/` and `estimation/derived/` | The canonical bucket and prefix map must preserve these scopes or update the functions and roles together |
+| Object transport | Function input scopes `focus/`, `verification/`, `estimation/`, `crop/`, `drying/`, `restricted/` and `estimation/derived/` | The [flight object map](../drones/flight-objects.md) keeps these scopes for the flight bucket, and `crop/` and `drying/` stay in the archive bucket. A change of prefix updates the functions and roles together |
 | Verification transition | Attempt result, closable rule and emitted event | The conditional transition function and supervisor fallback implementation |
 
 ## 15. Assumptions and pending confirmations

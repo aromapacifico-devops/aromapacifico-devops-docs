@@ -1,0 +1,66 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "DenyInsecureTransport",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::fnc-aroma-test-s3-flights",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/*"
+      ],
+      "Condition": { "Bool": { "aws:SecureTransport": "false" } }
+    },
+    {
+      "Sid": "DenyOldTls",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::fnc-aroma-test-s3-flights",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/*"
+      ],
+      "Condition": { "NumericLessThan": { "s3:TlsVersion": "1.2" } }
+    },
+    {
+      "Sid": "DenyOtherEncryption",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::fnc-aroma-test-s3-flights/*",
+      "Condition": { "StringNotEqualsIfExists": { "s3:x-amz-server-side-encryption": "aws:kms" } }
+    },
+    {
+      "Sid": "DenyOtherKey",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::fnc-aroma-test-s3-flights/*",
+      "Condition": {
+        "StringNotEqualsIfExists": {
+          "s3:x-amz-server-side-encryption-aws-kms-key-id": "arn:aws:kms:us-east-1:111122223333:key/objects-key-demo"
+        }
+      }
+    },
+    {
+      "Sid": "DenyOverwrite",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": "s3:PutObject",
+      "Resource": [
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/packages/*",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/geometry/*",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/delimitation/*",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/focus/*",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/fumigation/*",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/verification/*",
+        "arn:aws:s3:::fnc-aroma-test-s3-flights/estimation/*"
+      ],
+      "Condition": {
+        "Null": { "s3:if-none-match": "true" },
+        "Bool": { "s3:ObjectCreationOperation": "true" }
+      }
+    }
+  ]
+}
