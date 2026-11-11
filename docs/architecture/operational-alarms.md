@@ -189,6 +189,16 @@ The proposal reuses the scheduler that the order design already uses for the end
 
 The new events are `order.attention_required` and `flight.package.overdue`. No document defines them, so they are proposals. The checker fails if either name appears in another document, which tells the owner that the proposal has become a design and that this row must be reconciled.
 
+### A sync gap and a technical failure
+
+The two are different and the register keeps them apart. A sync gap is the absence of something that should have arrived. Nothing failed that the platform can see, a link or a station may simply be late, so the platform waits and uses the 24 and 48 hour checks. A technical failure is something that arrived and failed, so it notifies at the first event, with no waiting period.
+
+| Kind | Rows | When the notice arrives |
+|---|---|---|
+| Sync gap, nothing has arrived | AL-36, AL-37 and the log or package part of AL-38 | After the 24 hour check, and again at 48 hours |
+| Technical failure, something arrived and failed | AL-09, AL-10, AL-33, AL-34, AL-35 and the inference alarms AL-13 to AL-24 | At the first event or the first failed invocation |
+| Waiting for a person, the platform did its part | The review, verification and close states of AL-38 | After the 24 hour check, and again at 48 hours |
+
 ### Approved rules and assumptions
 
 | Approved by a merged design | Assumed here |
@@ -238,9 +248,9 @@ The channel that the documents already name is an operations mailbox, with an SN
 
 ## 9. Cost
 
-Prices are from the AWS Price List API for us-east-1, publication of 2026-11-04 for CloudWatch, 2026-11-08 for EventBridge and 2026-11-04 for SNS. The free tier is not used.
+Prices are from the AWS Price List API for us-east-1, publication of 2026-11-04 for CloudWatch, 2026-11-08 for EventBridge and 2026-11-04 for SNS. The totals below apply no free tier to CloudWatch alarms, metrics or logs, and none to X-Ray. They do leave out the small charges of the event rules, the schedules and the notices, which fall inside the free allowances of EventBridge Scheduler and SNS email at the volumes of this section. Without those allowances they would add about USD 0.02 a month. The next table lists each allowance.
 
-| Item | Rate |
+| Item | Rate and allowance |
 |---|---|
 | Standard metric alarm | USD 0.10 a month for each metric in its expression |
 | Composite alarm | USD 0.50 a month, added to the alarms it combines |
@@ -248,6 +258,8 @@ Prices are from the AWS Price List API for us-east-1, publication of 2026-11-04 
 | SNS email notification | First 1,000 a month free, then USD 2.00 per 100,000 |
 | SNS requests | First 1,000,000 a month free, then USD 0.50 per million |
 | EventBridge Scheduler | First 14 million scheduled invocations a month free, then USD 1.00 per million |
+
+The volumes assumed for the small charges are 150 scheduled checks a month, which is 25 orders in a harvest month with three waiting states and two checks each, 300 platform events, 1,000 email notices and 1,000 SNS requests.
 
 The price list holds no charge for an event rule or for an invocation of a target in the same account, so an event rule adds no alarm charge. That is not the same as free. The events it matches are custom events that the platform bus already bills at USD 1.00 per million, and each notification counts toward the email allowance. Below 1,000 email notifications a month the notices add nothing, and each 1,000 above that adds USD 0.02.
 
@@ -280,16 +292,18 @@ The daily reviews are Logs Insights queries and fall inside the 2 GB a month of 
 
 ## 11. Decisions that belong to the owners
 
-| Decision | Owner | Effect of the answer | Needed for this card |
-|---|---|---|---|
-| The alert function publishes the handoff metric for live alerts only | Owner of the alert delivery design | AL-04 reads live alerts only. Without it the alarm would fire on drained alerts, or the dimension `kind` adds one series | Yes for AL-04 to be final |
-| The two checks, the two events and the schedule for the log, the package and the open order | Owners of the fumigation order and the flight object designs | AL-36 to AL-38 become automatic. Without them AL-11 and AL-12 stay a review with no age | Yes for criterion 3 to be met by detection and not by review |
-| The ages of 24 and 48 hours, or others | Drone supervisor | The checks use the ages the supervisor sets | Yes for the same rows |
-| The retry count and the alarm of the flight object verification queue | Owner of the flight object design | AL-33 and AL-34 take its values | Yes for criterion 3 |
-| The real mailboxes of the operations topic | Federation | Notices reach people | Yes for criterion 4 to work in operation |
-| The number of alarms the team keeps against the reference | Team and owner of the cost document | The total moves USD 0.10 for each alarm | No, a decision on cost |
-| One metric for failed and limited deletion runs | Owner of the persistence design | One more metric or one alarm less | No |
-| The source of the silent vereda signal | Owner of the LoRa design | AL-02 becomes buildable | No. The silent nodes alarm covers the farms of a vereda after 24 hours, and the signal is an earlier warning |
+The table says what each decision completes, what the team can approve now as a design assumption, and what is only needed before the platform operates. The design can be completed on assumptions, and the confirmations of the second group are a condition for operating and not for the design.
+
+| Decision | Owner | What the team can approve as a design assumption | Needed only before operating | Completes |
+|---|---|---|---|---|
+| The alert function publishes the handoff metric for live alerts only | Owner of the alert delivery design | The rule itself, since it adds no series and does not touch the service level objectives | The owner edits the instruction of the alert function | Makes AL-04 final. No literal criterion depends on it, since AL-03, AL-05 and AL-06 cover the undelivered alerts |
+| The schedule, the events and the checks for the log, the package and the open order | Owners of the fumigation order and flight object designs | The mechanism of section 7 | The owners add the schedule and the events to their documents and code | Criterion 3, flights without a record and orders without a closure |
+| Ages of 24 and 48 hours for sync gaps and waiting states | Drone supervisor | The two ages as assumptions of the design | The supervisor confirms or replaces them | Criterion 3, the same rows |
+| Alarms for flight object verification and completion | Owner of the flight object design | AL-33 to AL-35 with the condition of any message or any error | The retry count and the redrive of the verification queue | Criterion 3, failed invocations that left the state unchanged. The retry count is not needed for the alarm |
+| The real mailboxes of the operations topic | Federation | Nothing. The role, the action and the route are defined | The addresses, passed at run time | Not needed to complete criterion 4, which asks for an owner and an action |
+| Alarms kept against the reference | Team and owner of the cost document | The reading of section 9 | The final count | Not a criterion |
+| One metric for failed and limited deletion runs | Owner of the persistence design | The current single metric | The split, if the team wants both conditions | Not a criterion |
+| The source of the silent vereda signal | Owner of the LoRa design | AL-02 stays defined and unbuilt | The source of the signal | Not a criterion. The silent nodes alarm covers the farms of a vereda after 24 hours |
 
 ## 12. What the checker proves
 
@@ -302,7 +316,7 @@ It checks the register as written. It does not prove that any alarm, topic or ru
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
 | The alert function publishes the handoff metric for live alerts only | Owner of the alert delivery design | AL-04 fires on drained alerts, or the dimension `kind` is added at one more series |
-| The real mailboxes of the operations topic | Federation | No notice reaches anyone |
+| The real mailboxes of the operations topic | Federation | No notice reaches anyone when the platform operates. The design is complete without them |
 | The age at which an open order or a missing log becomes a notice, proposed as 24 and 48 hours | Drone supervisor | The two daily reviews stay manual |
 | The schedule mechanism and the events `order.attention_required` and `flight.package.overdue` | Owners of the order and flight object designs | The checks do not exist and the reviews stay |
 | The order list of the application shows each order with the time it entered its state | Owner of the order design | The interim review has nothing to read |
