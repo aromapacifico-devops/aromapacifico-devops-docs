@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "buyer-view.schema.json",
+  "title": "Buyer view of one sack",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sack_code", "origin", "state", "process_dates", "drying"],
+  "properties": {
+    "schema_version": { "type": "integer", "enum": [1] },
+    "sack_code": { "type": "string", "pattern": "^AP-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z]{4}-[0-9A-HJKMNP-TV-Z*~$=U]$" },
+    "origin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["country", "department"],
+      "properties": {
+        "country": { "type": "string", "enum": ["CO"] },
+        "department": { "type": "string", "enum": ["Cauca", "Huila", "Tolima"] }
+      }
+    },
+    "state": {
+      "type": "string",
+      "enum": ["in_preparation", "in_transit_to_center", "at_center_accepted", "at_center_rejected", "in_transit_to_port", "delivered_accepted", "delivered_rejected"]
+    },
+    "state_reason": {
+      "type": ["string", "null"],
+      "enum": ["moisture", "foreign_matter", "odor_or_damage", "weight_difference", "packaging", "identity", "other", null]
+    },
+    "process_dates": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "registered_on": { "type": "string", "format": "date" },
+        "drying_started_on": { "type": "string", "format": "date" },
+        "drying_ended_on": { "type": "string", "format": "date" },
+        "received_at_center_on": { "type": "string", "format": "date" },
+        "dispatched_to_port_on": { "type": "string", "format": "date" },
+        "delivered_on": { "type": "string", "format": "date" }
+      }
+    },
+    "drying": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["available", "pending", "not_monitored"] },
+        "hours_monitored": { "type": "integer", "minimum": 0 },
+        "readings_completeness_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "grain_temp_max_c": { "type": "number" },
+        "hours_above_40c": { "type": "integer", "minimum": 0 },
+        "grain_humidity_first_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+        "grain_humidity_last_pct": { "type": "number", "minimum": 0, "maximum": 100 }
+      }
+    }
+  }
+}
