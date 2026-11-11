@@ -161,8 +161,8 @@ Alerts reach the phone by mobile push, and urgent drying alerts fall back to SMS
 
 | Store | Key | Retention | Purpose |
 |---|---|---|---|
-| Readings table | Partition `node_id`, sort `measured_at#seq` | 90 days through TTL | Recent history in the application |
-| Alert state items, in the readings table | Partition `node_id`, sort `state#<variable>` | Current values, no expiry | Change of state per variable |
+| Readings table | Partition `node_id`, sort `sk` holding `measured_at#seq` | 90 days through TTL on `expires_at` | Recent history in the application |
+| Alert state items, in the readings table | Partition `node_id`, sort `sk` holding `state#<variable>` | Current values, no expiry | Change of state per variable |
 | Ranges table | Partition `zone_type`, sort `variable#valid_from` | Every version, five years | Evaluation by measured time |
 | Alerts table | Partition `farm_id`, sort `raised_at` | Five years | Alert history |
 | Telemetry archive | Parquet, by `stream/year/month/day/` of arrival | Five years through a lifecycle rule | Pilot reports through Athena |
@@ -236,11 +236,13 @@ At 1,000 farms, the same model gives about USD 5 a month. [Farm connectivity](..
 
 ## 14. Infrastructure module
 
-This module of the first plan implements box C07. It creates the IoT rule, the SQS queue with its dead letter queue, the Firehose stream, the DynamoDB tables and the S3 archive with its lifecycle rule. The IoT rule adds `received_at`, and the event source mapping reports batch item failures. It receives KMS keys and execution roles from the security module, and it creates no network or identity resources, following the separation of domains in the infrastructure rules.
+The telemetry ingestion module implements box C07. It creates the IoT rule, the node policy and the department thing groups, the SQS queue with its dead letter queue, the Firehose stream with its Glue schema, the DynamoDB tables, the S3 archive with its lifecycle rule and the functions with their event source mappings. The IoT rule adds `received_at`, `link` and the node of the topic, and the event source mapping reports batch item failures. It receives the KMS keys and the role of each purpose from the security module, and it creates no network or identity resources, following the separation of domains in the infrastructure rules. The functions run outside the VPC and reach every service through its public endpoint.
 
 | Input | Output |
 |---|---|
-| `kms_key_arn`, `execution_role_arn`, `alert_ranges` | `iot_rule_name`, `queue_arn`, `readings_table_arn`, `archive_bucket_arn` |
+| `data_key_arn`, `objects_key_arn`, `role_arns`, `names`, `thing_groups`, `function_packages`, `alert_ranges`, `force_destroy_data` | `iot_policy_name`, `thing_group_names`, `iot_topic_rule_name`, `topic_filter`, `queue_arn`, `readings_table_arn`, `alerts_table_arn`, `archive_bucket_arn`, `push_application_arn` |
+
+The module of one farm takes the node policy and the thing group of its department, and it signs the certificate of the node from a request made on the device, so the private key never reaches Terraform.
 
 ## 15. Assumptions and pending confirmations
 

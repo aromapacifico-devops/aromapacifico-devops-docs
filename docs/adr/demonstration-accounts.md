@@ -10,7 +10,7 @@ One account with environments separated by name, range, state and role, one acco
 
 ## Decision
 
-One standalone account holds every environment, with one bootstrap. The team brings environments up and down through the pipeline, and the pipeline destroys every environment each night. The target design keeps its seven accounts.
+One standalone account holds every environment, with one bootstrap. The team brings each environment up through the deploy workflow in GitHub when it uses it and destroys it through the destroy workflow when work stops, with no scheduled destroy. The target design keeps its seven accounts.
 
 ## Consequences
 
