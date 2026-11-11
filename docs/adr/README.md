@@ -34,3 +34,4 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Repository structure](repository-structure.md) | One repository per module, separate from the infrastructure repository |
 | [State per environment](state-per-environment.md) | One root, one state and one bucket per environment |
 | [Infrastructure checks](infrastructure-checks.md) | Automatic checks on each pull request, with pinned tools |
+| [Public lookup path](public-lookup-path.md) | Function URL behind CloudFront, ceiling of five reserved copies |

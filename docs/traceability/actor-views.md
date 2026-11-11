@@ -176,7 +176,7 @@ The carrier sees the sacks of their own trips while the trip is open and its his
 
 | Method and path | API | Who | Check | Reads |
 |---|---|---|---|---|
-| `GET /public/sacks/{sack_code}` | Public HTTP API behind CloudFront and the firewall | Anyone with the code | Code format, firewall rate rule | `buyer_views`, `GetItem` |
+| `GET /public/sacks/{sack_code}` | Function URL behind CloudFront and the firewall | Anyone with the code | Code format and check symbol, firewall rate rule | `buyer_views`, `GetItem` |
 | `GET /farms/{farm_id}/sacks?cursor=` | Public HTTP API | Farmer | Group `farmer`, and the token subject owns the farm | `sacks`, index on `farm_id` |
 | `GET /farms/{farm_id}/sacks/{sack_code}` | Public HTTP API | Farmer | The same, and the sack belongs to that farm | `sacks`, `sack_events` |
 | `GET /centers/{center_id}/sacks/{sack_code}` | Private REST API, through the tunnel | Center operator | Group `center_operator`, the center in the token equals the path, and the sack passed through or travels toward that center | `sacks`, `sack_events` |
@@ -185,7 +185,7 @@ The carrier sees the sacks of their own trips while the trip is open and its his
 
 A center operator account carries the center where the person works as an attribute that the Federation sets and the person cannot change. A farmer who asks for a farm or a sack that is not theirs receives the same not found answer as for a farm that does not exist, so no route confirms that another farmer's record exists.
 
-Each read of a sack writes an audit event with the view returned, `buyer`, `center` or `farmer`, as the [audit](../security/audit.md) design records. The public query uses no cache in front of the function, since a cached answer would skip that record.
+Each read of a sack writes an audit event with the view returned, `buyer`, `center` or `farmer`, as the [audit](../security/audit.md) design records. The public query uses no cache in front of the function, since a cached answer would skip that record. The [public query](public-query.md) document sizes that route and sets its limits against bulk reads.
 
 The role of the public query function holds `dynamodb:GetItem` on `buyer_views` and nothing else on the data tables. Only the domain function and the daily job of the drying lots write that table. The two indexes this document needs on `sacks`, on `farm_id` and on `drying_lot_id`, keep only the keys. The custody chain does not define them yet, and its owner adds them.
 

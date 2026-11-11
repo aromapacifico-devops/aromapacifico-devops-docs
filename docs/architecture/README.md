@@ -20,6 +20,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Center operation](diagrams/13-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
 | [Crop case states](diagrams/14-crop-case-states.drawio.png) | How does a cultivation alert become a focus confirmed or discarded by a person |
 | [Fumigation order states](diagrams/16-fumigation-order-states.drawio.png) | Which states can a fumigation order pass through, and which moves only a person can make |
+| [Public query](diagrams/17-public-query.drawio.png) | How does a buyer read one sack, and what limits bulk reads of the public query |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
