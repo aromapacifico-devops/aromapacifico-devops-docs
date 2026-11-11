@@ -100,14 +100,14 @@ The result uses the common envelope and idempotency rule of the [inference funct
     },
     {
       "bucket": "fnc-aroma-test-s3-flights",
-      "key": "estimation/farm-demo/lot-demo-a/ortho.tif",
+      "key": "estimation/farm-demo/exec-demo-77-01/ortho.tif",
       "version_id": "v-demo",
       "sha256": "047a6063192ad8210817281f4b7d5837755970c2dd297a08f6c27a8508ab924d",
       "role": "orthomosaic"
     },
     {
       "bucket": "fnc-aroma-test-s3-flights",
-      "key": "estimation/farm-demo/lot-demo-a/sample.json",
+      "key": "estimation/farm-demo/exec-demo-77-01/sample.json",
       "version_id": "v-demo-sample",
       "sha256": "4108d1c28860e1eafa28e39753fb963e3844bf7e8d1f21ee7534e770179163ab",
       "role": "field_sample"
@@ -117,7 +117,7 @@ The result uses the common envelope and idempotency rule of the [inference funct
   "confidence": 0.79,
   "model_id": "us.amazon.nova-2-lite-v1:0",
   "prompt_version": 5,
-  "idempotency_key": "ecfdfbb89faa14f2d9b139761532d248cf2f4375f2936bd20b89474b16e06f2c",
+  "idempotency_key": "dad37c57375b7084ec94c6501950f90a4827cac06fe58106fad334f3040e1972",
   "result": {
     "method_version": "trees-sample-cenicafe-1",
     "lots": [

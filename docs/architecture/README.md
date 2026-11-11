@@ -24,6 +24,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Center cloud link](diagrams/18-center-cloud-link.drawio.png) | How does a center reach the cloud, which routes and names does it use, and what happens when the link fails |
 | [Inference functions](diagrams/19-inference-functions.drawio.png) | How does a complete mission record or archive object reach one of four inference results |
 | [Signals and correlation](diagrams/20-signals-and-correlation.drawio.png) | Which identifiers travel with a sack, a lot and a flight, and where is each signal read |
+| [Flight object transport](diagrams/21-flight-object-transport.drawio.png) | Where does each flight object live, and which events carry it from the ground station to a published flight record |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
