@@ -1,0 +1,267 @@
+{
+  "tags": {
+    "Client": {
+      "tag_key": {
+        "@@assign": "Client"
+      },
+      "tag_value": {
+        "@@assign": [
+          "fnc"
+        ]
+      },
+      "report_required_tag_for": {
+        "@@assign": [
+          "budgets:budget",
+          "cloudwatch:alarm",
+          "dynamodb:table",
+          "ec2:customer-gateway",
+          "ec2:network-acl",
+          "ec2:route-table",
+          "ec2:security-group",
+          "ec2:subnet",
+          "ec2:vpc",
+          "ec2:vpc-endpoint",
+          "ec2:vpc-flow-log",
+          "ec2:vpn-connection",
+          "ec2:vpn-gateway",
+          "events:event-bus",
+          "firehose:deliverystream",
+          "glue:database",
+          "iam:role",
+          "iot:policy",
+          "iot:rule",
+          "iot:thinggroup",
+          "kms:key",
+          "lambda:event-source-mapping",
+          "lambda:function",
+          "logs:log-group",
+          "s3:bucket",
+          "secretsmanager:secret",
+          "sns:topic",
+          "sqs:queue"
+        ]
+      }
+    },
+    "Project": {
+      "tag_key": {
+        "@@assign": "Project"
+      },
+      "tag_value": {
+        "@@assign": [
+          "aroma"
+        ]
+      },
+      "report_required_tag_for": {
+        "@@assign": [
+          "budgets:budget",
+          "cloudwatch:alarm",
+          "dynamodb:table",
+          "ec2:customer-gateway",
+          "ec2:network-acl",
+          "ec2:route-table",
+          "ec2:security-group",
+          "ec2:subnet",
+          "ec2:vpc",
+          "ec2:vpc-endpoint",
+          "ec2:vpc-flow-log",
+          "ec2:vpn-connection",
+          "ec2:vpn-gateway",
+          "events:event-bus",
+          "firehose:deliverystream",
+          "glue:database",
+          "iam:role",
+          "iot:policy",
+          "iot:rule",
+          "iot:thinggroup",
+          "kms:key",
+          "lambda:event-source-mapping",
+          "lambda:function",
+          "logs:log-group",
+          "s3:bucket",
+          "secretsmanager:secret",
+          "sns:topic",
+          "sqs:queue"
+        ]
+      }
+    },
+    "Environment": {
+      "tag_key": {
+        "@@assign": "Environment"
+      },
+      "tag_value": {
+        "@@assign": [
+          "dev",
+          "test",
+          "prod",
+          "shared"
+        ]
+      },
+      "report_required_tag_for": {
+        "@@assign": [
+          "budgets:budget",
+          "cloudwatch:alarm",
+          "dynamodb:table",
+          "ec2:customer-gateway",
+          "ec2:network-acl",
+          "ec2:route-table",
+          "ec2:security-group",
+          "ec2:subnet",
+          "ec2:vpc",
+          "ec2:vpc-endpoint",
+          "ec2:vpc-flow-log",
+          "ec2:vpn-connection",
+          "ec2:vpn-gateway",
+          "events:event-bus",
+          "firehose:deliverystream",
+          "glue:database",
+          "iam:role",
+          "iot:policy",
+          "iot:rule",
+          "iot:thinggroup",
+          "kms:key",
+          "lambda:event-source-mapping",
+          "lambda:function",
+          "logs:log-group",
+          "s3:bucket",
+          "secretsmanager:secret",
+          "sns:topic",
+          "sqs:queue"
+        ]
+      }
+    },
+    "Owner": {
+      "tag_key": {
+        "@@assign": "Owner"
+      },
+      "tag_value": {
+        "@@assign": [
+          "platform",
+          "security",
+          "network"
+        ]
+      },
+      "report_required_tag_for": {
+        "@@assign": [
+          "budgets:budget",
+          "cloudwatch:alarm",
+          "dynamodb:table",
+          "ec2:customer-gateway",
+          "ec2:network-acl",
+          "ec2:route-table",
+          "ec2:security-group",
+          "ec2:subnet",
+          "ec2:vpc",
+          "ec2:vpc-endpoint",
+          "ec2:vpc-flow-log",
+          "ec2:vpn-connection",
+          "ec2:vpn-gateway",
+          "events:event-bus",
+          "firehose:deliverystream",
+          "glue:database",
+          "iam:role",
+          "iot:policy",
+          "iot:rule",
+          "iot:thinggroup",
+          "kms:key",
+          "lambda:event-source-mapping",
+          "lambda:function",
+          "logs:log-group",
+          "s3:bucket",
+          "secretsmanager:secret",
+          "sns:topic",
+          "sqs:queue"
+        ]
+      }
+    },
+    "CostCenter": {
+      "tag_key": {
+        "@@assign": "CostCenter"
+      },
+      "tag_value": {
+        "@@assign": [
+          "fincas",
+          "drones",
+          "acopio",
+          "viajes",
+          "pruebas",
+          "plataforma",
+          "seguridad"
+        ]
+      },
+      "report_required_tag_for": {
+        "@@assign": [
+          "budgets:budget",
+          "cloudwatch:alarm",
+          "dynamodb:table",
+          "ec2:customer-gateway",
+          "ec2:network-acl",
+          "ec2:route-table",
+          "ec2:security-group",
+          "ec2:subnet",
+          "ec2:vpc",
+          "ec2:vpc-endpoint",
+          "ec2:vpc-flow-log",
+          "ec2:vpn-connection",
+          "ec2:vpn-gateway",
+          "events:event-bus",
+          "firehose:deliverystream",
+          "glue:database",
+          "iam:role",
+          "iot:policy",
+          "iot:rule",
+          "iot:thinggroup",
+          "kms:key",
+          "lambda:event-source-mapping",
+          "lambda:function",
+          "logs:log-group",
+          "s3:bucket",
+          "secretsmanager:secret",
+          "sns:topic",
+          "sqs:queue"
+        ]
+      }
+    },
+    "ManagedBy": {
+      "tag_key": {
+        "@@assign": "ManagedBy"
+      },
+      "tag_value": {
+        "@@assign": [
+          "Terraform"
+        ]
+      },
+      "report_required_tag_for": {
+        "@@assign": [
+          "budgets:budget",
+          "cloudwatch:alarm",
+          "dynamodb:table",
+          "ec2:customer-gateway",
+          "ec2:network-acl",
+          "ec2:route-table",
+          "ec2:security-group",
+          "ec2:subnet",
+          "ec2:vpc",
+          "ec2:vpc-endpoint",
+          "ec2:vpc-flow-log",
+          "ec2:vpn-connection",
+          "ec2:vpn-gateway",
+          "events:event-bus",
+          "firehose:deliverystream",
+          "glue:database",
+          "iam:role",
+          "iot:policy",
+          "iot:rule",
+          "iot:thinggroup",
+          "kms:key",
+          "lambda:event-source-mapping",
+          "lambda:function",
+          "logs:log-group",
+          "s3:bucket",
+          "secretsmanager:secret",
+          "sns:topic",
+          "sqs:queue"
+        ]
+      }
+    }
+  }
+}
