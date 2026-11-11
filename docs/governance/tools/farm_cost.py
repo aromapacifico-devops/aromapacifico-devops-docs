@@ -55,7 +55,7 @@ NODE_MB = (5.5, 5.5, 20.0)  # low, base (price basis), high (assumption: firmwar
 GATEWAY_MB = (20.0, 50.0, 150.0)  # assumption, no documented figure for a Basics Station gateway
 
 # ---- Cloud lines, copied from docs/governance/cloud-cost.md and checked against it ----
-CLOUD_FIXED = 170.10
+CLOUD_FIXED = 173.70
 CLOUD_VAR = {"Telemetry ingestion": (0.72, 0.98), "Alert delivery": (2.03, 10.17)}
 CLOUD_BASE_FARMS = 200
 LORA_MESSAGE_USD = 0.000006
@@ -226,7 +226,7 @@ def check_cost_document():
 def main():
     cost_total = check_cost_document()
     assert 30 + 20 + 10 + 15 + 25 == ON_SITE_MIN
-    assert math.isclose(CLOUD_FIXED, 109.50 + 43.80 + 5.00 + 1.60 + 8.00 + 2.20)
+    assert math.isclose(CLOUD_FIXED, 109.50 + 43.80 + 5.00 + 1.60 + 8.00 + 5.80)
     assert math.isclose(12.8 * 12, 153.6)
     assert PREPAID["mb_included"] / NODE_MB[0] > 12
 

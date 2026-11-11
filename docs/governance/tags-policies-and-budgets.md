@@ -97,11 +97,11 @@ Each environment has its own account in the pilot, so the budget of an environme
 
 | Environment | Monthly limit, USD | Basis |
 |---|---|---|
-| Production | 230 | USD 200.41 in a harvest month, plus a margin |
+| Production | 230 | USD 207.07 in a harvest month, plus a margin |
 | Test | 15 | 80 hours of use and its platform key |
 | Development | 10 | 80 hours of use and its platform key |
 
-A normal month of production costs USD 177.05, 77 percent of the limit, and stays quiet. A harvest month reaches about 87 percent and sends the 80 percent alert. That alert is expected in harvest. It asks for a look at the volumes and opens no incident.
+A normal month of production costs USD 181.78, 79 percent of the limit, and stays quiet. A harvest month reaches about 90 percent and sends the 80 percent alert. That alert is expected in harvest. It asks for a look at the volumes and opens no incident. A harvest month in which all 200 estimation flights fall reaches about USD 236.76, 103 percent, and sends the 100 percent alert as well.
 
 ### Demonstration
 
