@@ -1,0 +1,231 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Event-driven inference result",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "result_id",
+    "function",
+    "subject",
+    "source_objects",
+    "evaluated_at",
+    "confidence",
+    "model_id",
+    "prompt_version",
+    "idempotency_key",
+    "result"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "result_id": {"type": "string", "minLength": 1},
+    "function": {
+      "enum": ["focus_confirmation", "verification", "harvest_estimation", "telemetry_batch"]
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "order_id": {"type": "string", "minLength": 1},
+        "revision": {"type": "integer", "minimum": 1},
+        "attempt": {"type": "integer", "minimum": 1},
+        "farm_id": {"type": "string", "minLength": 1},
+        "harvest_id": {"type": "string", "minLength": 1},
+        "mission_id": {"type": "string", "minLength": 1},
+        "mission_execution_id": {"type": "string", "minLength": 1},
+        "verification_execution_id": {"type": "string", "minLength": 1},
+        "flight_record_id": {"type": "string", "minLength": 1},
+        "stream": {"enum": ["crop", "drying"]}
+      }
+    },
+    "source_objects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/source_object"}
+    },
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "confidence": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+    "model_id": {"type": ["string", "null"], "minLength": 1},
+    "prompt_version": {"type": ["integer", "null"], "minimum": 1},
+    "idempotency_key": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "result": {"type": "object"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"function": {"const": "telemetry_batch"}},
+        "required": ["function"]
+      },
+      "then": {
+        "properties": {
+          "subject": {"required": ["stream"]},
+          "confidence": {"type": "null"},
+          "model_id": {"type": "null"},
+          "prompt_version": {"type": "null"},
+          "result": {
+            "required": ["evaluations"],
+            "properties": {
+              "evaluations": {
+                "type": "array",
+                "minItems": 1,
+                "items": {"$ref": "#/$defs/telemetry_evaluation"}
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+          "model_id": {"type": "string", "minLength": 1},
+          "prompt_version": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"function": {"const": "focus_confirmation"}},
+        "required": ["function"]
+      },
+      "then": {
+        "properties": {
+          "subject": {"required": ["case_id", "mission_execution_id", "flight_record_id"]},
+          "result": {
+            "required": ["label", "review_status"],
+            "properties": {
+              "label": {"enum": ["possible_focus", "no_focus_seen", "unusable_image"]},
+              "review_status": {"const": "pending"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"function": {"const": "verification"}},
+        "required": ["function"]
+      },
+      "then": {
+        "properties": {
+          "subject": {
+            "required": [
+              "order_id",
+              "revision",
+              "attempt",
+              "verification_execution_id",
+              "flight_record_id"
+            ]
+          },
+          "result": {
+            "required": [
+              "capture_mode",
+              "planned_photos",
+              "usable_photos",
+              "restricted_photos",
+              "active_damage_photos",
+              "closable",
+              "reason",
+              "proposed_result"
+            ],
+            "properties": {
+              "capture_mode": {"enum": ["photo_set", "short_path"]},
+              "planned_photos": {"type": "integer", "minimum": 1},
+              "usable_photos": {"type": "integer", "minimum": 0},
+              "restricted_photos": {"type": "integer", "minimum": 0},
+              "active_damage_photos": {"type": "integer", "minimum": 0},
+              "closable": {"type": "boolean"},
+              "reason": {"type": ["string", "null"]},
+              "proposed_result": {
+                "enum": ["effective", "partly_effective", "not_effective", null]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"function": {"const": "harvest_estimation"}},
+        "required": ["function"]
+      },
+      "then": {
+        "properties": {
+          "subject": {
+            "required": [
+              "farm_id",
+              "harvest_id",
+              "mission_id",
+              "mission_execution_id",
+              "flight_record_id"
+            ]
+          },
+          "result": {
+            "required": [
+              "method_version",
+              "lots",
+              "conversion",
+              "estimated_sacks",
+              "sacks_low",
+              "sacks_high",
+              "relative_range",
+              "status"
+            ],
+            "properties": {
+              "method_version": {"type": "string", "minLength": 1},
+              "lots": {"type": "array", "minItems": 1},
+              "conversion": {"type": "object"},
+              "estimated_sacks": {"type": "integer", "minimum": 0},
+              "sacks_low": {"type": "integer", "minimum": 0},
+              "sacks_high": {"type": "integer", "minimum": 0},
+              "relative_range": {"type": "number", "minimum": 0},
+              "status": {"enum": ["PENDING", "REVIEW_REQUIRED", "FAILED"]}
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "source_object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bucket", "key", "version_id", "sha256", "role"],
+      "properties": {
+        "bucket": {"type": "string", "minLength": 1},
+        "key": {"type": "string", "minLength": 1, "pattern": "^[^/]"},
+        "version_id": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "role": {
+          "enum": ["flight_record", "photo", "orthomosaic", "field_sample", "telemetry_batch"]
+        }
+      }
+    },
+    "telemetry_evaluation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reading_id",
+        "node_id",
+        "measured_at",
+        "seq",
+        "variable",
+        "value",
+        "range_version",
+        "status"
+      ],
+      "properties": {
+        "reading_id": {"type": "string", "minLength": 1},
+        "node_id": {"type": "string", "minLength": 1},
+        "measured_at": {"type": "string", "format": "date-time"},
+        "seq": {"type": "integer", "minimum": 0},
+        "variable": {"type": "string", "minLength": 1},
+        "value": {"type": "number"},
+        "range_version": {"type": "integer", "minimum": 1},
+        "status": {
+          "enum": ["in_range", "out_of_range", "no_range", "invalid_range", "clock_fault"]
+        }
+      }
+    }
+  }
+}
