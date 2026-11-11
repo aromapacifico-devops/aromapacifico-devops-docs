@@ -36,7 +36,7 @@
   "confidence": 0.79,
   "model_id": "us.amazon.nova-2-lite-v1:0",
   "prompt_version": 5,
-  "idempotency_key": "4fff1706ee35b50294cc3a56af4a8aff0283ba2e85c0392b29876dc79239ce49",
+  "idempotency_key": "ecfdfbb89faa14f2d9b139761532d248cf2f4375f2936bd20b89474b16e06f2c",
   "result": {
     "method_version": "trees-sample-cenicafe-1",
     "lots": [

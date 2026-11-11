@@ -36,7 +36,7 @@
   "confidence": 0.81,
   "model_id": "us.amazon.nova-2-lite-v1:0",
   "prompt_version": 1,
-  "idempotency_key": "80fbbd71fb2170f433088441d6306b86c7af333cecf562ef983a05f797d30907",
+  "idempotency_key": "d185297c25012396c63710c70d723929aa1a05b5107fb6bb399f083d16e5862e",
   "result": {
     "capture_mode": "photo_set",
     "planned_photos": 2,

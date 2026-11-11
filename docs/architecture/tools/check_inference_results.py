@@ -1,4 +1,5 @@
 """Validate every inference result example against the common schema."""
+import hashlib
 import json
 from pathlib import Path
 
@@ -13,6 +14,29 @@ EXPECTED = {
     "harvest-estimation.json": "harvest_estimation",
     "telemetry-batch.json": "telemetry_batch",
 }
+
+
+def idempotency_key(example):
+    payload = {
+        "function": example["function"],
+        "subject": example["subject"],
+        "source_objects": sorted(
+            example["source_objects"],
+            key=lambda source: (
+                source["bucket"],
+                source["key"],
+                source["version_id"],
+                source["sha256"],
+                source["role"],
+            ),
+        ),
+        "model_id": example["model_id"],
+        "prompt_version": example["prompt_version"],
+    }
+    encoded = json.dumps(
+        payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    ).encode()
+    return hashlib.sha256(encoded).hexdigest()
 
 
 def main():
@@ -31,6 +55,9 @@ def main():
             f"{path.name}: {'/'.join(str(part) for part in error.path)} {error.message}"
             for error in validator.iter_errors(example)
         )
+        expected_key = idempotency_key(example)
+        if example.get("idempotency_key") != expected_key:
+            errors.append(f"{path.name}: idempotency_key does not match the canonical value")
 
     if errors:
         print("\n".join(errors))

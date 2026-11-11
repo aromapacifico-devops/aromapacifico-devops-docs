@@ -27,7 +27,7 @@
   "confidence": 0.87,
   "model_id": "us.amazon.nova-2-lite-v1:0",
   "prompt_version": 3,
-  "idempotency_key": "614280bb1169bfba11816a800648bb766cf9db52e594c6b5dc7e40106b4d4165",
+  "idempotency_key": "938d981712c5a1888cd27d4171d03f55d3d42ce1ddccdb9cbc8905328f10834d",
   "result": {
     "label": "possible_focus",
     "review_status": "pending"
