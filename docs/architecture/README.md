@@ -57,7 +57,7 @@ The [failure policy](failure-policy.md) sets the retries, dead letter queues, al
 
 The [observability design](observability.md) defines the identifiers that correlate a sack, a lot and a flight, the structure of an operational log, the catalog of signals and the cost of the telemetry. The [release notes and change policy](../release-notes/README.md) set when a production change may run, who approves it, how the Federation hears of it and how it goes back. The [service level objectives](service-levels.md) set the targets for crop alert delivery and for the availability of the sack query, with their error budgets.
 
-The [operational alarms](operational-alarms.md) list who is told, what they do first and what the set of alarms costs, and they separate what the platform detects from what a person finds in a daily list.
+The [operational alarms](operational-alarms.md) list who is told, what they do first and what the set of alarms costs, and they separate what the platform detects from what a person finds in a daily list. The [operations and cost dashboards](dashboards.md) put the state of the pilot on one page, split by the cost center of farms, drones, collection and tests, and show the cost of the month by the same split.
 
 The [visual identity](../design/visual-identity.md) and the [design system](../design/design-system.md) define the brand, the tokens and the components, and apply them to the farmer, carrier and buyer views.
 
