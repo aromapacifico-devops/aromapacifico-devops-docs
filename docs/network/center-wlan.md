@@ -264,3 +264,4 @@ If the validation fails for a model, the options are another model, a higher min
 | Vendor articles on SSID count and beacon airtime | Background on beacon airtime. They disagree, and no limit is adopted from them |
 | [Collection center LAN](collection-center-lan.md), [cloud addressing](cloud-addressing.md), [center WAN capacity](../adr/center-wan-capacity.md) | Zones, ranges, routes, capacity and cloud endpoint rules |
 | [Collection center operations](collection-center-operations.md) | The label printer, the printing rule that stays pending and the stations that use the logistics zone |
+| [Center cloud link](center-cloud-link.md) | The tunnel routes and the names that the logistics and local servers zones use to reach the cloud |

@@ -17,8 +17,8 @@ def main():
     root = ET.parse(SOURCE).getroot()
     pages = {d.get("name"): d for d in root.findall("diagram")}
     errors = []
-    if len(pages) != 18:
-        errors.append(f"expected 18 pages, found {len(pages)}")
+    if len(pages) != 19:
+        errors.append(f"expected 19 pages, found {len(pages)}")
 
     deployment = pages["02 Implementation scope"]
     codes = Counter(c.get("value") for c in deployment.iter("mxCell"))
@@ -48,7 +48,7 @@ def main():
             errors.append(f"{net} overlaps a center")
     subnets = [ipaddress.ip_network(m) for m in re.findall(r"10\.70\.\d+\.\d+/\d+", all_text)]
     subnets = [n for n in subnets if n.prefixlen == 24]
-    if len(subnets) != SUBNET_BLOCKS * 2 or len(set(subnets)) != len(subnets):
+    if len(set(subnets)) != SUBNET_BLOCKS * 2:
         errors.append(f"expected {SUBNET_BLOCKS * 2} unique production subnets, found {len(set(subnets))}")
     if any(not n.subnet_of(clouds["production"]) for n in subnets):
         errors.append("a subnet falls outside the production range")

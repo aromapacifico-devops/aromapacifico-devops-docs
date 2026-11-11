@@ -1297,8 +1297,55 @@ def public_query():
     return p
 
 
+def center_cloud_link():
+    p = Page("18 Center cloud link", 1700, 1080, "How a collection center reaches the cloud: tunnels, routes, names and what happens when the link fails")
+    p.group("Collection center", 30, 60, 560, 560, stroke=FAIL, dashed=True, sw=2)
+    p.step("<b>Logistics</b><br>10.X.3.0/24<br>stations", 60, 110, 250, 70, fill="#F2F8FC", stroke="#147EBA", cid="log")
+    p.step("<b>Local servers</b><br>10.X.10.0/24<br>label printer", 330, 110, 230, 70, fill="#F2F8FC", stroke="#147EBA", cid="srv")
+    p.step("<b>Firewall of the center</b><br>IKEv2, static public address, two tunnels<br>routes only to the endpoint subnets of each environment<br>no forwarding between tunnels", 60, 220, 500, 100, fill="#EAF2F8", stroke="#147EBA", cid="fw")
+    p.edge("log", "fw", "", CTRL, exit=(0.5, 1), entry=(0.25, 0))
+    p.edge("srv", "fw", "", CTRL, exit=(0.5, 1), entry=(0.75, 0))
+    p.step("<b>One WAN link</b><br>100 Mbps, shared by both tunnels", 60, 340, 500, 60, fill="#FFF3E0", stroke=ALERT, cid="wan")
+    p.edge("fw", "wan", "", CTRL, exit=(0.5, 1), entry=(0.5, 0))
+    p.note("Management, Support, Transport, Visitors and the firewall range have no route to the cloud.", 60, 420, 500, 50, fill="#FDEDEC", stroke="#DD344C")
+    p.note("<b>DNS.</b> The firewall answers every zone and forwards to two public resolvers. It also holds a local record for the IoT Core data name, with the addresses of the endpoint interfaces.", 60, 490, 500, 80)
+
+    p.step("<b>Tunnel 1</b><br>IPsec, started by AWS", 660, 270, 200, 60, fill="#EEF7EE", stroke=TEL, cid="t1")
+    p.step("<b>Tunnel 2</b><br>IPsec, started by AWS", 660, 350, 200, 60, fill="#EEF7EE", stroke=TEL, cid="t2")
+    p.edge("fw", "t1", "", TEL, exit=(1, 0.3), entry=(0, 0.5))
+    p.edge("fw", "t2", "", TEL, exit=(1, 0.7), entry=(0, 0.5))
+    p.note("Both tunnels end on the same firewall and the same WAN. They cover a failure of an AWS tunnel endpoint, and a failure of the WAN or the firewall takes both.", 630, 440, 260, 100, fill="#FFF8E1", stroke="#D6B656")
+
+    p.group("Cloud, one environment, production shown", 920, 60, 750, 560, stroke=INK, sw=2)
+    p.step("<b>Virtual private gateway</b><br>one for each environment<br>one connection for each center<br>static routes", 950, 290, 230, 100, fill="#EAF2F8", stroke="#147EBA", cid="vgw")
+    p.edge("t1", "vgw", "", TEL, exit=(1, 0.5), entry=(0, 0.3))
+    p.edge("t2", "vgw", "", TEL, exit=(1, 0.5), entry=(0, 0.7))
+    p.step("<b>rt-private-center</b><br>explicit routes to 10.41.3.0/24, 10.41.10.0/24, 10.42.3.0/24, 10.42.10.0/24, 10.43.3.0/24, 10.43.10.0/24", 1230, 110, 410, 80, fill="#F2F8FC", stroke="#147EBA", cid="rtc")
+    p.step("<b>IoT Core data endpoint</b><br>10.70.0.0/24 and 10.70.1.0/24", 1230, 220, 410, 60, fill="#F2F8FC", stroke="#147EBA", cid="iot")
+    p.step("<b>S3 interface endpoint</b><br>10.70.16.0/24 and 10.70.17.0/24", 1230, 300, 410, 60, fill="#F2F8FC", stroke="#147EBA", cid="s3")
+    p.step("<b>Private REST API endpoint</b><br>10.70.32.0/24 and 10.70.33.0/24", 1230, 380, 410, 60, fill="#F2F8FC", stroke="#147EBA", cid="api")
+    p.edge("vgw", "rtc", "routes and return", OBJ, exit=(0.5, 0), entry=(0, 0.5), points=[(1065, 150)])
+    p.edge("vgw", "iot", "", OBJ, exit=(1, 0.2), entry=(0, 0.5))
+    p.edge("vgw", "s3", "", OBJ, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("vgw", "api", "", OBJ, exit=(1, 0.8), entry=(0, 0.5))
+    p.note("<b>rt-private</b> serves data, object storage, administration and public query, and holds no route to a center. Security groups and network ACLs still decide what may pass on the routes above.", 1230, 470, 410, 100, fill="#FDEDEC", stroke="#DD344C")
+
+    p.group("Names from a center, each one read in documentation and not tested", 30, 650, 1640, 190, stroke=OBJ, dashed=True, sw=2)
+    p.note("<b>Private REST API.</b> Endpoint-specific name vpce.execute-api, header x-apigw-api-id. Public DNS returns the private addresses. TLS 1.2 or later, security policy TLS_1_2 or access mode BASIC.", 50, 700, 520, 120, fill="#F2F8FC", stroke="#147EBA")
+    p.note("<b>S3.</b> Endpoint-specific name bucket.vpce, resolvable from the public S3 domain. TLS 1.2 only. Presigned URLs against that name are not verified. The gateway endpoint cannot be reached from a center.", 590, 700, 520, 120, fill="#F2F8FC", stroke="#147EBA")
+    p.note("<b>IoT Core data.</b> No private DNS and no regional or zonal public name, so the firewall holds a local record. Server name required, ATS certificates, port 443 with ALPN or 8883 to be shown. A Resolver costs USD 182.50 a month and is not adopted.", 1130, 700, 520, 120, fill="#FFF8E1", stroke="#D6B656")
+
+    p.group("When the link fails", 30, 870, 1100, 180, stroke=ALERT, dashed=True, sw=2)
+    p.note("<b>One tunnel down.</b> Traffic moves to the other. The firewall must stop using the failed one. No recovery time is promised.", 50, 920, 340, 110, fill="#FFFFFF", stroke=ALERT)
+    p.note("<b>Both down, WAN or firewall down.</b> Reception goes on, events queue on the devices, calls to the cloud time out. Alarm on TunnelState below 1.", 410, 920, 340, 110, fill="#FFFFFF", stroke=ALERT)
+    p.note("<b>Tunnels up, traffic dropped.</b> TunnelState stays at 1. Flow logs and application errors show it.", 770, 920, 340, 110, fill="#FFFFFF", stroke=ALERT)
+    p.legend(1160, 870, 510, [(TEL, False, "Tunnel"), (OBJ, False, "Route in the cloud"), (CTRL, False, "Inside the center")])
+    p.note("<b>Static routing.</b> BGP is a future alternative with conditions, not a backup of the static routes.", 1160, 990, 510, 50, fill="#FFF8E1", stroke="#D6B656")
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
