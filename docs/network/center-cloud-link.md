@@ -178,7 +178,7 @@ A device at a center uses the name of an endpoint that resolves to a private add
 | How a center resolves it | The public resolvers return the private addresses of the endpoint interfaces, since the records of an interface endpoint are public | Documented as resolvable from the public S3 domain, with no change to the DNS of the center | The default name resolves to public addresses, and IoT Core supports no private DNS name and no regional or zonal public name for this endpoint. The firewall of the center holds a local record for that name with the addresses of the endpoint interfaces |
 | Destination address | The interfaces of the application subnets, `10.70.32.0/24` and `10.70.33.0/24` in production | The interfaces of the drone ingress subnets, `10.70.16.0/24` and `10.70.17.0/24` | The interfaces of the telemetry ingress subnets, `10.70.0.0/24` and `10.70.1.0/24` |
 | Path | Center firewall, tunnel, `rt-private-center`, endpoint interface | The same | The same |
-| TLS and client requirements | TLS 1.2 or later. Because the client uses the name of the endpoint and a header, the API needs the legacy `TLS_1_2` security policy or an enhanced one with the endpoint access mode set to BASIC, since STRICT rejects a host that does not match the name in the handshake. The client sends the header. The resource policy of the API admits the endpoint | TLS 1.2. AWS lists TLS 1.3 as not supported by the interface endpoint of S3, so the client must negotiate 1.2. Presigned URLs are not verified, see below | The client sends the server name in the handshake, which AWS lists as required for VPC endpoints. The endpoint serves the ATS certificates only. Devices with the SDK of AWS IoT meet this |
+| TLS and client requirements | TLS 1.2 or later. Because the client uses the name of the endpoint and a header, the API needs the legacy `TLS_1_2` security policy or an enhanced one with the endpoint access mode set to BASIC, since STRICT rejects a host that does not match the name in the handshake. The client sends the header. The resource policy of the API admits the endpoint | TLS 1.2. AWS lists TLS 1.3 as not supported by the interface endpoint of S3, so the client must negotiate 1.2. The presigned URL is signed for this name, see below | The client sends the server name in the handshake, which AWS lists as required for VPC endpoints. The endpoint serves the ATS certificates only. Devices with the SDK of AWS IoT meet this |
 | Verified in documentation | Yes, the names, the headers and the security policy rule | Yes, the names, the resolution and the TLS limit | The limits yes. The local record is an inference from the private hosted zone procedure of AWS, which uses the same addresses |
 | Not tested | Everything | Everything | Everything, and whether the endpoint carries MQTT on 443 with ALPN |
 
@@ -203,21 +203,20 @@ The current rules admit TCP 443 only. They are CTR-01 for the center, SG-01 for 
 | The device sends the ALPN name `x-amzn-mqtt-ca` and the interface endpoint carries MQTT on 443 | Yes. The rules as written are enough | None |
 | The device does not send ALPN, or the interface endpoint does not carry 443 for MQTT | No | Add TCP 8883 from the center source ranges to the IoT endpoint, in the center rule, in SG-01 and in NACL-01. Only that endpoint and only that port, since the S3 and API endpoints keep 443 |
 
-The first row depends on a fact that the documentation read does not give. The device SDKs of AWS IoT implement ALPN, which the existing assumption of the firewall policy states, and the behavior of the interface endpoint on 443 is the unknown. The decision belongs to the owner of the firewall policy, who may add the single port 8883 for the IoT endpoint now, or accept the risk that the IoT leg fails at the first center and is then changed. A third choice is to drop the IoT leg if no center device publishes to IoT Core, which the owner of the cloud addressing and the network module decides. Until one of these is chosen, the IoT leg of the link is not resolved. This document does not edit those rules.
+The first row depends on a fact that the documentation read does not give. The device SDKs of AWS IoT implement ALPN, and the behavior of the interface endpoint on 443 is the unknown. The design keeps TCP 443 with ALPN, which is the assumption the [firewall policy](../security/firewall-policy.md) already records, and its fallback is the second row, TCP 8883 for the IoT endpoint only. The first center shows which row holds.
 
 ### S3, presigned URLs and the name that is signed
 
 A platform upload function issues the presigned URL. It runs outside the VPC with its own role, as the drone mission link design says, and the URL is valid for one object for a few minutes. The signature covers the host of the request. AWS states that the host header must be in the signed headers, so a URL signed for one host fails when it is used with another, and the host cannot be changed after signing.
 
-For a center this means the function must sign for the endpoint-specific name that the center uses, `bucket.vpce-id.s3.us-east-1.vpce.amazonaws.com`, in the addressing style that the client will use. The documentation read does not say whether the endpoint-specific name accepts the virtual-hosted or the path style, so the function must sign in the style the client sends, and that is part of the first test. A URL signed for the public bucket name only works from outside a center. The drone mission link design says that an API answers the request for permission and does not say which API a station at a center calls. The function can know that the caller is at a center when the request arrives through the private REST API. If the station calls the public API from a center, the function has no way to tell and signs for the public name, and the upload then leaves through the internet link of the center and not through the tunnel. The owner of the drone mission link design decides which API the station calls and how the function chooses the name. This document does not edit that design.
+A ground station at a center asks for upload permission through the private REST API, as every center station does. The request reaches the function through the interface endpoint of the API, so the function signs the URL for the endpoint-specific name that the center uses, `bucket.vpce-id.s3.us-east-1.vpce.amazonaws.com`. A request through the public API, from a municipal seat, gets a URL for the public bucket name. The documentation read does not say whether the endpoint-specific name accepts the virtual-hosted or the path style, so the function signs in the style the client sends, and the first center confirms it. The [drone mission link](drone-mission-link.md) carries the same rule.
 
-### Open points
+### Checks left for the first center
 
-| Open point | Owner | State |
-|---|---|---|
-| Port 8883 for IoT Core data, or drop the IoT leg | Owner of the firewall policy, and owner of the cloud addressing for the second option | Open decision |
-| Which API a station at a center calls for upload permission, and how the function chooses the name that it signs | Owner of the drone mission link design | Open decision |
-| Whether the interface endpoint of IoT Core carries MQTT on 443 | AWS documentation does not say | The first center shows it, and it is not a requirement added to this design |
+| Open point | Settled by |
+|---|---|
+| Whether the interface endpoint of IoT Core carries MQTT on 443 with ALPN | The first center. If it does not, TCP 8883 is added for that endpoint only |
+| Whether a presigned URL works against the endpoint-specific name of S3, and in which addressing style | The first center |
 
 ### Alternative with a resolver in the cloud
 
@@ -280,8 +279,8 @@ Input of each environment root.
 
 | Variable | Type | Meaning |
 |---|---|---|
-| `enable_center_link` | boolean | Creates the link resources, off by default in development and test |
-| `center_links` | map keyed by the department code `41`, `42` or `43` | One entry for each linked center. Test holds `41`, production holds the three |
+| `enable_center_link` | boolean | Creates the link resources. It already exists in every root, off by default, and the test and production variable files turn it on |
+| `center_links` | map keyed by the department code `41`, `42` or `43` | One entry for each linked center. Its keys must equal the `linked_centers` list that the roots already pass to the firewall rules, and a validation enforces it. Test holds `41`, production holds the three |
 | `center_links[code].public_ip` | string | The static public address of the firewall of that center. Pending until the provider assigns it |
 | `center_links[code].name` | string | A short name for tags, such as `cauca` |
 
@@ -331,7 +330,6 @@ This document changes no cost. It lists where the design and the cost document d
 | Secrets Manager | One secret for each connection, which holds the keys of both tunnels, so 3 in production and 1 in test. AWS creates the secret when the mode is Secrets Manager and none exists | 4 secrets, USD 1.60, and the encryption document lists the VPN keys and the third-party keys without a count | The four may already include the three VPN secrets, which leaves one for every third-party key, or may not. The cost owner must say. If they are extra, production adds USD 1.20 a month |
 | Secret in a test session | The test secret exists while the connection does | The hourly row of test has no secret | Under USD 0.01 an hour at USD 0.40 a month, not counted |
 | Deletion of the secret | AWS behavior when a connection is deleted is not verified | Not counted | A secret kept after a destroy would bill USD 0.40 a month until deleted |
-| Production total | | USD 177.05 normal and USD 200.41 harvest in the cost document, and USD 177.23 and USD 201.11 in the project status | Two values for the same total, for the cost owner |
 
 ## 11. Assumptions and pending confirmations
 
@@ -341,7 +339,7 @@ This document changes no cost. It lists where the design and the cost document d
 | The firewall can answer a local DNS record for one name | Common in firewall resolvers | The IoT name needs the resolver of section 6 or the endpoint is dropped | Network lead, at equipment selection |
 | The public resolvers return the private addresses of an interface endpoint to the firewall | AWS documents the records as public | Names of API and S3 need the resolver | First center test |
 | The interface endpoint of IoT Core carries the port that the device uses | Not stated in the documentation read | SG-01 and NACL-01 add 8883, or the device uses another port | First center test, owner of the firewall policy |
-| Presigned URLs work against the endpoint-specific name of S3 | Not stated in the documentation read | The upload function signs for that name, or uploads go through another path | First center test, owner of the drone mission link |
+| Presigned URLs work against the endpoint-specific name of S3 | Not stated in the documentation read | Uploads from a center take the public bucket name over the internet link of the center | First center test |
 | Failover time of the tunnels | AWS gives no figure | The design promises none | First center test |
 | The provider of each center assigns a static public address | The LAN design assumes it | A dynamic setup or another provider | Provider quote |
 
@@ -349,7 +347,7 @@ This document changes no cost. It lists where the design and the cost document d
 
 | Literal criterion | Where it is answered | Gaps | Assumptions accepted | Checks to start operating |
 |---|---|---|---|---|
-| Type of link chosen with routes and DNS | Sections 3 to 7 and the script. Type, routing and routes are complete. DNS is complete for the private REST API. S3 has a path and depends on how the upload function chooses the name it signs. IoT Core data has a path that depends on a port decision | Two open decisions with their owners, in the table of section 6. The criterion is partial for the IoT and S3 legs | Section 11 | Names and routes tested at the first center |
+| Type of link chosen with routes and DNS | Sections 3 to 7 and the script. Type, routing, routes and the name of each service | None in the design. The IoT port and the S3 signed name are checks of the first center | Section 11 | Names, ports and routes tested at the first center |
 | Association of the cloud network with the center of a department, ready for epic 6 | Section 9 | None in the design. The static address of each center and the firewall model are inputs | A variable chooses the department | The plan of the infrastructure code |
 | Behavior when the link of the center fails | Section 8 | None. No recovery time, since none is documented | Static routing health checks of the firewall | Measured at the first center |
 
