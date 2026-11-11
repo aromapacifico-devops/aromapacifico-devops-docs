@@ -1,0 +1,69 @@
+[
+  {
+    "version": "0",
+    "source": "aroma.flights",
+    "detail-type": "flight.object.verified",
+    "time": "2026-11-13T18:06:12Z",
+    "detail": {
+      "execution_id": "exec-demo-17-2",
+      "mission_type": "FUMIGATION",
+      "artifact_id": "flight-log-demo-17-2",
+      "key": "fumigation/order-demo-17/exec-demo-17-2/flight-log-demo-17-2.json",
+      "version_id": "demo-version-0002",
+      "size": 48210,
+      "sha256": "9675ae040632b87314d93b04580b270c6b08d3e43b20c0044af3217860b63fea",
+      "check": "stored_sha256"
+    }
+  },
+  {
+    "version": "0",
+    "source": "aroma.flights",
+    "detail-type": "flight.object.rejected",
+    "time": "2026-11-13T18:06:30Z",
+    "detail": {
+      "execution_id": "exec-demo-77-01",
+      "mission_type": "HARVEST_ESTIMATION",
+      "artifact_id": "ortho-demo-77",
+      "key": "estimation/farm-demo/exec-demo-77-01/ortho-demo-77.tif",
+      "version_id": "demo-version-0770",
+      "reason_code": "sha256_mismatch",
+      "quarantine_key": "quarantine/estimation/farm-demo/exec-demo-77-01/ortho-demo-77.tif/demo-version-0770"
+    }
+  },
+  {
+    "version": "0",
+    "source": "aroma.flights",
+    "detail-type": "flight.record.published",
+    "time": "2026-11-13T18:07:40Z",
+    "detail": {
+      "flight_record_id": "flight-record-demo-17-2",
+      "mission_type": "FUMIGATION",
+      "mission_id": "mission-demo-17",
+      "execution_id": "exec-demo-17-2",
+      "anchor": {
+        "kind": "order_id",
+        "id": "order-demo-17"
+      },
+      "farm_id": "farm-demo",
+      "lot_id": "lot-demo-a",
+      "outcome": "SUCCESS",
+      "record": {
+        "key": "fumigation/order-demo-17/exec-demo-17-2/flight-record.json",
+        "version_id": "demo-version-0005",
+        "sha256": "0f5d8e4c3b2a19087f6e5d4c3b2a19087f6e5d4c3b2a19087f6e5d4c3b2a1908"
+      }
+    }
+  },
+  {
+    "version": "0",
+    "source": "aroma.flights",
+    "detail-type": "flight.record.review_required",
+    "time": "2026-11-12T19:02:00Z",
+    "detail": {
+      "execution_id": "exec-demo-63-1",
+      "mission_type": "VERIFICATION",
+      "flight_record_id": null,
+      "reason_code": "object_missing"
+    }
+  }
+]

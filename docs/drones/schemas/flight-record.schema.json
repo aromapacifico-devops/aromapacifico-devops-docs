@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "flight-record.schema.json",
+  "title": "Flight record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "flight_record_id", "mission_type", "mission_id", "mission_revision", "package_id",
+    "package_digest", "execution_id", "replaces_execution_id", "anchor", "farm_id", "lot_id", "station_id",
+    "drone_ref", "loaded_versions", "times", "outcome", "outcome_reason", "flight_log", "objects",
+    "result_manifest", "links", "published_at"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "flight_record_id": { "type": "string", "pattern": "^flight-record-[a-z0-9-]{3,40}$" },
+    "mission_type": {
+      "enum": ["DELIMITATION", "FOCUS_CONFIRMATION", "FUMIGATION", "VERIFICATION", "HARVEST_ESTIMATION"]
+    },
+    "mission_id": { "type": "string", "pattern": "^mission-[a-z0-9-]{3,40}$" },
+    "mission_revision": { "type": "integer", "minimum": 1 },
+    "package_id": { "type": "string", "pattern": "^pkg-[a-z0-9-]{3,40}$" },
+    "package_digest": { "$ref": "#/$defs/sha256" },
+    "execution_id": { "type": "string", "pattern": "^exec-[a-z0-9-]{3,40}$" },
+    "replaces_execution_id": {
+      "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^exec-[a-z0-9-]{3,40}$" }]
+    },
+    "anchor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": { "enum": ["farm_id", "case_id", "order_id"] },
+        "id": { "type": "string", "pattern": "^(farm|case|order)-[a-z0-9-]{3,40}$" }
+      }
+    },
+    "farm_id": { "type": "string", "pattern": "^farm-[a-z0-9-]{3,40}$" },
+    "lot_id": {
+      "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^lot-[a-z0-9-]{3,40}$" }]
+    },
+    "station_id": { "type": "string", "pattern": "^station-[a-z0-9-]{3,40}$" },
+    "drone_ref": {
+      "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^drone-[a-z0-9-]{3,40}$" }]
+    },
+    "loaded_versions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["geometry_version", "exclusions"],
+      "properties": {
+        "geometry_version": { "oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 1 }] },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["exclusion_id", "version"],
+            "properties": {
+              "exclusion_id": { "type": "string", "pattern": "^exclusion-[a-z0-9-]{3,40}$" },
+              "version": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "times": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planned_start", "takeoff", "landing", "upload_started", "upload_completed"],
+      "properties": {
+        "planned_start": { "$ref": "#/$defs/utc" },
+        "takeoff": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/utc" }] },
+        "landing": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/utc" }] },
+        "upload_started": { "$ref": "#/$defs/utc" },
+        "upload_completed": { "$ref": "#/$defs/utc" }
+      }
+    },
+    "outcome": { "enum": ["SUCCESS", "PARTIAL", "ABORTED", "FAILED"] },
+    "outcome_reason": { "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^[a-z_]{3,40}$" }] },
+    "product_lot_used": { "type": "string", "pattern": "^LOT-[A-Z0-9-]{3,40}$" },
+    "flight_log": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "log_schema_version", "closed_on_station"],
+      "properties": {
+        "artifact_id": { "type": "string", "pattern": "^[a-z0-9-]{3,60}$" },
+        "log_schema_version": { "type": "string" },
+        "closed_on_station": { "type": "boolean" }
+      }
+    },
+    "objects": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/object" }
+    },
+    "result_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["object", "signature_algorithm", "station_certificate_id"],
+      "properties": {
+        "object": { "$ref": "#/$defs/stored" },
+        "signature_algorithm": { "const": "ECDSA_SHA_256" },
+        "station_certificate_id": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "links": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["prerequisite_flight_record_id", "authorization_record_id"],
+      "properties": {
+        "prerequisite_flight_record_id": {
+          "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^flight-record-[a-z0-9-]{3,40}$" }]
+        },
+        "authorization_record_id": {
+          "oneOf": [{ "type": "null" }, { "type": "string", "pattern": "^rec-[a-z0-9-]{3,40}$" }]
+        }
+      }
+    },
+    "published_at": { "$ref": "#/$defs/utc" }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "mission_type": { "const": "FUMIGATION" } } },
+      "then": {
+        "required": ["product_lot_used"],
+        "properties": {
+          "anchor": { "properties": { "kind": { "const": "order_id" } } },
+          "links": {
+            "properties": {
+              "prerequisite_flight_record_id": { "type": "string" },
+              "authorization_record_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "mission_type": { "const": "VERIFICATION" } } },
+      "then": { "properties": { "anchor": { "properties": { "kind": { "const": "order_id" } } } } }
+    },
+    {
+      "if": { "properties": { "mission_type": { "const": "FOCUS_CONFIRMATION" } } },
+      "then": { "properties": { "anchor": { "properties": { "kind": { "const": "case_id" } } } } }
+    },
+    {
+      "if": { "properties": { "mission_type": { "enum": ["DELIMITATION", "HARVEST_ESTIMATION"] } } },
+      "then": { "properties": { "anchor": { "properties": { "kind": { "const": "farm_id" } } } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "utc": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$" },
+    "stored": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "version_id", "size", "sha256"],
+      "properties": {
+        "key": { "type": "string", "pattern": "^(delimitation|focus|fumigation|verification|estimation)/[a-z0-9-]+/exec-[a-z0-9-]+/[a-z0-9.-]+$" },
+        "version_id": { "type": "string", "minLength": 1 },
+        "size": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "object": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "role", "media_type", "mandatory", "upload_mode", "key", "version_id", "size", "sha256"],
+      "properties": {
+        "artifact_id": { "type": "string", "pattern": "^[a-z0-9-]{3,60}$" },
+        "role": {
+          "enum": ["flight_log", "application_log", "photo", "map", "draft_polygon", "orthomosaic", "field_sample"]
+        },
+        "media_type": { "type": "string", "pattern": "^[a-z]+/[a-z0-9.+-]+$" },
+        "mandatory": { "type": "boolean" },
+        "upload_mode": { "enum": ["single", "multipart"] },
+        "key": { "type": "string", "pattern": "^(delimitation|focus|fumigation|verification|estimation)/[a-z0-9-]+/exec-[a-z0-9-]+/[a-z0-9.-]+$" },
+        "version_id": { "type": "string", "minLength": 1 },
+        "size": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/sha256" }
+      }
+    }
+  }
+}

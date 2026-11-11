@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "flight_record_id": "flight-record-demo-17-2",
+  "mission_type": "FUMIGATION",
+  "mission_id": "mission-demo-17",
+  "mission_revision": 2,
+  "package_id": "pkg-demo-17-r2",
+  "package_digest": "36dfe35c99c3f1ffcafd1cb706f7b36d357d10e7e577a597be5a5933481802bc",
+  "execution_id": "exec-demo-17-2",
+  "replaces_execution_id": "exec-demo-17-1",
+  "anchor": {
+    "kind": "order_id",
+    "id": "order-demo-17"
+  },
+  "farm_id": "farm-demo",
+  "lot_id": "lot-demo-a",
+  "station_id": "station-demo-03",
+  "drone_ref": "drone-demo-02",
+  "loaded_versions": {
+    "geometry_version": 7,
+    "exclusions": [
+      {
+        "exclusion_id": "exclusion-demo-01",
+        "version": 3
+      }
+    ]
+  },
+  "times": {
+    "planned_start": "2026-11-13T12:00:00Z",
+    "takeoff": "2026-11-13T12:20:00Z",
+    "landing": "2026-11-13T12:41:00Z",
+    "upload_started": "2026-11-13T18:05:00Z",
+    "upload_completed": "2026-11-13T18:07:00Z"
+  },
+  "outcome": "SUCCESS",
+  "outcome_reason": null,
+  "product_lot_used": "LOT-DEMO-551",
+  "flight_log": {
+    "artifact_id": "flight-log-demo-17-2",
+    "log_schema_version": "1.0",
+    "closed_on_station": true
+  },
+  "objects": [
+    {
+      "artifact_id": "flight-log-demo-17-2",
+      "role": "flight_log",
+      "media_type": "application/json",
+      "mandatory": true,
+      "upload_mode": "single",
+      "key": "fumigation/order-demo-17/exec-demo-17-2/flight-log-demo-17-2.json",
+      "version_id": "demo-version-0002",
+      "size": 48210,
+      "sha256": "9675ae040632b87314d93b04580b270c6b08d3e43b20c0044af3217860b63fea"
+    },
+    {
+      "artifact_id": "application-log-demo-17-2",
+      "role": "application_log",
+      "media_type": "application/json",
+      "mandatory": true,
+      "upload_mode": "single",
+      "key": "fumigation/order-demo-17/exec-demo-17-2/application-log-demo-17-2.json",
+      "version_id": "demo-version-0003",
+      "size": 21877,
+      "sha256": "7e8384c73034f7dbce7dffc865b357be492b860adf929ad52ec0bd7aadb829ac"
+    }
+  ],
+  "result_manifest": {
+    "object": {
+      "key": "fumigation/order-demo-17/exec-demo-17-2/result-manifest.json",
+      "version_id": "demo-version-0004",
+      "size": 3120,
+      "sha256": "02d97e53dbc50338dbcc650b2394ba53513cb6024631ffe56b8f902af999aba9"
+    },
+    "signature_algorithm": "ECDSA_SHA_256",
+    "station_certificate_id": "690016300d2150b743f36d4acf89d37e1adf062e152fc56793de792d2cbfa759"
+  },
+  "links": {
+    "prerequisite_flight_record_id": "flight-record-demo-42-1",
+    "authorization_record_id": "rec-demo-17-02"
+  },
+  "published_at": "2026-11-13T18:07:40Z"
+}

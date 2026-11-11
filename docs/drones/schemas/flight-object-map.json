@@ -1,0 +1,169 @@
+{
+  "schema_version": "1.0",
+  "bucket": "<prefix>-s3-flights",
+  "encryption": {
+    "algorithm": "aws:kms",
+    "key": "objects key of the environment",
+    "bucket_key": true
+  },
+  "versioning": true,
+  "object_name": "<artifact_id>.<extension of its media type>",
+  "lifecycle_rules": {
+    "evidence": {
+      "transition_days": 90,
+      "storage_class": "GLACIER_IR",
+      "transition_min_size_bytes": 131072,
+      "expire_current_days": 1826,
+      "expire_noncurrent_days": 30
+    },
+    "short": {
+      "transition_days": null,
+      "storage_class": null,
+      "transition_min_size_bytes": null,
+      "expire_current_days": 30,
+      "expire_noncurrent_days": 1
+    },
+    "all": {
+      "abort_incomplete_multipart_days": 7,
+      "remove_expired_delete_markers": true
+    }
+  },
+  "prefixes": [
+    {
+      "root": "packages/",
+      "key_pattern": "packages/<mission_id>/r<mission_revision>/",
+      "mission_type": null,
+      "holds": ["manifest", "manifest signature", "flight plan"],
+      "writer": "package function",
+      "readers": ["ground station by presigned download"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": false
+    },
+    {
+      "root": "geometry/",
+      "key_pattern": "geometry/<farm_id>/<lot_id>/v<geometry_version>/",
+      "mission_type": null,
+      "holds": ["published polygon", "exclusion zones", "no-spray strips"],
+      "writer": "polygon publication function",
+      "readers": ["package function", "order function", "ground station by presigned download"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": false
+    },
+    {
+      "root": "delimitation/",
+      "key_pattern": "delimitation/<farm_id>/<execution_id>/",
+      "mission_type": "DELIMITATION",
+      "holds": ["result manifest", "flight log", "photos", "map", "draft polygon", "flight record"],
+      "writer": "ground station by presigned upload, platform for the flight record",
+      "readers": ["verification function", "polygon review"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": true
+    },
+    {
+      "root": "focus/",
+      "key_pattern": "focus/<case_id>/<execution_id>/",
+      "mission_type": "FOCUS_CONFIRMATION",
+      "holds": ["result manifest", "flight log", "photos", "flight record"],
+      "writer": "ground station by presigned upload, platform for the flight record",
+      "readers": ["verification function", "focus confirmation function"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": true
+    },
+    {
+      "root": "fumigation/",
+      "key_pattern": "fumigation/<order_id>/<execution_id>/",
+      "mission_type": "FUMIGATION",
+      "holds": ["result manifest", "application log", "flight log", "flight record"],
+      "writer": "ground station by presigned upload, platform for the flight record",
+      "readers": ["verification function", "order function"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": true
+    },
+    {
+      "root": "verification/",
+      "key_pattern": "verification/<order_id>/<execution_id>/",
+      "mission_type": "VERIFICATION",
+      "holds": ["result manifest", "flight log", "photos", "flight record"],
+      "writer": "ground station by presigned upload, platform for the flight record",
+      "readers": ["verification function", "post-fumigation verification function"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": true
+    },
+    {
+      "root": "estimation/",
+      "key_pattern": "estimation/<farm_id>/<execution_id>/",
+      "mission_type": "HARVEST_ESTIMATION",
+      "holds": ["result manifest", "flight log", "photos", "orthomosaic", "field sample", "flight record"],
+      "writer": "ground station by presigned upload, platform for the flight record",
+      "readers": ["verification function", "harvest estimation function"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": true
+    },
+    {
+      "root": "estimation/derived/",
+      "key_pattern": "estimation/derived/<farm_id>/<lot_id>/",
+      "mission_type": null,
+      "holds": ["orthomosaic prepared for inference", "image tiles"],
+      "writer": "harvest estimation function",
+      "readers": ["harvest estimation function"],
+      "lifecycle": "evidence",
+      "conditional_write": true,
+      "storage_events": false
+    },
+    {
+      "root": "restricted/",
+      "key_pattern": "restricted/<original key>",
+      "mission_type": null,
+      "holds": ["object that shows a person"],
+      "writer": "inference functions",
+      "readers": ["platform operator, audited"],
+      "lifecycle": "short",
+      "conditional_write": false,
+      "storage_events": false
+    },
+    {
+      "root": "quarantine/",
+      "key_pattern": "quarantine/<original key>/<version_id>",
+      "mission_type": null,
+      "holds": ["object that failed its integrity check"],
+      "writer": "verification function",
+      "readers": ["platform operator, audited"],
+      "lifecycle": "short",
+      "conditional_write": false,
+      "storage_events": false
+    }
+  ],
+  "platform_events": [
+    {
+      "detail_type": "flight.object.verified",
+      "bus": "platform",
+      "emitted_by": "verification function",
+      "when": "An uploaded object matches the size and SHA-256 the station declared"
+    },
+    {
+      "detail_type": "flight.object.rejected",
+      "bus": "platform",
+      "emitted_by": "verification function",
+      "when": "An uploaded object fails its check and moves to quarantine"
+    },
+    {
+      "detail_type": "flight.record.published",
+      "bus": "platform",
+      "emitted_by": "completion function",
+      "when": "The conditional write of the flight record succeeds"
+    },
+    {
+      "detail_type": "flight.record.review_required",
+      "bus": "platform",
+      "emitted_by": "completion function",
+      "when": "A signature, schema, integrity or conflict check fails, or the outcome is FAILED"
+    }
+  ]
+}
