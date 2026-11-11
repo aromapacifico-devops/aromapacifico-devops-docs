@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "sack_code": "AP-7K3M-Q29X-TDHB-6",
+  "origin": { "country": "CO", "department": "Cauca" },
+  "state": "in_transit_to_port",
+  "state_reason": null,
+  "process_dates": {
+    "registered_on": "2026-05-14",
+    "drying_started_on": "2026-05-02",
+    "drying_ended_on": "2026-05-09",
+    "received_at_center_on": "2026-05-15",
+    "dispatched_to_port_on": "2026-05-18"
+  },
+  "drying": {
+    "status": "available",
+    "hours_monitored": 175,
+    "readings_completeness_pct": 100,
+    "grain_temp_max_c": 41.6,
+    "hours_above_40c": 2,
+    "grain_humidity_first_pct": 52.4,
+    "grain_humidity_last_pct": 11.8
+  }
+}

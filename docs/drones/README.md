@@ -8,5 +8,6 @@ The drone service combines area flights, which delimit lots and estimate the har
 | [Lot boundaries and exclusion zones](lot-boundaries-and-exclusions.md) | How lot polygons, no-fly zones and no-spray strips are stored, published and enforced, and which legal distances apply |
 | [Focus confirmation mission](focus-confirmation-mission.md) | What the confirmation flight carries and brings back, and how the case links to each object and to a result with its confidence |
 | [Harvest estimation](harvest-estimation.md) | How one area flight per farm and a field sample give the collection center the expected sacks |
+| [Roles, permits and campaigns](roles-permits-and-campaigns.md) | Who flies, who authorizes a fumigation, under which permit, what a campaign carries and how often each service flies in the pilot |
 
 The [drone mission link](../network/drone-mission-link.md) explains how missions reach the drone and how flight logs and objects return to the platform. The [platform overview](../architecture/overview.md) places the service in the whole architecture.

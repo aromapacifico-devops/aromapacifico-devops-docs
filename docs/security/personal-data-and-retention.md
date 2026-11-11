@@ -79,13 +79,7 @@ The sack identifier holds no national ID and no personal data, and it encodes ne
 
 ## 5. Who sees what
 
-| Field | Buyer | Center | Carrier | Farmer |
-|---|---|---|---|---|
-| Origin, at department level | Yes | Yes | No | Yes |
-| Process dates, state, drying variables | Yes | Yes | No | Yes |
-| Trip | No | Yes | Own | No |
-| Farm and lot | No | Yes | No | Own |
-| Farmer identity | No | No | No | Own |
+The buyer receives the origin by department, the process dates by day, the state and the drying variables of one sack, and no personal data. The center sees the trip toward it, the carrier sees their own trips, and the farmer sees their own farms. [Views by actor](../traceability/actor-views.md) holds the full matrix by field and the routes that enforce it.
 
 ## 6. Objects that contain a person
 
