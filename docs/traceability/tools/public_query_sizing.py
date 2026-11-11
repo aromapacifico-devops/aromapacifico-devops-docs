@@ -28,7 +28,7 @@ LAMBDA_REQUEST_PER_MILLION = 0.20
 LAMBDA_GB_SECOND = 0.0000166667
 READ_UNIT_PER_MILLION = 0.125
 CLOUDFRONT_FREE_REQUESTS = 10_000_000   # always-free tier, each month
-CLOUDFRONT_PER_MILLION = 1.00           # HTTPS requests in North America after the free tier
+CLOUDFRONT_PER_MILLION = 2.20           # HTTPS requests at South American edges after the free tier
 
 # ASSUMED
 FUNCTION_SECONDS = 0.2             # warm read, GetItem and audit write, as the cloud cost already prices it
@@ -102,12 +102,11 @@ def main():
 
     alarm_rps = ALARM_FACTOR * peak_rps
     at_ceiling = ceiling * 3600 * RESPONSE_HOURS
-    edge = at_ceiling * CLOUDFRONT_PER_MILLION / 1e6
     print("\nAbuse between alarm and switch-off")
     print(f"  alarm threshold              {alarm_rps:.0f} a second, {alarm_rps * 300:.0f} in 5 minutes")
     print(f"  lookups in {RESPONSE_HOURS} hours at the ceiling {at_ceiling:,.0f}")
     print(f"  cost, lookups served         {at_ceiling * total / 1e6:.2f}")
-    print(f"  cost, CloudFront beyond free {edge:.2f}")
+    print(f"  each million rejected beyond the ceiling {WAF_PER_MILLION + CLOUDFRONT_PER_MILLION:.2f}, once past the free tier")
     print(f"  a whole month at the ceiling {ceiling * MONTH_S * total / 1e6:.2f}")
 
 
