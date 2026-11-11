@@ -283,6 +283,7 @@ A function writes the event in the same invocation that serves the request, befo
 | Path for platform events | Log group, subscription and Firehose in the log archive account | Direct calls from functions to Firehose, which would give each function cross-account write rights and lose events on throttling. API Gateway access logs alone, which hold no sack code resolution or threshold values |
 | Evidence of telemetry | IoT Core logging of `Publish-In` for farm thing groups | Fields added by the ingestion rule to the telemetry archive, which would make the audited path write its own evidence in the workload account |
 | Evidence of flight objects | CloudTrail data events for `PutObject` on one bucket, plus the authorization event | S3 server access logs, delivered on a best-effort basis, so a record can be missing |
+| Reads of images that show a person | CloudTrail data events for `GetObject` on the restricted prefix of the flights bucket | Platform events alone, which miss a read by the operator outside the application |
 | Threshold changes outside the API | CloudTrail data events for writes on the ranges table | Platform events alone, which miss a direct write by an administrator |
 | Buyer address | Network prefix /24 or /48 | Full address, which is personal data kept five years. No address, which loses the grouping of abuse |
 

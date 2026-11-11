@@ -121,7 +121,7 @@ The team could not confirm the current status of the United States on the regula
 | Consent in the sign-up flow, naming the destination | Supports the transfer with the authorization of the data subject |
 | Model clauses, if the list does not cover the destination | Meets the regulator's instruction |
 
-Crop images sent to inference hold no personal data, because the person filter runs first, and they stay in the same region when the model runs in region.
+Crop images sent to inference hold no personal data, because the person filter runs first, and they reach the model with no location metadata. The model runs through a US profile that processes requests in three US Regions. The [inference Region and data leaving the country](inference-data-egress.md) document lists each object and each move.
 
 ## 9. Cost of retention
 
