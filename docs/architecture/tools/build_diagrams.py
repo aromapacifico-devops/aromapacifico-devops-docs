@@ -228,11 +228,11 @@ def overview():
     p.card("DynamoDB cases", "Case table, function results", c[4], 626, W, 66, "cases", icon="dynamodb", color=DATA, impl=True)
     p.card("S3 web assets", "Reports and query pages", c[6], 516, W, 66, "wa", icon="s3", color=STORAGE)
     p.card("CloudFront", "Web, static assets", c[6], 626, W, 66, "cf", icon="cloudfront", color=NET)
-    p.note("<b>Event-driven inference.</b> A function starts on an event, reads the stored object, calls the managed service and writes the result with time, confidence and source object. Then it ends. If it fails, the object stays and the case does not change. Only a person authorizes a fumigation. In code, only focus confirmation is built, with its case table, and Rekognition and Bedrock are called, not created.", 1600, 756, 564, 130, fill="#FFFFFF", stroke=G["prod"][1])
+    p.note("<b>Event-driven inference.</b> A function starts on an event, reads the stored object, calls the managed service and writes the result with time, confidence and exact source versions. Then it ends. If it fails, the object stays and the case does not change. Only a person authorizes a fumigation. In code, only focus confirmation is built, with its case table, and Rekognition and Bedrock are called, not created.", 1600, 756, 564, 130, fill="#FFFFFF", stroke=G["prod"][1])
     p.card("WAF", "Rate limit on sack reads", c[7], 626, W, 66, "waf", icon="waf", color=SEC)
     p.card("S3 flight objects", "Photos, maps, logs, 5 years", c[0], 756, W, 66, "obj", icon="s3", color=STORAGE, impl=True)
-    p.card("EventBridge", "Object created rules", c[1], 756, W, 66, "eb", icon="eventbridge", color=APP, impl=True)
-    p.card("Inference functions", "Focus in code, two more designed", c[2], 756, W, 66, "inf", icon="lambda", color=COMPUTE, impl=True)
+    p.card("EventBridge", "Published flight records", c[1], 756, W, 66, "eb", icon="eventbridge", color=APP, impl=True)
+    p.card("Inference functions", "Focus in code, three designed", c[2], 756, W, 66, "inf", icon="lambda", color=COMPUTE, impl=True)
     p.code("C08", c[2] + W - 34, 750)
     p.card("Rekognition", "DetectLabels, person filter", c[3], 756, W, 66, "rek", icon="rekognition", color=ML)
     p.card("Bedrock", "Multimodal model, no training", c[4], 756, W, 66, "bed", icon="bedrock", color=ML)
@@ -438,8 +438,8 @@ def end_to_end():
     p.edge("ground", "fw", "HTTPS at center Wi-Fi", OBJ, exit=(1, 0.5), entry=(0.5, 0), points=[(616, 600)])
     p.edge("fw", "api", "IPsec VPN, MFA user", BIZ, exit=(1, 0.3), entry=(0, 0.75), points=[(660, 726), (660, 395)])
     p.edge("fw", "objs", "IPsec VPN, presigned URL", OBJ, exit=(1, 0.7), entry=(0, 0.5), points=[(720, 746), (720, 526)])
-    p.edge("objs", "eb", "object created", OBJ)
-    p.edge("eb", "inffn", "trigger", OBJ)
+    p.edge("objs", "eb", "verified flight", OBJ)
+    p.edge("eb", "inffn", "record published", OBJ)
     p.edge("inffn", "rek", "person?", OBJ)
     p.edge("rek", "bed", "no person", OBJ)
     p.edge("inffn", "ddbs", "result with confidence", OBJ, exit=(0.75, 0), entry=(1, 0.7), points=[(1149, 450), (1350, 450), (1350, 392)])
@@ -518,18 +518,20 @@ def cloud_deployment():
     p.edge("iot", "fh", "", TEL)
 
     p.group("Inference function pattern", 1120, 104, 670, 124, stroke="#0B3D91", sw=2)
-    p.badge("C08", 1740, 110)
-    p.aws("S3 flight objects", 1150, 134, "s3", STORAGE, "obj")
-    p.aws("EventBridge rule", 1260, 134, "eventbridge", APP, "eb")
-    p.aws("Focus confirmation", 1370, 134, "lambda", COMPUTE, "cf")
-    p.aws("Rekognition, Bedrock", 1480, 134, "bedrock", ML, "br")
-    p.aws("Case table", 1590, 134, "dynamodb", DATA, "cs")
-    p.aws("SQS DLQ", 1690, 134, "sqs", APP, "dl")
+    p.badge("C08", 1746, 110)
+    p.aws("S3 flight objects", 1135, 134, "s3", STORAGE, "obj")
+    p.aws("EventBridge rule", 1235, 134, "eventbridge", APP, "eb")
+    p.aws("Focus queue", 1335, 134, "sqs", APP, "fq")
+    p.aws("Focus<br>confirmation", 1430, 134, "lambda", COMPUTE, "cf")
+    p.aws("Rekognition<br>Bedrock", 1525, 134, "bedrock", ML, "br")
+    p.aws("Case table", 1620, 134, "dynamodb", DATA, "cs")
+    p.aws("SQS DLQ", 1720, 134, "sqs", APP, "dl")
     p.edge("obj", "eb", "", OBJ)
-    p.edge("eb", "cf", "", OBJ)
+    p.edge("eb", "fq", "", OBJ)
+    p.edge("fq", "cf", "", OBJ)
     p.edge("cf", "br", "", OBJ)
     p.edge("br", "cs", "", OBJ)
-    p.edge("cf", "dl", "", FAIL, dashed=True, exit=(0.5, 0), entry=(0.5, 0), points=[(1396, 124), (1716, 124)])
+    p.edge("fq", "dl", "", FAIL, dashed=True, exit=(0.5, 0), entry=(0.5, 0), points=[(1361, 124), (1746, 124)])
 
     # Lower row
     p.group("Platform identities and encryption", 330, 600, 340, 150, stroke="#0B3D91", sw=2)
@@ -1345,8 +1347,78 @@ def center_cloud_link():
     return p
 
 
+def inference_functions():
+    p = Page("19 Inference functions", 2200, 1100, "How a complete mission record or archive object reaches one of four inference results")
+    p.note("<b>Published inputs only.</b> A drone function starts after the flight record is published with every mandatory object verified. A telemetry function starts on one completed Parquet object. Each function reads exact S3 versions, writes an idempotent result and never changes case state when it fails.", 40, 58, 2120, 40, fill="#F4F6F7", stroke="#AEB6BF", size=12)
+    G = dict(prod=("#EBF5FB", "#2E86C1"))
+
+    p.zone("A. Complete persisted inputs", 30, 110, 530, 840, "#F4F6F7", "#566573")
+    p.group("Drone mission link", 45, 145, 500, 320, stroke=OBJ, dashed=True)
+    p.card("Ground station", "Uploads every object and its closed log", 65, 175, 200, 64, "gs", net="pc")
+    p.card("Flight objects in S3", "Encrypted, versioned, SHA-256", 285, 175, 200, 64, "objs", icon="s3", color=STORAGE)
+    p.card("Completion check", "Manifest, signature, every mandatory object", 65, 260, 420, 66, "check", icon="lambda", color=COMPUTE)
+    p.card("flight.record.published", "Published after every hash and version matches", 65, 350, 420, 66, "frecord", icon="eventbridge", color=APP)
+    p.edge("gs", "objs", "upload", OBJ)
+    p.edge("objs", "check", "verify", OBJ, exit=(0.5, 1), entry=(0.75, 0))
+    p.edge("check", "frecord", "publish", OBJ)
+
+    p.group("Telemetry archive", 45, 490, 500, 430, stroke=TEL, dashed=True)
+    p.card("Firehose", "Parquet, 900-second buffer", 65, 525, 200, 64, "fh", icon="kinesis_data_firehose", color=NET)
+    p.card("Telemetry archive", "crop/ and drying/, five years", 285, 525, 200, 64, "arc", icon="s3", color=STORAGE)
+    p.card("S3 Object Created", "One finished Parquet object", 65, 610, 420, 66, "tobj", icon="eventbridge", color=APP)
+    p.note("The event fires for each completed object. No mission manifest is involved, and no alert state changes in this path.", 65, 700, 420, 86, fill="#FFFFFF", stroke=TEL)
+    p.edge("fh", "arc", "Parquet", TEL)
+    p.edge("arc", "tobj", "write", TEL, exit=(0.5, 1), entry=(0.75, 0))
+
+    p.zone("B. One work queue and failure queue per function", 590, 110, 560, 840, "#F4F6F7", "#566573")
+    p.card("EventBridge", "Rule matched by event type", 620, 170, 250, 70, "eb", icon="eventbridge", color=APP)
+    rows = [
+        ("qf", "Focus queue", "flight record", 300, "dlf", "Focus DLQ"),
+        ("qv", "Verification queue", "flight record", 440, "dlv", "Verification DLQ"),
+        ("qe", "Estimation queue", "flight record", 580, "dle", "Estimation DLQ"),
+        ("qt", "Telemetry queue", "batch", 720, "dlt", "Telemetry DLQ"),
+    ]
+    for qid, qtitle, qsub, y, did, dtitle in rows:
+        p.card(qtitle, qsub, 900, y, 160, 56, qid, icon="sqs", color=APP)
+        p.card(dtitle, "redrive", 910, y + 68, 140, 46, did, icon="sqs", color=APP)
+        color = TEL if qid == "qt" else OBJ
+        label = "batch" if qid == "qt" else "record"
+        p.edge("eb", qid, label, color, exit=(0.88, 1), entry=(0, 0.5), points=[(875, 240), (875, y + 28)])
+        p.edge(qid, did, "redrive", FAIL, dashed=True, exit=(0.5, 1), entry=(0.5, 0))
+
+    p.zone("C. Managed call and stored result", 1180, 110, 980, 840, "#F4F6F7", "#566573")
+    for label, x, w in (("Function", 1220, 180), ("Managed call", 1450, 220), ("Stored result", 1720, 230), ("Business handoff", 2000, 150)):
+        p.text(label, x, 158, w, 20, size=12, bold=True, color="#2E86C1")
+    p.note("<b>Infrastructure pattern.</b> Focus confirmation, in blue, exercises the queue trigger, exact object read, person filter, model call, result write and dead letter queue. The other functions repeat the shape with their own scope.", 1220, 194, 900, 70, fill="#D6E6FA", stroke="#0B3D91")
+
+    functions = [
+        ("ff", "Focus confirmation", "Lambda per photo result", 291, "fm", "Rekognition, then Bedrock", "Person filter, focus prompt", "fr", "Case photo results", "Confidence, model, exact sources", "fh", "Case event", "inference.completed, reviewer decides", True),
+        ("vf", "Verification", "Lambda per attempt", 431, "vm", "Rekognition, then Bedrock", "Per photo, attempt result", "vr", "Case attempt result", "Coverage, closable, exact sources", "vh", "Order event", "verification.result.<br>persisted", False),
+        ("ef", "Harvest estimation", "Lambda per farm mission", 571, "em", "Rekognition, then Bedrock", "PNG tiles, tree count", "er", "Case estimate", "Count, sample, conversion", "eh", "Supervisor", "validates estimate, no packing order", False),
+        ("tf", "Telemetry batch", "Lambda per Parquet object", 711, "tm", "Configurable ranges", "Measured-time version, no model", "tr", "Readings history", "Reconciliation items", "th", "History", "no alert or state change", False),
+    ]
+    for fid, ft, fs, y, mid, mt, ms, rid, rt, rs, hid, ht, hs, pattern in functions:
+        p.card(ft, fs, 1220, y, 180, 74, fid, icon="lambda", color=COMPUTE, impl=pattern)
+        p.card(mt, ms, 1450, y, 220, 74, mid, icon="bedrock" if fid != "tf" else "dynamodb", color=ML if fid != "tf" else DATA)
+        p.card(rt, rs, 1720, y, 230, 74, rid, icon="dynamodb", color=DATA)
+        p.card(ht, hs, 2000, y, 150, 74, hid, icon="eventbridge" if fid in ("ff", "vf") else None, color=APP if fid in ("ff", "vf") else MGMT)
+        qid = {"ff": "qf", "vf": "qv", "ef": "qe", "tf": "qt"}[fid]
+        p.edge(qid, fid, "receive", TEL if fid == "tf" else OBJ, exit=(1, 0.5), entry=(0, 0.5))
+        p.edge(fid, mid, "analyze" if fid != "tf" else "apply", TEL if fid == "tf" else OBJ, exit=(1, 0.5), entry=(0, 0.5))
+        p.edge(mid, rid, "write", TEL if fid == "tf" else OBJ, exit=(1, 0.5), entry=(0, 0.5))
+        p.edge(rid, hid, "validate" if fid == "ef" else ("append" if fid == "tf" else "emit"), TEL if fid == "tf" else OBJ, exit=(1, 0.5), entry=(0, 0.5))
+
+    p.edge("frecord", "eb", "publish", OBJ, exit=(1, 0.5), entry=(0, 0.3), points=[(545, 383), (545, 191)])
+    p.edge("tobj", "eb", "create", TEL, exit=(1, 0.5), entry=(0, 0.7), points=[(565, 643), (565, 219)])
+    p.note("<b>Person in an image.</b> DetectLabels moves the object to the restricted prefix, Bedrock never sees it and the source version is deleted. A failed function leaves the object in place and changes no case state. SQS applies the redrive policy.", 1220, 836, 900, 76, fill="#FDEDEC", stroke=FAIL)
+
+    p.legend(30, 970, 520, [(OBJ, False, "Verified flight record and vision result"), (TEL, False, "Completed telemetry object and reconciliation"), (FAIL, True, "Redrive to the dead letter queue")])
+    p.note("<b>Idempotency.</b> Function, subject, exact source versions, model and prompt identify one result. A repeated message returns the stored result. Error counts and alarm thresholds belong to the consolidated failure policy.", 570, 970, 880, 96, fill="#FFF8E1", stroke="#D6B656")
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link(), inference_functions()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
