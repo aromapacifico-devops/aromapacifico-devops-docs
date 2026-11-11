@@ -71,7 +71,7 @@ Three layers apply, and each one stops a different mistake.
 | Tag policy | AWS Organizations, attached to the organization root | Resources of the listed types that lack a required key, reported as noncompliant, and values outside the allowed list | Pilot |
 | Provider compliance check | `terraform plan` and `apply`, with `tag_policy_compliance = "error"` | Creating a resource, or changing its tags, when the effective tag policy requires a key the resource lacks | Pilot |
 
-The policy lives in [`policies/tag-policy.json`](policies/tag-policy.json). It requires the six keys on the 28 resource types the platform creates or will create, listed in [`policies/tag-resource-types.json`](policies/tag-resource-types.json), and fixes the capitalization of every key and its allowed values. Tag policies are created in the management account, so the standalone demonstration account cannot attach one. There the root validation is the block, and the check script of section 6 keeps the policy ready for the pilot.
+The policy lives in [`policies/tag-policy.json`](policies/tag-policy.json). It requires the six keys on the 29 resource types the platform creates or will create, listed in [`policies/tag-resource-types.json`](policies/tag-resource-types.json), and fixes the capitalization of every key and its allowed values. Tag policies are created in the management account, so the standalone demonstration account cannot attach one. There the root validation is the block, and the check script of section 6 keeps the policy ready for the pilot.
 
 The provider check has three limits that the team must know.
 

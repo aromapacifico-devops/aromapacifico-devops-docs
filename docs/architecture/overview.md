@@ -172,9 +172,12 @@ Development, test and production come from the same code with different variable
 
 | Subject | Documents |
 |---|---|
-| Governance | Landing zone, cloud selection, requirement matrix |
-| Security | Identity and access, encryption and revocation, personal data and retention |
-| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
-| Automation and change | Implementation scope, environments and promotion |
-| Workloads | Sensors, alert ranges, telemetry ingestion, alert to drone confirmation, inference functions, drone operating mode, drone roles and permits, lot boundaries, harvest estimation, sack identity, sack states, custody chain, views by actor, carrier application contract |
+| Governance | Landing zone, cloud selection, requirement matrix, tags, tag policy and budgets, audit of sensitive events |
+| Security | Identity and access, encryption, secrets and revocation, personal data and retention, firewall policy, inference Region and data leaving the country |
+| Network and connectivity | Farm connectivity, mobile network validity, out-of-coverage LoRa path, drone mission link, carrier tracking, port delivery, collection center LAN, center WLAN, center WAN sizing, center cloud link, cloud addressing |
+| Automation and change | Implementation scope, environments and promotion, delivery pipelines, release notes and change policy |
+| Workloads | Sensors, alert ranges, telemetry ingestion, ingestion sizing, alert delivery, farmer history, alert to drone confirmation, drone operating mode, drone roles and permits, lot boundaries, focus confirmation, fumigation order, post-fumigation verification, harvest estimation, flight objects, inference functions, failure policy, sack identity, sack states, custody chain, views by actor, public query, carrier application contract, collection center operations, persistence and archive, recovery |
+| Observability | Observability design, service level objectives |
+| Cost | Price basis, monthly cloud cost, farm hardware and monthly amount, drone campaign cost, inference cost |
+| Design system | Visual identity, design system applied to the three views |
 | Decisions and assumptions | Decision records and assumption register |

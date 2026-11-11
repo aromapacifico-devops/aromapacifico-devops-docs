@@ -128,7 +128,7 @@ Nothing personal and nothing secret. The entries of the custody chain hold the p
 
 ### Retention
 
-Operational logs keep 30 days. That value is an assumption approved by isahrnd for the exercise and is not a requirement of the Federation. Audit evidence keeps 90 days in CloudWatch and five years in S3, from the personal data design, which this design does not change. The infrastructure code sets the retention of each log group explicitly.
+Operational logs keep 30 days. That value is a design assumption that the Federation confirms. Audit evidence keeps 90 days in CloudWatch and five years in S3, from the personal data design, which this design does not change. The infrastructure code sets the retention of each log group explicitly.
 
 ## 6. Metrics
 
@@ -264,7 +264,7 @@ Reference budget USD 2.20 a month, from the cost document, as a reference and no
 | Bytes written for each API request | 300 | Assumption |
 | Gigabytes scanned by queries a month | 2 | Assumption |
 | Dashboards | 2 | Assumption |
-| Retention of operational logs | 30 days | Assumption approved by isahrnd for the exercise |
+| Retention of operational logs | 30 days | Design assumption, the Federation confirms it |
 | Custom metric series of the catalog | 15 | The catalog above |
 
 | Month | Function invocations | API requests | Logs ingested, GB | Ingestion | Storage | Queries | Metrics | Dashboards | Total at list price | Total with the free tier | Alarms that fit the rest of the budget, with the free tier |
@@ -320,7 +320,7 @@ It checks the design as written. It does not prove that any log group, metric, d
 
 | Item | Origin | Who confirms | Effect if it fails |
 |---|---|---|---|
-| Operational logs keep 30 days | Assumption approved by isahrnd for the exercise | Federation | Storage and the window for diagnosis move in proportion |
+| Operational logs keep 30 days | Design assumption, the Federation confirms it | Federation | Storage and the window for diagnosis move in proportion |
 | 700 bytes for each function invocation and 300 bytes for each API request | Assumption | First weeks of the platform | The log volume and its cost move in proportion |
 | 2 GB scanned by queries a month and 2 dashboards | Assumption | Operator practice | The query and dashboard lines move |
 | The free tier of CloudWatch applies to the account | Stated on the pricing page and not assumed by the cost document | Owner of the cost document | Without it the telemetry passes the reference budget |

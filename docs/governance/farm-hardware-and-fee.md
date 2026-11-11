@@ -129,7 +129,7 @@ Known subtotal of priced parts. The pending items are not in it and are not zero
 | **Known subtotal, LoRa farm** | 336.30 | 336.30 | 336.30 | known part only |
 | SIM card or prepaid plan, one time, cellular farm | 15.00 | 3.00 | 3.00 | estimate, no plan is contracted |
 
-Pending items of every farm, each an unknown cost: Enclosure IP67; Controller board; Climate sensor; Grain probe; Mast and fixings; Cable and connectors; Shipping, import duties and IVA of every item.
+Each farm still has items with an unknown cost. They are Enclosure IP67; Controller board; Climate sensor; Grain probe; Mast and fixings; Cable and connectors; Shipping, import duties and IVA of every item.
 
 ## 6. Installation in one visit
 
@@ -205,7 +205,7 @@ The gateway bundle lists a solar kit with its battery, its panel and the mountin
 
 The consumption of the gateway and the usable energy of the kit are not read from the data sheet of the gateway or of the kit, so the contrast with them is pending. The statement of the seller that the kit gives more than 5 days is not checked here. If the load is above the limits above, the kit is not viable and a larger battery or panel is another pending cost.
 
-Pending for each gateway: Mast of the height the site study sets; Cables and lightning protection; Shipping, import duties and IVA. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.
+Each gateway still has items with an unknown cost. They are Mast of the height the site study sets; Cables and lightning protection; Shipping, import duties and IVA. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.
 
 The number of farms for each gateway is an economic assumption and says nothing about radio coverage. Gateways are rounded up and each is counted once.
 

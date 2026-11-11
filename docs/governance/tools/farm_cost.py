@@ -282,7 +282,7 @@ def main():
     print(f"| **Known subtotal, LoRa farm** | {' | '.join(usd(hardware('lora', s)) for s in SC)} | known part only |")
     print(f"| SIM card or prepaid plan, one time, cellular farm | {' | '.join(usd(one_time_connectivity('cell', s)) for s in SC)} | estimate, no plan is contracted |")
     print("")
-    print("Pending items of every farm, each an unknown cost: " + "; ".join(PENDING_FARM) + ".")
+    print("Each farm still has items with an unknown cost. They are " + "; ".join(PENDING_FARM) + ".")
 
     print("\n## Installation, one visit, of one farm, by scenario")
     print("| Component | Low | Base | High | Origin |")
@@ -354,7 +354,7 @@ def main():
     print("")
     print("The consumption of the gateway and the usable energy of the kit are not read from the data sheet of the gateway or of the kit, so the contrast with them is pending. The statement of the seller that the kit gives more than 5 days is not checked here. If the load is above the limits above, the kit is not viable and a larger battery or panel is another pending cost.")
     print("")
-    print(f"Pending for each gateway: {'; '.join(PENDING_GATEWAY)}. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.")
+    print(f"Each gateway still has items with an unknown cost. They are {'; '.join(PENDING_GATEWAY)}. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.")
     print("")
     print("The number of farms for each gateway is an economic assumption and says nothing about radio coverage. Gateways are rounded up and each is counted once.")
     print("")
