@@ -116,7 +116,7 @@ sig("F-02", "Flight objects", "A presigned URL that expired during an upload", "
 sig("F-03", "Flight objects", "An object whose hash does not match its manifest", "logquery", "Verification of the object against the manifest", [], ["execution_id", "package_id"], "network/drone-mission-link.md", "manifest", "existing")
 sig("F-04", "Flight objects", "Flights not published because an object or the closed log is missing", "custom", "Orders in `EXECUTED_PENDING_SYNC` and flights below their completion rule", [], ["execution_id", "order_id"], "drones/fumigation-order.md", "EXECUTED_PENDING_SYNC", "existing")
 sig("F-05", "Flight objects", "Transitions of a fumigation order, allowed and denied", "event", "Audit event `fumigation.transition`", [], ["order_id", "case_id", "execution_id", "record_id", "request_id"], "security/audit.md", "fumigation.transition", "existing")
-sig("F-06", "Flight objects", "Buckets, prefixes and events by type of object, delivery of the storage events, quarantine of an object and the deduplication when the link returns", "logquery", "Not designed yet", [], [], "", "", "pending", "Depends on the design of the flight objects and their transport. The names are reconciled when that design is merged.")
+sig("F-06", "Flight objects", "Arrival of flight objects, their storage events, quarantine and repeated deliveries", "logquery", "Platform events `flight.object.verified`, `flight.object.rejected`, `flight.record.published` and `flight.record.review_required`, and the EventBridge rule of the flight prefixes", [], ["execution_id", "mission_id", "package_id"], "drones/flight-objects.md", "flight.record.published", "derived", "A rejected object carries its quarantine key, and a repeated upload is a normal answer to a lost response.")
 
 STATUS = {"existing", "derived", "pending"}
 KINDS = {"service", "custom", "logquery", "event"}
@@ -217,7 +217,6 @@ def run_checks():
             for _, c in custom_ids[i]["dims"]:
                 full *= c
             check(1 <= n <= full, f"the minimal alternative gives {i} {n} series and the full design has {full}")
-    check(any(s["status"] == "pending" for s in S), "the pending reconciliation of the flight objects is missing")
     check({s["area"] for s in S} >= {"Ingestion", "Applications", "Database", "WAN links", "Flight objects"}, "an area of the criterion has no signal")
     wan = [s for s in S if s["area"] == "WAN links"]
     check(any("TunnelState" in s["source"] for s in wan), "the WAN links have no TunnelState signal")
@@ -297,7 +296,6 @@ def main():
     for k in ("service", "custom", "logquery", "event"):
         print(f"| of kind {k} | {kinds[k]} |")
     print(f"| Custom metric series, the product of the dimension values of each custom signal | {series} |")
-    print(f"| Signals pending the design of the flight objects | {sum(1 for s in S if s['status'] == 'pending')} |")
 
     print("\n## Cost scenario of the operational telemetry")
     print(f"Reference budget USD {BUDGET:.2f} a month, from the cost document, as a reference and not as a guaranteed cost. Prices are the AWS Price List API for us-east-1, publication of 2026-11-04 for CloudWatch and 2026-11-08 for X-Ray. The free tier is the one the CloudWatch pricing page states on 2026-11-11, and the cost document does not assume it.")
@@ -343,18 +341,21 @@ def main():
     print(f"There are {keep} custom signals and {series} series in this catalog. Which of them an alarm needs is decided by the alarm design, and this document does not choose.")
 
     print("")
-    print("## Minimal alternative")
+    print("## Chosen operational telemetry")
     kept = sum(n for n, _ in MINIMAL_METRICS.values())
-    print("| Month | Logs ingested, GB | Logs, queries | Metrics | Dashboards | Total at list price before alarms | Each alarm adds |")
-    print("|---|---|---|---|---|---|---|")
+    print("The design adopts the minimal alternative, with X-Ray active tracing at 5 percent on functions and APIs.")
+    print("")
+    print("| Month | Logs ingested, GB | Logs and queries | Metrics | Dashboards | X-Ray at 5 percent | Total at list price before alarms | Each alarm adds |")
+    print("|---|---|---|---|---|---|---|---|")
     for label, inv, req, gb in cost_rows(vol):
         logs = gb * PRICE["log_ingest_gb"] + gb * PRICE["log_store_gb_month"] * (OPERATIONAL_RETENTION_DAYS / 30)
         qry = SCANNED_GB_PER_MONTH * PRICE["log_scan_gb"]
         met = kept * PRICE["custom_metric_first_10000"]
         dash = MINIMAL_DASHBOARDS * PRICE["dashboard"]
-        print(f"| {label} | {gb:.2f} | {logs + qry:.2f} | {met:.2f} | {dash:.2f} | {logs + qry + met + dash:.2f} | USD {PRICE['alarm']:.2f} |")
+        traces = inv * 0.05 * PRICE["xray_stored_per_million"] / 1e6
+        print(f"| {label} | {gb:.2f} | {logs + qry:.2f} | {met:.2f} | {dash:.2f} | {traces:.2f} | {logs + qry + met + dash + traces:.2f} | USD {PRICE['alarm']:.2f} |")
     print("")
-    print("| Signal | Minimal alternative |")
+    print("| Signal | Chosen treatment |")
     print("|---|---|")
     for s in S:
         if s["kind"] == "custom":
@@ -364,16 +365,17 @@ def main():
                 print(f"| {s['id']} | Read by a log query |")
     print(f"MINIMAL_SERIES={kept}")
 
-    print("\n## Optional traces with X-Ray, not adopted by default")
-    print("A trace follows a request through the services that report to X-Ray, which in this design would be the functions and the APIs. A reading published by a node reaches IoT Core with no trace, and IoT Core records its own trace ID in the audit design. A custody event travels from a device that carries none. A trace is kept 30 days, and the default sampling rule of the SDK records the first request of each second and 5 percent of the rest.")
+    print("\n### X-Ray active tracing")
+    print("Functions and APIs run active tracing at 5 percent sampling. A trace follows a request through the services that report to X-Ray. A reading published by a node reaches IoT Core with no trace, and IoT Core records its own trace ID in the audit design. A custody event travels from a device that carries none. A trace is kept 30 days.")
     print("")
-    print("| Month | Traced operations at the default rule, about all of them at this rate | Traces stored at USD 5 per million | At 5 percent sampling | At 1 percent sampling |")
-    print("|---|---|---|---|---|")
+    print("| Month | Function and API operations | Traced at 5 percent | Traces stored, USD |")
+    print("|---|---|---|---|")
     for label, inv, req, gb in cost_rows(vol):
-        full = inv * PRICE["xray_stored_per_million"] / 1e6
-        print(f"| {label} | {inv:,} | {full:.2f} | {full * 0.05:.2f} | {full * 0.01:.3f} |")
+        traced = inv * 0.05
+        cost = traced * PRICE["xray_stored_per_million"] / 1e6
+        print(f"| {label} | {inv:,} | {traced:,.0f} | {cost:.2f} |")
     print("")
-    print(f"The average rate of a harvest month is about {sum(vol[k][1] for k in ('readings', 'positions', 'sack_events', 'lookups', 'images')) / (30 * 24 * 3600):.2f} requests a second, below the one request a second that the default rule always records, so the default traces nearly every request. At USD 5 per million stored, that alone passes the reference budget in a harvest month. Reading and scanning cost USD 0.50 per million. The free tier of X-Ray was not read and is not assumed. The base design therefore keeps correlation in the structured logs, and X-Ray stays an option for the functions and APIs at a low sampling rate if the budget allows it.")
+    print(f"At USD {PRICE['xray_stored_per_million']:.2f} per million traces stored, X-Ray adds USD 0.12 in a normal month and USD 0.28 in a harvest month. Reading and scanning cost USD {PRICE['xray_read_per_million']:.2f} per million. The free tier of X-Ray was not read and is not assumed.")
 
     print("\n## Reading the signals of a center")
     print("A quiet center is not always a broken one. The table reads the tunnel and the events together, with no heartbeat added to any application.")
