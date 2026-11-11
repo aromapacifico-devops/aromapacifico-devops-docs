@@ -19,6 +19,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Lot geometry lifecycle](diagrams/12-lot-geometry-lifecycle.drawio.png) | Which states can a lot polygon pass through, and which strips keep spraying away |
 | [Center operation](diagrams/13-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
 | [Crop case states](diagrams/14-crop-case-states.drawio.png) | How does a cultivation alert become a focus confirmed or discarded by a person |
+| [Center cloud link](diagrams/16-center-cloud-link.drawio.png) | How does a center reach the cloud, which routes and names does it use, and what happens when the link fails |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 
@@ -44,3 +45,5 @@ The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client
 `tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page on Linux, and `tools/export_diagrams.ps1` does the same on Windows with draw.io Desktop.
 
 The [center operations](../network/collection-center-operations.md) define reception, labels, work with no internet and the capacity of a center.
+
+The [center cloud link](../network/center-cloud-link.md) defines the tunnels, the routes on both sides, the names of the cloud services from a center and the behavior when the link fails.
