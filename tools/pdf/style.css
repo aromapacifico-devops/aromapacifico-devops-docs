@@ -127,3 +127,9 @@ thead th {
 td { padding: 1.8mm 2.5mm; border-bottom: 1px solid var(--surface-border); vertical-align: top; }
 tbody tr:nth-child(even) td { background: var(--surface-canvas); }
 td strong { color: var(--text-primary); }
+
+/* A diagram fills its own landscape page, with its caption below. */
+@page diagram { size: A4 landscape; margin: 10mm 12mm 14mm 12mm; }
+div.diagram { page: diagram; break-before: page; break-after: page; text-align: center; }
+div.diagram img { display: block; margin: 0 auto; max-width: 100%; max-height: 172mm; object-fit: contain; }
+div.diagram p { margin: 3mm 0 0 0; font-size: 9pt; color: var(--text-secondary); }

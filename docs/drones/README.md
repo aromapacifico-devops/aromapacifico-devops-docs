@@ -14,4 +14,4 @@ The drone service combines area flights, which delimit lots and estimate the har
 | [Flight objects and their transport](flight-objects.md) | Where photos, maps, polygons and logs live in the bucket, which events report their arrival, how an upload stays encrypted, whole and counted once, and why no order closes before its record is stored |
 | [Verification after fumigation](post-fumigation-verification.md) | How a drone flight photographs the applied area, how a function decides from stored photos whether the order can close, and why a missing photo or a failed function leaves the fumigation open |
 
-The [drone mission link](../network/drone-mission-link.md) explains how missions reach the drone and how flight logs and objects return to the platform. The [platform overview](../architecture/overview.md) places the service in the whole architecture.
+The [drone mission link](../network/drone-mission-link.md) explains how missions reach the drone and how flight logs and objects return to the platform. The [architecture of the pilot](../architecture/overview.md) places the service in the whole architecture.
