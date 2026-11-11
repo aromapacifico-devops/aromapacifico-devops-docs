@@ -106,7 +106,8 @@ def main():
     print(f"  alarm threshold              {alarm_rps:.0f} a second, {alarm_rps * 300:.0f} in 5 minutes")
     print(f"  lookups in {RESPONSE_HOURS} hours at the ceiling {at_ceiling:,.0f}")
     print(f"  cost, lookups served         {at_ceiling * total / 1e6:.2f}")
-    print(f"  each million rejected beyond the ceiling {WAF_PER_MILLION + CLOUDFRONT_PER_MILLION:.2f}, once past the free tier")
+    beyond = WAF_PER_MILLION + CLOUDFRONT_PER_MILLION + LAMBDA_REQUEST_PER_MILLION
+    print(f"  each million refused beyond the ceiling, at most {beyond:.2f}, once past the free tier")
     print(f"  a whole month at the ceiling {ceiling * MONTH_S * total / 1e6:.2f}")
 
 
