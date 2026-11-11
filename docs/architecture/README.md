@@ -56,4 +56,6 @@ The [center operations](../network/collection-center-operations.md) define recep
 
 The [center cloud link](../network/center-cloud-link.md) defines the tunnels, the routes on both sides, the names of the cloud services from a center and the behavior when the link fails.
 
+The [failure policy](failure-policy.md) sets the retries, dead letter queues, alarms and redrive of the inference functions, and shows why a failed invocation leaves the case as it was.
+
 The [observability design](observability.md) defines the identifiers that correlate a sack, a lot and a flight, the structure of an operational log, the catalog of signals and the cost of the telemetry. The [release notes and change policy](../release-notes/README.md) set when a production change may run, who approves it, how the Federation hears of it and how it goes back. The [service level objectives](service-levels.md) set the targets for crop alert delivery and for the availability of the sack query, with their error budgets.

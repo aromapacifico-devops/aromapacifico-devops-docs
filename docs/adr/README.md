@@ -39,3 +39,4 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Farm monthly amount](farm-monthly-amount.md) | Recover the recurring cost of a farm with no margin, investment apart |
 | [Verification closure](verification-closure.md) | Verified needs stored photos and a persisted result, every verification is a drone flight of still photos |
 | [Function releases](function-releases.md) | Own repository per application pipeline, Lambda alias moved by CodeDeploy, canary with automatic rollback in production |
+| [Inference failure policy](inference-failure-policy.md) | Four receives, a dead letter queue for each function and each rule, results stored before events, no state change on failure |

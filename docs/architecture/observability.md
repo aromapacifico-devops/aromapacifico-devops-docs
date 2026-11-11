@@ -47,6 +47,7 @@ This document defines what the platform must record so that an operator can foll
 | [Center cloud link](../network/center-cloud-link.md) and [collection center operations](../network/collection-center-operations.md) | `TunnelState`, the failure states of the link and the queue of events on the devices |
 | [Drone mission link](../network/drone-mission-link.md) and [fumigation order](../drones/fumigation-order.md) | The identifiers of a flight, the upload checks and the completion rule |
 | [Flight objects](../drones/flight-objects.md) | The bucket, ten prefixes, storage events, quarantine and flight record schema, whose outcomes F-06 reads |
+| [Failure policy](failure-policy.md) | The retries, dead letter queues and undelivered events of the inference functions, and the failure entry of their log |
 | [Cloud cost](../governance/cloud-cost.md) | The volumes of the case and the reference allowance for CloudWatch of USD 2.20 a month |
 
 ## 3. Principles
@@ -142,14 +143,14 @@ Service metrics cost nothing extra and cover queues, functions, tables, APIs, th
 
 ## 7. Catalog of signals
 
-The catalog has 37 signals. A signal is defined by its name, kind, source, dimensions and the document that explains it. A threshold and the route of an alarm are not part of a signal, and the alarm design chooses them.
+The catalog has 39 signals. A signal is defined by its name, kind, source, dimensions and the document that explains it. A threshold and the route of an alarm are not part of a signal, and the alarm design chooses them.
 
 | Item | Count |
 |---|---|
-| Signals | 37 |
-| of kind service | 14 |
+| Signals | 39 |
+| of kind service | 15 |
 | of kind custom | 10 |
-| of kind logquery | 8 |
+| of kind logquery | 9 |
 | of kind event | 5 |
 | Custom metric series, the product of the dimension values of each custom signal | 15 |
 
@@ -183,6 +184,8 @@ The catalog has 37 signals. A signal is defined by its name, kind, source, dimen
 | A-04 | Gaps and anomalies on the review list of the centers. Dimensions kind (2 values). | custom | Outcome of each custody event after the last replay | `sack_code`, `event_id`, `center_id` | existing | [Sack states](../traceability/sack-states.md) |
 | A-05 | Repeated events answered as stored. A repeat is normal after a lost answer. The query shows its rate and not a failure. | logquery | Outcome `repeat` in the custody write log | `event_id`, `request_id` | derived | [Custody chain](../traceability/custody-chain.md) |
 | A-06 | A function that could not write its audit event. | logquery | Errors in the audit write of each function, in the operational log | `event_id`, `request_id` | derived | [Audit](../security/audit.md) |
+| A-07 | Events an EventBridge rule could not deliver to the work queue of an inference function. | service | EventBridge `FailedInvocations` of each rule and messages visible in its rule dead letter queue | none | existing | [Failure policy](../architecture/failure-policy.md) |
+| A-08 | Failed inference invocations that left the case or order unchanged. | logquery | Entries `inference.failed` with outcome `error` in the operational log of each inference function | `case_id`, `order_id`, `mission_id`, `execution_id` | existing | [Failure policy](../architecture/failure-policy.md) |
 
 ### Database
 
