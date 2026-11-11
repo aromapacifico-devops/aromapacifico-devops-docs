@@ -126,38 +126,38 @@ al("AL-31", 0, "Encryption key state change", "rule", "D-03", "architecture/reco
 al("AL-32", 0, "Point-in-time recovery turned off", "rule", "D-04", "architecture/recovery.md", "point-in-time recovery turned off",
    "A configuration change event of a sack table", "Platform operator", "", "Turn it on again through the infrastructure code", "urgent", count=0, own="elsewhere")
 
-# proposals that cover what criterion 3 leaves open. None is an approved rule, and every threshold is an assumption
+# rows that cover what criterion 3 leaves open. The author of the design adopts them as academic assumptions, none is a rule approved by the owners of the designs it touches, and every threshold is an assumption
 al("AL-33", 3, "Flight object verification, messages in the dead letter queue", "alarm", "F-06", "drones/flight-objects.md", "Verification function fails",
    "Messages visible in the dead letter queue above 0 in 5 minutes", "Platform operator", "",
    "Read the failed message and the function log, fix the cause and redrive. The object stays unverified and the flight keeps waiting for it", "urgent",
-   status="proposed", mechanism="CloudWatch alarm on the SQS metric of the dead letter queue, with the condition that two merged documents already use for dead letter queues",
+   status="adopted", mechanism="CloudWatch alarm on the SQS metric of the dead letter queue, with the condition that two merged documents already use for dead letter queues",
    threshold="Any message", basis="Assumption. The flight object design sets no retry count or alarm for this queue")
 al("AL-34", 3, "Flight object verification, failed invocations", "alarm", "F-06", "drones/flight-objects.md", "Verification function fails",
    "Lambda Errors of the function sum above 0 in 5 minutes", "Platform operator", "",
    "Read the failure entry by execution identifier and check that the object is still unverified. It may still succeed on a retry", "routine",
-   status="proposed", mechanism="CloudWatch alarm on the Lambda metric, as the failure policy does for the inference functions",
+   status="adopted", mechanism="CloudWatch alarm on the Lambda metric, as the failure policy does for the inference functions",
    threshold="Any error", basis="Assumption. Same condition as the failure policy")
 al("AL-35", 3, "Flight completion, failed invocations", "alarm", "F-06", "drones/flight-objects.md", "Crash between the record object and the case item",
    "Lambda Errors of the completion function sum above 0 in 5 minutes", "Platform operator", "Drone operator, supervisor group",
    "Read the failure entry by execution identifier. The station repeats the completion request, and a repeat finds the stored record, so check that a record is published", "urgent",
-   status="proposed", mechanism="CloudWatch alarm on the Lambda metric. The completion function answers the station directly and has no queue",
+   status="adopted", mechanism="CloudWatch alarm on the Lambda metric. The completion function answers the station directly and has no queue",
    threshold="Any error", basis="Assumption. The completion function is the step that publishes the flight record, so its failure is a flight without a record")
 al("AL-36", 3, "Fumigation log overdue", "rule", "F-04", "drones/fumigation-order.md", "The log never arrives",
    "An order is still in EXECUTED_PENDING_SYNC when its check runs", "Drone operator, supervisor group", "Platform operator",
    "Ask the brigade whether the station holds the log and whether the link has returned, look for events of the execution in the flight object log, and run the incident procedure if the station is lost", "urgent", count=0,
-   status="proposed", event="order.attention_required",
+   status="adopted", event="order.attention_required",
    mechanism="When the transition function moves the order into the state it creates a one-time schedule, as it already does for the end of the order window. At the check the function reads the order, and if the state and revision are the same it publishes one platform event that an event rule sends to the topic. A changed state makes the check do nothing",
    threshold="First check 24 hours after the order entered the state, second check at 48 hours", basis="Assumption. No document sets a time for the log to arrive. The orders in this state wait for a link that may be a day away")
 al("AL-37", 3, "Package past its window with no flight record", "rule", "F-06", "drones/flight-objects.md", "flight.record.published",
    "A package whose execution window has ended has no flight.record.published and no flight.record.review_required for its package_id when the check runs", "Drone operator, supervisor group", "Platform operator",
    "Ask the brigade whether the flight took place. A package that was never flown shows here too, and the brigade closes the item", "routine", count=0,
-   status="proposed", event="flight.package.overdue",
+   status="adopted", event="flight.package.overdue",
    mechanism="The package function creates a one-time schedule at the end of the execution window of the package plus the grace. The check looks for a record of the package and publishes one platform event when none exists",
    threshold="24 hours after the end of the package window", basis="Assumption. The package window is the one in the signed package and is not the 72 hour window of an order")
 al("AL-38", 3, "Order waiting too long to close", "rule", "F-04", "drones/post-fumigation-verification.md", "VERIFICATION_PENDING",
    "An order is still in SYNC_REVIEW_REQUIRED, PARTIAL, VERIFICATION_PENDING or VERIFIED when its check runs", "Drone operator, supervisor group", "Platform operator",
    "Open the order and find what it waits for. In SYNC_REVIEW_REQUIRED decide the record. In VERIFICATION_PENDING check the verification file and the function. In VERIFIED review the verification and close", "routine", count=0,
-   status="proposed", event="order.attention_required",
+   status="adopted", event="order.attention_required",
    mechanism="The same schedule as the log check, created when the order enters each waiting state. For VERIFICATION_PENDING the check time is counted from the end of the window of the latest verification package, which each attempt records, and for the other states from the transition",
    threshold="24 hours after the order entered the state or after the verification window ended, second check at 48 hours", basis="Assumption. The documents give each state one exit and no time for it")
 
@@ -187,15 +187,15 @@ def run_checks():
         check("72" not in a["cond"], f"{i} takes a time from the 72 hour window of an order, which is not a deadline for the log")
         check("dashboard" not in a["action"].lower(), f"{i} sends the operator to a dashboard, which the chosen telemetry does not have")
     for a_ in ALARMS:
-        if a_["status"] == "proposed":
-            check(bool(a_["mechanism"]) and bool(a_["threshold"]) and "assumption" in a_["basis"].lower(), f"{a_['id']} is a proposal and needs its mechanism, threshold and an assumption as basis")
+        if a_["status"] == "adopted":
+            check(bool(a_["mechanism"]) and bool(a_["threshold"]) and "assumption" in a_["basis"].lower(), f"{a_['id']} is adopted and needs its mechanism, threshold and an assumption as basis")
         else:
-            check(not a_["threshold"], f"{a_['id']} is documented and cannot carry a proposed threshold")
+            check(not a_["threshold"], f"{a_['id']} is documented and cannot carry an adopted threshold")
         if a_["event"]:
-            # a proposed event name must not be defined by any other document, otherwise it is no longer a proposal
+            # an adopted event name must not be defined by any other document, otherwise it is no longer only an assumption of this design
             for path in DOCS.rglob("*.md"):
                 if path.name != "operational-alarms.md":
-                    check(a_["event"] not in path.read_text(encoding="utf-8"), f"{a_['event']} appears in {path.name}, so it is no longer only a proposal")
+                    check(a_["event"] not in path.read_text(encoding="utf-8"), f"{a_['event']} appears in {path.name}, so it is no longer only an assumption of this design")
     # the failure policy covers four inference functions with three alarms each
     fp = [a for a in ALARMS if a["doc"] == "architecture/failure-policy.md"]
     check(len(fp) == 12, "the failure policy gives three alarms for each of four functions")
@@ -215,13 +215,16 @@ def run_checks():
         covered |= {f"AL-{k:02d}" for k in range(int(lo), int(hi) + 1)}
     for a_ in ALARMS:
         check(a_["id"] in covered, f"{a_['id']} is not in the document")
+    check("adopted by the author of this design" in doc, "the document does not record who adopted the rows")
+    for phrase in ("approved by the drone supervisor", "accepted by the team", "confirmed by the drone supervisor"):
+        check(phrase not in doc, f"the document attributes the adoption to others with '{phrase}'")
     check(f"about USD {small_charges():.2f} a month" in doc, "the document does not state the small charges that the free allowances absorb")
     check("apply no free tier to CloudWatch" in doc, "the document does not say where free allowances are and are not used")
     tel = telemetry()
     nd = sum(a_["count"] for a_ in ALARMS if a_["status"] == "documented")
-    npr = sum(a_["count"] for a_ in ALARMS if a_["status"] == "proposed")
+    npr = sum(a_["count"] for a_ in ALARMS if a_["status"] == "adopted")
     check(f"| Alarms in merged documents | {nd} | {nd * PRICE_ALARM:.2f} |" in doc, "the document does not show the count and cost of the documented alarms")
-    check(f"| Proposed alarms for the flight object functions | {npr} | {npr * PRICE_ALARM:.2f} |" in doc, "the document does not show the count and cost of the proposed alarms")
+    check(f"| Adopted alarms for the flight object functions | {npr} | {npr * PRICE_ALARM:.2f} |" in doc, "the document does not show the count and cost of the proposed alarms")
     for m, v in tel.items():
         d1, d2 = v + nd * PRICE_ALARM, v + (nd + npr) * PRICE_ALARM
         check(f"| {m} | {v:.2f} | {d1:.2f} | {d1 - 2.20:.2f} | {d2:.2f} | {d2 - 2.20:.2f} |" in doc, f"the document does not show the totals of the {m.lower()}")
@@ -255,13 +258,13 @@ def main():
         print(f"| {a['id']} | {a['action']} | {a['note']} |")
     kinds = {k: sum(1 for a in ALARMS if a["kind"] == k) for k in KINDS}
     print(f"\n## Counts\nRows {len(ALARMS)}, alarms billed {n_all}, of which {n_new} serve criteria 1 and 2 and {n_fp} come from the failure policy. Kinds {kinds}.")
-    npr = sum(a["count"] for a in ALARMS if a["status"] == "proposed")
+    npr = sum(a["count"] for a in ALARMS if a["status"] == "adopted")
     print("\n## Cost")
     print("| Item | Count | USD a month |\n|---|---|---|")
     print(f"| Alarms in merged documents | {n_all} | {n_all * PRICE_ALARM:.2f} |")
-    print(f"| Proposed alarms for the flight object functions | {npr} | {npr * PRICE_ALARM:.2f} |")
-    print(f"| Alarms with the proposals | {n_all + npr} | {(n_all + npr) * PRICE_ALARM:.2f} |")
-    print("\n| Month | Telemetry before alarms | Total with documented alarms | Above the reference | Total with the proposals | Above the reference |\n|---|---|---|---|---|---|")
+    print(f"| Adopted alarms for the flight object functions | {npr} | {npr * PRICE_ALARM:.2f} |")
+    print(f"| Alarms with the adopted rows | {n_all + npr} | {(n_all + npr) * PRICE_ALARM:.2f} |")
+    print("\n| Month | Telemetry before alarms | Total with documented alarms | Above the reference | Total with the adopted rows | Above the reference |\n|---|---|---|---|---|---|")
     for m in ("Normal month", "Harvest month"):
         v = tel.get(m, 0)
         d1, d2 = v + n_all * PRICE_ALARM, v + (n_all + npr) * PRICE_ALARM
