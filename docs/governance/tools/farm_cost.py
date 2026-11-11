@@ -23,7 +23,7 @@ IVA = 0.19
 
 # ---- Price register of what was read. usd is (low, base, high) ----
 P = {
-    "battery": ("Battery 12.8 V 12 Ah LiFePO4", (70.99, 159.00, 159.00), "VERIFIED", "Kastar listing for the low case, Battery Space listing for the base and high cases, read 2026-11-10", "USD 70.99 and USD 159.00", "Tax not stated on either page. See the equivalence table. Neither is shown equivalent to the node requirement"),
+    "battery": ("Battery 12.8 V 12 Ah LiFePO4, Power-Sonic PSL-SC-12120 F2", (144.77,) * 3, "VERIFIED", "TRC Electronics listing, trcelectronics.com, and the Power-Sonic data sheet, both read 2026-11-10", "USD 144.77", "Tax and shipping not stated. The data sheet states 12.8 V, 12 Ah, 153.6 Wh, a BMS, charge 0 to 45 C, discharge minus 20 to 60 C, 2,000 cycles at 100 percent depth of discharge and 151 x 99 x 95 mm. It meets the battery line of the node requirement"),
     "panel": ("Solar panel 20 W 12 V", (39.50,) * 3, "VERIFIED", "ACOPower HY020-12M, acopower.com, read 2026-11-10", "USD 39.50", "Tax and shipping not stated"),
     "controller": ("Charge controller 10 A, MPPT", (60.00,) * 3, "VERIFIED", "Victron SmartSolar MPPT 75/10, Renewable Outdoors, read 2026-11-10", "USD 60.00", "Tax and shipping not stated. The lithium profile was not read on the page"),
     "soil_probe": ("Soil probe, 7 variables, RS485", (round(295 / 3.64, 2),) * 3, "ESTIMATE", "Voltaat VT-1767, voltaat.com, read 2026-11-10", "QAR 295.00 at 3.64 QAR per USD", "The rate is a peg that was not read from a primary source. No datasheet, so range and accuracy are unverified"),
@@ -37,6 +37,7 @@ P = {
 
 # Reference listings that were found and are not equivalent, so they stay out of every total
 REFERENCES = [
+    ("Batteries that are not equivalent", "Kastar at USD 70.99 and Battery Space at USD 159.00", "Neither is shown to meet the node requirement, see the equivalence table. They are references and stay out of every total"),
     ("Enclosure", "RAK Unify IP67 150 x 100 x 45 mm at USD 39.00", "Too small for a 151 x 98 x 95 mm battery, so it is not equivalent to the node enclosure"),
     ("Controller board", "RAK19007 base 9.99, RAK4631 core 17.99, RAK5802 RS485 6.00, RAK12002 RTC 9.50 and RAK15001 flash 5.00, together USD 48.48", "A development kit. Its flash is 16 Mbit against at least 64 MB with encryption, and it has no switched probe supplies or field input protection"),
     ("Climate sensor", "RAK1901 SHTC3 module at USD 4.60, Milesight NB300-TH at USD 59.90", "The first has no outdoor rating, and the second is a standalone NB-IoT device and not a probe for the controller"),
@@ -82,7 +83,6 @@ MIX = [0.0, 0.25, 0.50]
 DENSITY = [5, 10, 20]
 COFFEE_COP_PER_LOAD = 2000000
 KG_PER_LOAD = 125
-FINANCE_MONTHS = 36
 
 
 def i_(s):
@@ -251,21 +251,22 @@ def main():
     for name, listing, why in REFERENCES:
         print(f"| {name} | {listing} | {why or 'No listing to compare'} |")
 
-    print("\n## Equivalence of the two batteries")
+    print("\n## Equivalence of the batteries")
     print("The node specification asks for 12.8 V, 12 Ah nominal, LiFePO4, a battery management system, the datasheet limits including the low temperature charging limit, and the energy of 12.8 V times 12 Ah, which is 153.6 Wh.")
     print("")
-    print("| Property | Requirement | Lower listing, USD 70.99 | Higher listing, USD 159.00 |")
-    print("|---|---|---|---|")
-    print("| Chemistry and voltage | LiFePO4, 12.8 V | 12.8 V stated | 12.8 V stated |")
-    print("| Capacity | 12 Ah nominal | 12 Ah at C/5 | Typical 12 Ah, minimum 11.85 Ah at 0.2C |")
-    print("| Energy | 153.6 Wh | The title says 153.6 Wh and a bullet says 84 Wh, so it conflicts | The title says 144 Wh, which is below 153.6 Wh |")
-    print("| Protection | A battery management system | Built-in BMS stated | No BMS statement on the page. UN38.3 passed |")
-    print("| Low temperature charge limit | Stated in the datasheet | Not stated | Charge 0 to 40 C, discharge minus 20 to 60 C |")
-    print("| Cycle life | Datasheet figure | Two figures that conflict, 2,500 to 7,000 and more than 2,000 | Not stated |")
-    print("| Accessories | Not part of the requirement | None listed, free shipping stated | None listed |")
-    print("| Shown equivalent | | No. The energy and the charge limit are not consistent | No. The BMS is not stated and the energy is stated lower |")
+    print("| Property | Requirement | Power-Sonic PSL-SC-12120 F2, USD 144.77, used in every scenario | Kastar, USD 70.99, reference | Battery Space, USD 159.00, reference |")
+    print("|---|---|---|---|---|")
+    print("| Chemistry and voltage | LiFePO4, 12.8 V | Nominal 12.8 V, 4 cells | 12.8 V stated | 12.8 V stated |")
+    print("| Capacity | 12 Ah nominal | 12 Ah | 12 Ah at C/5 | Typical 12 Ah, minimum 11.85 Ah |")
+    print("| Energy | 153.6 Wh | 153.6 Wh stated, and 153 Wh on the other sheet | The title says 153.6 Wh and a bullet says 84 Wh, so it conflicts | The title says 144 Wh, which is below 153.6 Wh |")
+    print("| Protection | A battery management system | BMS with protection against over charge, over discharge, over current and cell balancing, with its values | Built-in BMS stated, no values | No BMS statement |")
+    print("| Low temperature charge limit | Stated in the datasheet | Charge 0 to 45 C, discharge minus 20 to 60 C | Not stated | Charge 0 to 40 C, discharge minus 20 to 60 C |")
+    print("| Cycle life | Datasheet figure | 2,000 cycles at 100 percent depth of discharge | Two figures that conflict | Not stated |")
+    print("| Dimensions and weight | Fit the enclosure | 151 x 99 x 95 mm, 1.65 kg | 151 x 98 x 95 mm, 1.42 kg | Weight 2 lb 10 oz |")
+    print("| Accessories | Not part of the requirement | F2 terminals, no accessory listed | None listed | None listed |")
+    print("| Meets the node requirement | | Yes, on the data sheet | No, the energy and the charge limit are not consistent | No, the BMS is not stated and the energy is stated lower |")
     print("")
-    print("The low case uses the lower listing, and the base and high cases use the higher listing, which states the temperature limits that the specification needs. The cheapest listing is not taken as the base because it is not shown equivalent. A datasheet decides which one the node uses.")
+    print("The base case no longer uses a battery that is known to fall short. The battery of every scenario is the Power-Sonic reference, which meets the requirement on its data sheet, and the two cheaper or other listings are kept as references that are not equivalent. The reserve of the battery uses this price. The calendar life of the battery was not read, and the lives in years remain assumptions.")
 
     print("\n## Hardware of one farm, by scenario")
     print("Known subtotal of priced parts. The pending items are not in it and are not zero. Every total below reads as the known subtotal plus the unknown cost of the pending items.")
@@ -337,7 +338,21 @@ def main():
     print(f"| Maintenance visits with {GW_TECHNICIANS} technicians | {' | '.join(usd(gw_maintenance(s)) for s in SC)} | monthly cash |")
     print(f"| Replacement reserve | {' | '.join(usd(gw_reserve(s)) for s in SC)} | monthly reserve |")
     print("")
-    print("The gateway bundle includes the solar kit, its battery, the panel and the mounting, so energy is in the purchase once and has no recurring line. The kit has a 50 Ah battery at 12.8 V, which is 640 Wh and 512 Wh usable at 0.80. The LoRa path document asks 450 Wh for 3 days and 750 Wh for 5 days at a load of 5 W, and a panel of 56 W. The kit meets the 3 day case and the panel, and reaches 5 days only up to about 4.3 W, so it is equivalent under a load of 4 W or less. The load of the gateway was not read, and the page says the kit gives more than 5 days.")
+    kit_wh = 50 * 12.8
+    usable = kit_wh * 0.80
+    p3 = usable / (24 * 3)
+    p5 = usable / (24 * 5)
+    gen = 80 * 3 * 0.72
+    pg = gen / 24
+    print("The gateway bundle lists a solar kit with its battery, its panel and the mounting, so energy is bought once and has no recurring line. Whether the kit keeps the gateway running is a condition of viability and is not shown.")
+    print("")
+    print("| Condition of viability | Calculation, with the assumptions of the LoRa path document | Result |")
+    print("|---|---|---|")
+    print(f"| Autonomy of 3 days | 50 Ah at 12.8 V is {kit_wh:,.0f} Wh, and {usable:,.0f} Wh is usable at 0.80, so the load P must satisfy 24 h x 3 x P <= {usable:,.0f} Wh | P of {p3:.1f} W or less |")
+    print(f"| Autonomy of 5 days | 24 h x 5 x P <= {usable:,.0f} Wh | P of {p5:.1f} W or less |")
+    print(f"| Panel keeps the energy level | 80 W x 3 peak sun hours x 0.72 is {gen:,.0f} Wh a day, and it must cover 24 h x P | P of {pg:.1f} W or less |")
+    print("")
+    print("The consumption of the gateway and the usable energy of the kit are not read from the data sheet of the gateway or of the kit, so the contrast with them is pending. The statement of the seller that the kit gives more than 5 days is not checked here. If the load is above the limits above, the kit is not viable and a larger battery or panel is another pending cost.")
     print("")
     print(f"Pending for each gateway: {'; '.join(PENDING_GATEWAY)}. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.")
     print("")
@@ -382,7 +397,7 @@ def main():
             c = f["rec_cash_own"] + f["fixed"]
             print(f"| {n} | {s} | {usd(f['inv'])} | {usd(c)} | {usd(f['reserve'])} | {usd((c + f['reserve']) / n)} |")
     print("")
-    print("The low case also lowers the hardware, travel and labor, uses the prepaid plan and lengthens the lives of the parts, and the high case does the opposite. A scenario does not move the pending items, whose cost is unknown in all three.")
+    print("The low case lowers travel and labor and lengthens the lives of the parts, and the high case does the opposite. The low case also pays connectivity up front with a prepaid plan, so its investment of a cellular farm can exceed the base case while its monthly amount is lower. A scenario does not move the pending items, whose cost is unknown in all three.")
 
     print("\n## Cost for each farm by number of farms, base scenario, 25 percent LoRa, 10 farms for each gateway")
     print("| Farms | Marginal cash cost | Fixed cloud lines | Gateway cash | Reserve | Cash and reserve for each farm |")
@@ -392,8 +407,8 @@ def main():
         gc = f["rec_gw"]
         print(f"| {n} | {usd(f['rec_nodes'] / n)} | {usd(f['fixed'] / n)} | {usd(gc / n)} | {usd(f['reserve'] / n)} | {usd((f['rec_cash_own'] + f['fixed'] + f['reserve']) / n)} |")
 
-    print("\n## Options for a charge, for the Federation to approve")
-    print("A fee is a policy decision, so these are ways to build one from the figures above, and none is proposed here. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.")
+    print("\n## Options considered for the monthly amount")
+    print("A fee is a policy decision. These are the ways considered to build a monthly amount from the figures above. Option C was chosen by isahrnd for the exercise, and A and B are kept as references. A financed investment and a margin are not part of this version. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.")
     print("")
     print("| Option | How it is built | At 200 farms | At 1,000 farms |")
     print("|---|---|---|---|")
@@ -403,14 +418,71 @@ def main():
         a = f["rec_nodes"] / n
         b = (f["rec_cash_own"] + f["reserve"]) / n
         c = (f["rec_cash_own"] + f["fixed"] + f["reserve"]) / n
-        dd = c + f["inv"] / n / FINANCE_MONTHS
-        vals[n] = (a, b, c, dd)
+        vals[n] = (a, b, c)
     print(f"| A. Recover only the marginal cash cost | Data, SIM, cloud lines that grow, maintenance, with no reserve and no shared cost | {usd(vals[200][0])} | {usd(vals[1000][0])} |")
     print(f"| B. Recover the cash cost, the gateways and the reserve, and the Federation bears the fixed cloud lines | Option A plus the gateway cash cost and the reserve | {usd(vals[200][1])} | {usd(vals[1000][1])} |")
-    print(f"| C. Recover everything recurring, with the fixed cloud lines divided by the farms | Option B plus the fixed cloud lines of the cost document | {usd(vals[200][2])} | {usd(vals[1000][2])} |")
-    print(f"| D. Option C and the investment financed over {FINANCE_MONTHS} months at no interest | Option C plus the known investment divided by {FINANCE_MONTHS} | {usd(vals[200][3])} | {usd(vals[1000][3])} |")
+    print(f"| C. Recover everything recurring, with the fixed cloud lines divided by the farms. Chosen for the exercise | Option B plus the fixed cloud lines of the cost document | {usd(vals[200][2])} | {usd(vals[1000][2])} |")
     print("")
     print("Each option leaves out the pending items. A subsidy, an interest rate, a margin or a different share of the fixed cloud lines are decisions that no document of the project makes, and whether the farmer is charged any of this is also open.")
+
+    print("\n## Option C, provisional proposal for the exercise")
+    print("Option C was chosen by isahrnd as an academic provisional proposal for this exercise. The Federation did not approve it, it is not a contracted fee, and it stays provisional while essential costs are missing. It has no margin and no financing. The initial investment is presented apart and is not part of the monthly amount.")
+    print("")
+    print("Formula for each farm a month, base scenario, 25 percent LoRa, 10 farms for each gateway, with N farms and NL = 0.25 N farms on LoRa and NC = N - NL on cellular:")
+    print("")
+    print("C(N) = [ NC x (data traffic + fixed charge of the SIM) + N x (cloud lines that grow + maintenance visits) + NL x LoRa messages + G x (gateway data + gateway SIM charge + gateway maintenance) + reserve of the priced parts of the nodes and the gateways + fixed cloud lines ] / N, with G = NL / 10 rounded up.")
+    print("")
+    print("| Component | Pays | At 200 farms | At 1,000 farms |")
+    print("|---|---|---|---|")
+    comp = {}
+    for n in (200, 1000):
+        f = fleet(n, 0.25, 10, "base")
+        comp[n] = [f["nc"] * (data_cost("cell", "base") + sim_fixed("cell", "base")) / n, cloud_var(0), maintenance_month("base"), f["nl"] * lora_msg() / n, f["rec_gw"] / n, f["reserve"] / n, f["fixed"] / n]
+        assert math.isclose(sum(comp[n]), (f["rec_cash_own"] + f["fixed"] + f["reserve"]) / n)
+    names = [("Data traffic and fixed charge of the SIM of the cellular nodes", "Monthly cash"), ("Cloud lines that grow with the farms", "Monthly cash"), ("Maintenance visits of the nodes", "Monthly cash"), ("LoRaWAN messages of the cloud", "Monthly cash"), ("Gateways: data traffic, SIM charge and maintenance visits", "Monthly cash"), ("Replacement reserve of the priced parts of nodes and gateways", "Reserve for later replacements"), ("Fixed cloud lines divided by the farms", "Monthly cash, assigned in full to the farms")]
+    for k, (nm, kind) in enumerate(names):
+        print(f"| {nm} | {kind} | {usd(comp[200][k])} | {usd(comp[1000][k])} |")
+    print(f"| **Option C, known part** | | {usd(sum(comp[200]))} plus pending | {usd(sum(comp[1000]))} plus pending |")
+    print("")
+    print("| Paid by the initial investment, once | Covered by the monthly amount of option C |")
+    print("|---|---|")
+    print("| Purchase of the priced hardware of the node, including the SIM card | Data traffic, SIM charge, cloud lines, LoRa messages and maintenance visits |")
+    print("| Installation visit of the node, labor and vehicle | The cash cost of the gateways |")
+    print("| Purchase and installation of the gateways, including their solar kit and SIM card | The fixed cloud lines divided by the farms |")
+    print("| | The reserve that pays the replacement of a part after its life |")
+    print("")
+    print("Nothing is counted twice. The initial purchase is paid only by the investment, and no amortization of it is in the monthly amount. The reserve pays only the replacements that come after the life of a part, so the purchase of a replacement is paid from it and is not added again. Maintenance visits are cash and are not in the investment. The installation visit is in the investment and is not in the monthly amount.")
+    print("")
+    print("Investment of a farm apart, base scenario, 25 percent LoRa, 10 farms for each gateway, known part.")
+    print("| Case | At 200 farms | At 1,000 farms |")
+    print("|---|---|---|")
+    for lbl, key in [("Nodes, hardware and SIM card", "inv_nodes"), ("Installation visits", "inv_install"), ("Gateways, purchase and installation", "inv_gw"), ("Total", "inv")]:
+        print(f"| {lbl}, for each farm | {usd(fleet(200, 0.25, 10, 'base')[key] / 200)} | {usd(fleet(1000, 0.25, 10, 'base')[key] / 1000)} |")
+    print("")
+    print("Pending items with the exact datum that is missing and their effect. A pending item raises the investment, the monthly amount through its reserve, or both. None is counted as zero.")
+    print("")
+    print("| Pending item | Datum that is missing | Effect on the investment | Effect on the monthly amount |")
+    print("|---|---|---|---|")
+    pend = [
+        ("Enclosure IP67 of the node", "A price for an IP67 enclosure that holds the controller board, a 151 x 99 x 95 mm battery and the charge controller, with glands", "Raises it by the price", "Raises the reserve by the price over its life"),
+        ("Controller board", "A price of a board with RS485, a clock with backup power, at least 64 MB of encrypted external flash, switched probe supplies and protected inputs", "Raises it by the price", "Raises the reserve"),
+        ("Climate sensor", "The interface that the node specification leaves pending, and the price of an outdoor probe for 40 to 80 percent humidity and 14 to 30 C", "Raises it by the price", "Raises the reserve"),
+        ("Grain probe", "A price of a probe for grain temperature above 40 C and humidity near 12 percent", "Raises it by the price", "Raises the reserve"),
+        ("Soil probe", "A manufacturer data sheet with range and accuracy, and a price in a stated currency", "The estimate may move", "The reserve moves with it"),
+        ("Mast and fixings", "The mast height and wind rating from the sensors design, and a price", "Raises it by the price", "Raises the reserve a little"),
+        ("Cable and connectors", "The cable lengths of each site and their ratings, and a price", "Raises it by the price", "None, or a small reserve"),
+        ("Shipping, import duties and IVA", "A shipping quote, the customs classification and the rates, and whether IVA applies", "Raises it, with IVA up to 19 percent", "Raises the reserve in the same proportion"),
+        ("Plan of the operator", "A quote with the fixed charge, the price per megabyte and LTE-M service in Colombia", "Replaces the SIM card price", "Replaces the data and SIM lines of the nodes and gateways"),
+        ("Technician rate, travel and visits", "A quote for a technician day and the locations of the farms", "Moves the installation", "Moves the maintenance visits"),
+        ("Gateway mast, cables and lightning protection", "A mast of the height the site study sets, and prices", "Raises the gateway purchase", "Raises the gateway reserve"),
+        ("Gateway load and kit energy", "The consumption of the gateway and the usable energy of the kit from their data sheets", "A larger kit raises the gateway purchase if the load is above the limits of the viability table", "Raises the gateway reserve"),
+        ("Controller of the battery charge", "The lithium profile of the charge controller on its data sheet", "A different controller changes its price", "Changes its reserve"),
+        ("Calendar life of the parts", "Data sheet lives of the battery, panel, probes and radio", "None", "Moves the reserve in inverse proportion"),
+        ("Fixed cloud lines share", "A decision on how much of the fixed lines belongs to the farms", "None", "Lowers the fixed line share if part is assigned to others"),
+    ]
+    for row in pend:
+        print("| " + " | ".join(row) + " |")
+    print("")
 
     vi = {v: hardware(v, "base") + one_time_connectivity(v, "base") + sum(install("base")) for v in ("cell", "lora")}
     print("\n## Context, not a judgment")

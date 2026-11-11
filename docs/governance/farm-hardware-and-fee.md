@@ -1,6 +1,6 @@
 # Hardware, installation and monthly cost of a farm
 
-This document estimates what one farm needs to join the platform and what it costs each month. It separates the initial investment from the recurring cost, gives low, base and high scenarios, prices the cellular farm and the LoRa farm apart, treats the gateway as shared equipment, shows how the figures move from 200 to 1,000 farms, and sets out the options for a charge that the Federation can approve. It is an estimate from listed prices and stated assumptions. Nothing was bought, quoted or ordered, no supplier was contacted, and no figure here is a fee that a farmer is asked to pay.
+This document estimates what one farm needs to join the platform and what it costs each month. It separates the initial investment from the recurring cost, gives low, base and high scenarios, prices the cellular farm and the LoRa farm apart, treats the gateway as shared equipment, shows how the figures move from 200 to 1,000 farms, and records the provisional option chosen for the monthly amount. It is an estimate from listed prices and stated assumptions. Nothing was bought, quoted or ordered, no supplier was contacted, and no figure here is a fee that a farmer is asked to pay.
 
 ## Contents
 
@@ -67,7 +67,7 @@ The costs that other documents already carry are not repeated. The cloud lines c
 
 | Item | Price as read | Used, low, base and high, USD | Status | Source and date | Tax, shipping and limits |
 |---|---|---|---|---|---|
-| Battery 12.8 V 12 Ah LiFePO4 | USD 70.99 and USD 159.00 | 70.99, 159.00, 159.00 | verified | Kastar listing for the low case, Battery Space listing for the base and high cases, read 2026-11-10 | Tax not stated on either page. See the equivalence table. Neither is shown equivalent to the node requirement |
+| Battery 12.8 V 12 Ah LiFePO4, Power-Sonic PSL-SC-12120 F2 | USD 144.77 | 144.77, 144.77, 144.77 | verified | TRC Electronics listing, trcelectronics.com, and the Power-Sonic data sheet, both read 2026-11-10 | Tax and shipping not stated. The data sheet states 12.8 V, 12 Ah, 153.6 Wh, a BMS, charge 0 to 45 C, discharge minus 20 to 60 C, 2,000 cycles at 100 percent depth of discharge and 151 x 99 x 95 mm. It meets the battery line of the node requirement |
 | Solar panel 20 W 12 V | USD 39.50 | 39.50, 39.50, 39.50 | verified | ACOPower HY020-12M, acopower.com, read 2026-11-10 | Tax and shipping not stated |
 | Charge controller 10 A, MPPT | USD 60.00 | 60.00, 60.00, 60.00 | verified | Victron SmartSolar MPPT 75/10, Renewable Outdoors, read 2026-11-10 | Tax and shipping not stated. The lithium profile was not read on the page |
 | Soil probe, 7 variables, RS485 | QAR 295.00 at 3.64 QAR per USD | 81.04, 81.04, 81.04 | estimate | Voltaat VT-1767, voltaat.com, read 2026-11-10 | The rate is a peg that was not read from a primary source. No datasheet, so range and accuracy are unverified |
@@ -84,6 +84,7 @@ Reference listings found for the pending items. They are not equivalent and stay
 
 | Pending item | Listing found | Why it is not equivalent |
 |---|---|---|
+| Batteries that are not equivalent | Kastar at USD 70.99 and Battery Space at USD 159.00 | Neither is shown to meet the node requirement, see the equivalence table. They are references and stay out of every total |
 | Enclosure | RAK Unify IP67 150 x 100 x 45 mm at USD 39.00 | Too small for a 151 x 98 x 95 mm battery, so it is not equivalent to the node enclosure |
 | Controller board | RAK19007 base 9.99, RAK4631 core 17.99, RAK5802 RS485 6.00, RAK12002 RTC 9.50 and RAK15001 flash 5.00, together USD 48.48 | A development kit. Its flash is 16 Mbit against at least 64 MB with encryption, and it has no switched probe supplies or field input protection |
 | Climate sensor | RAK1901 SHTC3 module at USD 4.60, Milesight NB300-TH at USD 59.90 | The first has no outdoor rating, and the second is a standalone NB-IoT device and not a probe for the controller |
@@ -93,22 +94,23 @@ Reference listings found for the pending items. They are not equivalent and stay
 
 The pages that opened were read on 2026-11-10 from the sites named, and none of them was contacted. A price in this table is a reference for the order of magnitude, and a quote replaces it. The parts that the node needs and that have no equivalent listing stay pending.
 
-### Equivalence of the two batteries
+### Equivalence of the batteries
 
 The node specification asks for 12.8 V, 12 Ah nominal, LiFePO4, a battery management system, the datasheet limits including the low temperature charging limit, and the energy of 12.8 V times 12 Ah, which is 153.6 Wh.
 
-| Property | Requirement | Lower listing, USD 70.99 | Higher listing, USD 159.00 |
-|---|---|---|---|
-| Chemistry and voltage | LiFePO4, 12.8 V | 12.8 V stated | 12.8 V stated |
-| Capacity | 12 Ah nominal | 12 Ah at C/5 | Typical 12 Ah, minimum 11.85 Ah at 0.2C |
-| Energy | 153.6 Wh | The title says 153.6 Wh and a bullet says 84 Wh, so it conflicts | The title says 144 Wh, which is below 153.6 Wh |
-| Protection | A battery management system | Built-in BMS stated | No BMS statement on the page. UN38.3 passed |
-| Low temperature charge limit | Stated in the datasheet | Not stated | Charge 0 to 40 C, discharge minus 20 to 60 C |
-| Cycle life | Datasheet figure | Two figures that conflict, 2,500 to 7,000 and more than 2,000 | Not stated |
-| Accessories | Not part of the requirement | None listed, free shipping stated | None listed |
-| Shown equivalent | | No. The energy and the charge limit are not consistent | No. The BMS is not stated and the energy is stated lower |
+| Property | Requirement | Power-Sonic PSL-SC-12120 F2, USD 144.77, used in every scenario | Kastar, USD 70.99, reference | Battery Space, USD 159.00, reference |
+|---|---|---|---|---|
+| Chemistry and voltage | LiFePO4, 12.8 V | Nominal 12.8 V, 4 cells | 12.8 V stated | 12.8 V stated |
+| Capacity | 12 Ah nominal | 12 Ah | 12 Ah at C/5 | Typical 12 Ah, minimum 11.85 Ah |
+| Energy | 153.6 Wh | 153.6 Wh stated, and 153 Wh on the other sheet | The title says 153.6 Wh and a bullet says 84 Wh, so it conflicts | The title says 144 Wh, which is below 153.6 Wh |
+| Protection | A battery management system | BMS with protection against over charge, over discharge, over current and cell balancing, with its values | Built-in BMS stated, no values | No BMS statement |
+| Low temperature charge limit | Stated in the datasheet | Charge 0 to 45 C, discharge minus 20 to 60 C | Not stated | Charge 0 to 40 C, discharge minus 20 to 60 C |
+| Cycle life | Datasheet figure | 2,000 cycles at 100 percent depth of discharge | Two figures that conflict | Not stated |
+| Dimensions and weight | Fit the enclosure | 151 x 99 x 95 mm, 1.65 kg | 151 x 98 x 95 mm, 1.42 kg | Weight 2 lb 10 oz |
+| Accessories | Not part of the requirement | F2 terminals, no accessory listed | None listed | None listed |
+| Meets the node requirement | | Yes, on the data sheet | No, the energy and the charge limit are not consistent | No, the BMS is not stated and the energy is stated lower |
 
-The low case uses the lower listing, and the base and high cases use the higher listing, which states the temperature limits that the specification needs. The cheapest listing is not taken as the base because it is not shown equivalent. A datasheet decides which one the node uses.
+The base case no longer uses a battery that is known to fall short. The battery of every scenario is the Power-Sonic reference, which meets the requirement on its data sheet, and the two cheaper or other listings are kept as references that are not equivalent. The reserve of the battery uses this price. The calendar life of the battery was not read, and the lives in years remain assumptions.
 
 ## 5. Hardware of one farm
 
@@ -116,15 +118,15 @@ Known subtotal of priced parts. The pending items are not in it and are not zero
 
 | Item | Low | Base | High | Status |
 |---|---|---|---|---|
-| Battery | 70.99 | 159.00 | 159.00 | verified |
+| Battery | 144.77 | 144.77 | 144.77 | verified |
 | Solar panel 20 W | 39.50 | 39.50 | 39.50 | verified |
 | Charge controller | 60.00 | 60.00 | 60.00 | verified |
 | Soil probe | 81.04 | 81.04 | 81.04 | estimate |
 | Cellular farm, radio board | 30.00 | 35.86 | 56.02 | verified, as a board |
 | Cellular farm, antenna | 39.97 | 39.97 | 39.97 | verified |
 | LoRa farm, module and antenna | 10.99 | 10.99 | 10.99 | verified |
-| **Known subtotal, cellular farm** | 321.50 | 415.37 | 435.53 | known part only |
-| **Known subtotal, LoRa farm** | 262.52 | 350.53 | 350.53 | known part only |
+| **Known subtotal, cellular farm** | 395.28 | 401.14 | 421.30 | known part only |
+| **Known subtotal, LoRa farm** | 336.30 | 336.30 | 336.30 | known part only |
 | SIM card or prepaid plan, one time, cellular farm | 15.00 | 3.00 | 3.00 | estimate, no plan is contracted |
 
 Pending items of every farm, each an unknown cost: Enclosure IP67; Controller board; Climate sensor; Grain probe; Mast and fixings; Cable and connectors; Shipping, import duties and IVA of every item.
@@ -162,12 +164,12 @@ Initial investment only. Recurring cost is in the next table. Shipping, duties, 
 
 | Case | Low | Base | High |
 |---|---|---|---|
-| Cellular farm, known hardware and SIM start | 336.50 | 418.37 | 438.53 |
+| Cellular farm, known hardware and SIM start | 410.28 | 404.14 | 424.30 |
 | Cellular farm, installation | 22.17 | 47.15 | 175.34 |
-| **Cellular farm, known investment, plus the unknown cost of the pending items** | 358.67 plus pending | 465.52 plus pending | 613.87 plus pending |
-| LoRa farm, without its gateway share, known hardware and SIM start | 262.52 | 350.53 | 350.53 |
+| **Cellular farm, known investment, plus the unknown cost of the pending items** | 432.45 plus pending | 451.29 plus pending | 599.64 plus pending |
+| LoRa farm, without its gateway share, known hardware and SIM start | 336.30 | 336.30 | 336.30 |
 | LoRa farm, without its gateway share, installation | 22.17 | 47.15 | 175.34 |
-| **LoRa farm, without its gateway share, known investment, plus the unknown cost of the pending items** | 284.69 plus pending | 397.68 plus pending | 525.87 plus pending |
+| **LoRa farm, without its gateway share, known investment, plus the unknown cost of the pending items** | 358.47 plus pending | 383.45 plus pending | 511.64 plus pending |
 
 ## 7. Connectivity, energy, replacement and maintenance
 
@@ -193,7 +195,15 @@ Initial investment only. Recurring cost is in the next table. Shipping, duties, 
 | Maintenance visits with 2 technicians | 2.93 | 6.37 | 29.56 | monthly cash |
 | Replacement reserve | 11.26 | 14.48 | 20.70 | monthly reserve |
 
-The gateway bundle includes the solar kit, its battery, the panel and the mounting, so energy is in the purchase once and has no recurring line. The kit has a 50 Ah battery at 12.8 V, which is 640 Wh and 512 Wh usable at 0.80. The LoRa path document asks 450 Wh for 3 days and 750 Wh for 5 days at a load of 5 W, and a panel of 56 W. The kit meets the 3 day case and the panel, and reaches 5 days only up to about 4.3 W, so it is equivalent under a load of 4 W or less. The load of the gateway was not read, and the page says the kit gives more than 5 days.
+The gateway bundle lists a solar kit with its battery, its panel and the mounting, so energy is bought once and has no recurring line. Whether the kit keeps the gateway running is a condition of viability and is not shown.
+
+| Condition of viability | Calculation, with the assumptions of the LoRa path document | Result |
+|---|---|---|
+| Autonomy of 3 days | 50 Ah at 12.8 V is 640 Wh, and 512 Wh is usable at 0.80, so the load P must satisfy 24 h x 3 x P <= 512 Wh | P of 7.1 W or less |
+| Autonomy of 5 days | 24 h x 5 x P <= 512 Wh | P of 4.3 W or less |
+| Panel keeps the energy level | 80 W x 3 peak sun hours x 0.72 is 173 Wh a day, and it must cover 24 h x P | P of 7.2 W or less |
+
+The consumption of the gateway and the usable energy of the kit are not read from the data sheet of the gateway or of the kit, so the contrast with them is pending. The statement of the seller that the kit gives more than 5 days is not checked here. If the load is above the limits above, the kit is not viable and a larger battery or panel is another pending cost.
 
 Pending for each gateway: Mast of the height the site study sets; Cables and lightning protection; Shipping, import duties and IVA. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.
 
@@ -219,8 +229,8 @@ Cash cost and the replacement reserve are kept apart. A replacement bought later
 | LoRaWAN messages of the cloud | 0.00 | 0.00 | 0.00 | 0.01 | cash |
 | Maintenance visits | 1.40 | 3.19 | 15.29 | 3.19 | cash |
 | **Marginal cash cost** | 1.42 | 4.36 | 16.90 | 3.21 | cash |
-| Replacement reserve of the priced parts | 3.45 | 6.65 | 10.37 | 5.97 | reserve |
-| **Marginal cash plus reserve** | 4.86 | 11.01 | 27.28 | 9.18 | |
+| Replacement reserve of the priced parts | 4.22 | 6.41 | 9.98 | 5.73 | reserve |
+| **Marginal cash plus reserve** | 5.63 | 10.77 | 26.88 | 8.94 | |
 
 The plan of the operator is not contracted. The connectivity lines use a published self-service tariff of a global provider, whose coverage and LTE-M service in Colombia are not confirmed, and a prepaid plan for the low case. They are estimates and not the connectivity cost of an offer, so complete connectivity is not stated.
 The earlier figure of USD 3.21 a month for a cellular farm held 3.19 of maintenance visit labor and vehicle, 0.01 of cloud lines and 0.02 of data traffic. It held no fixed charge of a SIM. The maintenance visit was 99 percent of it.
@@ -235,21 +245,21 @@ Investment and recurring cost are separate. Recurring cash holds the nodes, the 
 
 | Farms | LoRa share | Gateways | Investment, nodes | Investment, installation | Investment, gateways | Investment total, known | Monthly cash | Monthly reserve | Cash and reserve for each farm |
 |---|---|---|---|---|---|---|---|---|---|
-| 200 | 0% | 0 | 83,674.00 | 9,429.50 | 0.00 | 93,103.50 | 1,042.98 | 1,329.03 | 11.86 |
-| 200 | 25% | 5 | 80,282.00 | 9,429.50 | 6,630.04 | 96,341.54 | 1,029.52 | 1,367.64 | 11.99 |
-| 200 | 50% | 10 | 76,890.00 | 9,429.50 | 13,260.08 | 99,579.58 | 1,016.06 | 1,406.25 | 12.11 |
-| 400 | 0% | 0 | 167,348.00 | 18,859.00 | 0.00 | 186,207.00 | 1,915.86 | 2,658.07 | 11.43 |
-| 400 | 25% | 10 | 160,564.00 | 18,859.00 | 13,260.08 | 192,683.08 | 1,888.93 | 2,735.29 | 11.56 |
-| 400 | 50% | 20 | 153,780.00 | 18,859.00 | 26,520.15 | 199,159.15 | 1,862.01 | 2,812.50 | 11.69 |
-| 600 | 0% | 0 | 251,022.00 | 28,288.50 | 0.00 | 279,310.50 | 2,788.74 | 3,987.10 | 11.29 |
-| 600 | 25% | 15 | 240,846.00 | 28,288.50 | 19,890.11 | 289,024.61 | 2,748.35 | 4,102.93 | 11.42 |
-| 600 | 50% | 30 | 230,670.00 | 28,288.50 | 39,780.23 | 298,738.73 | 2,707.97 | 4,218.75 | 11.54 |
-| 800 | 0% | 0 | 334,696.00 | 37,718.00 | 0.00 | 372,414.00 | 3,661.61 | 5,316.14 | 11.22 |
-| 800 | 25% | 20 | 321,128.00 | 37,718.00 | 26,520.15 | 385,366.15 | 3,607.77 | 5,470.57 | 11.35 |
-| 800 | 50% | 40 | 307,560.00 | 37,718.00 | 53,040.30 | 398,318.30 | 3,553.92 | 5,625.01 | 11.47 |
-| 1000 | 0% | 0 | 418,370.00 | 47,147.50 | 0.00 | 465,517.50 | 4,534.49 | 6,645.17 | 11.18 |
-| 1000 | 25% | 25 | 401,410.00 | 47,147.50 | 33,150.19 | 481,707.69 | 4,467.18 | 6,838.22 | 11.31 |
-| 1000 | 50% | 50 | 384,450.00 | 47,147.50 | 66,300.38 | 497,897.88 | 4,399.88 | 7,031.26 | 11.43 |
+| 200 | 0% | 0 | 80,828.00 | 9,429.50 | 0.00 | 90,257.50 | 1,042.98 | 1,281.60 | 11.62 |
+| 200 | 25% | 5 | 77,436.00 | 9,429.50 | 6,630.04 | 93,495.54 | 1,029.52 | 1,320.21 | 11.75 |
+| 200 | 50% | 10 | 74,044.00 | 9,429.50 | 13,260.08 | 96,733.58 | 1,016.06 | 1,358.82 | 11.87 |
+| 400 | 0% | 0 | 161,656.00 | 18,859.00 | 0.00 | 180,515.00 | 1,915.86 | 2,563.20 | 11.20 |
+| 400 | 25% | 10 | 154,872.00 | 18,859.00 | 13,260.08 | 186,991.08 | 1,888.93 | 2,640.42 | 11.32 |
+| 400 | 50% | 20 | 148,088.00 | 18,859.00 | 26,520.15 | 193,467.15 | 1,862.01 | 2,717.64 | 11.45 |
+| 600 | 0% | 0 | 242,484.00 | 28,288.50 | 0.00 | 270,772.50 | 2,788.74 | 3,844.80 | 11.06 |
+| 600 | 25% | 15 | 232,308.00 | 28,288.50 | 19,890.11 | 280,486.61 | 2,748.35 | 3,960.63 | 11.18 |
+| 600 | 50% | 30 | 222,132.00 | 28,288.50 | 39,780.23 | 290,200.73 | 2,707.97 | 4,076.45 | 11.31 |
+| 800 | 0% | 0 | 323,312.00 | 37,718.00 | 0.00 | 361,030.00 | 3,661.61 | 5,126.41 | 10.99 |
+| 800 | 25% | 20 | 309,744.00 | 37,718.00 | 26,520.15 | 373,982.15 | 3,607.77 | 5,280.84 | 11.11 |
+| 800 | 50% | 40 | 296,176.00 | 37,718.00 | 53,040.30 | 386,934.30 | 3,553.92 | 5,435.27 | 11.24 |
+| 1000 | 0% | 0 | 404,140.00 | 47,147.50 | 0.00 | 451,287.50 | 4,534.49 | 6,408.01 | 10.94 |
+| 1000 | 25% | 25 | 387,180.00 | 47,147.50 | 33,150.19 | 467,477.69 | 4,467.18 | 6,601.05 | 11.07 |
+| 1000 | 50% | 50 | 370,220.00 | 47,147.50 | 66,300.38 | 483,667.88 | 4,399.88 | 6,794.09 | 11.19 |
 
 Every total is a known subtotal. The pending items of the nodes and gateways and the shipping, duties and IVA add to it.
 
@@ -257,60 +267,116 @@ Every total is a known subtotal. The pending items of the nodes and gateways and
 
 | Farms | LoRa share | Farms for each gateway | Gateways, rounded up | Investment known | Monthly cash | Monthly reserve | Cash and reserve for each farm |
 |---|---|---|---|---|---|---|---|
-| 200 | 25% | 5 | 10 | 102,971.58 | 1,073.87 | 1,440.02 | 12.57 |
-| 200 | 25% | 10 | 5 | 96,341.54 | 1,029.52 | 1,367.64 | 11.99 |
-| 200 | 25% | 20 | 3 | 93,689.52 | 1,011.77 | 1,338.69 | 11.75 |
-| 200 | 50% | 5 | 20 | 112,839.65 | 1,104.77 | 1,551.01 | 13.28 |
-| 200 | 50% | 10 | 10 | 99,579.58 | 1,016.06 | 1,406.25 | 12.11 |
-| 200 | 50% | 20 | 5 | 92,949.54 | 971.70 | 1,333.87 | 11.53 |
-| 1000 | 25% | 5 | 50 | 514,857.88 | 4,688.97 | 7,200.11 | 11.89 |
-| 1000 | 25% | 10 | 25 | 481,707.69 | 4,467.18 | 6,838.22 | 11.31 |
-| 1000 | 25% | 20 | 13 | 465,795.60 | 4,360.73 | 6,664.51 | 11.03 |
-| 1000 | 50% | 5 | 100 | 564,198.26 | 4,843.44 | 7,755.05 | 12.60 |
-| 1000 | 50% | 10 | 50 | 497,897.88 | 4,399.88 | 7,031.26 | 11.43 |
-| 1000 | 50% | 20 | 25 | 464,747.69 | 4,178.09 | 6,669.36 | 10.85 |
+| 200 | 25% | 5 | 10 | 100,125.58 | 1,073.87 | 1,392.59 | 12.33 |
+| 200 | 25% | 10 | 5 | 93,495.54 | 1,029.52 | 1,320.21 | 11.75 |
+| 200 | 25% | 20 | 3 | 90,843.52 | 1,011.77 | 1,291.26 | 11.52 |
+| 200 | 50% | 5 | 20 | 109,993.65 | 1,104.77 | 1,503.58 | 13.04 |
+| 200 | 50% | 10 | 10 | 96,733.58 | 1,016.06 | 1,358.82 | 11.87 |
+| 200 | 50% | 20 | 5 | 90,103.54 | 971.70 | 1,286.44 | 11.29 |
+| 1000 | 25% | 5 | 50 | 500,627.88 | 4,688.97 | 6,962.94 | 11.65 |
+| 1000 | 25% | 10 | 25 | 467,477.69 | 4,467.18 | 6,601.05 | 11.07 |
+| 1000 | 25% | 20 | 13 | 451,565.60 | 4,360.73 | 6,427.34 | 10.79 |
+| 1000 | 50% | 5 | 100 | 549,968.26 | 4,843.44 | 7,517.88 | 12.36 |
+| 1000 | 50% | 10 | 50 | 483,667.88 | 4,399.88 | 6,794.09 | 11.19 |
+| 1000 | 50% | 20 | 25 | 450,517.69 | 4,178.09 | 6,432.19 | 10.61 |
 
 ### Scenarios low, base and high
 
 | Farms | Scenario | Investment known | Recurring cash a month | Reserve a month | Recurring cash and reserve for each farm |
 |---|---|---|---|---|---|
-| 200 | low | 74,397.86 | 476.27 | 721.23 | 5.99 |
-| 200 | base | 96,341.54 | 1,029.52 | 1,367.64 | 11.99 |
-| 200 | high | 125,729.94 | 3,646.81 | 2,118.73 | 28.83 |
-| 1000 | low | 371,989.29 | 1,700.96 | 3,606.13 | 5.31 |
-| 1000 | base | 481,707.69 | 4,467.18 | 6,838.22 | 11.31 |
-| 1000 | high | 628,649.68 | 17,553.66 | 10,593.67 | 28.15 |
+| 200 | low | 89,153.86 | 476.27 | 874.94 | 6.76 |
+| 200 | base | 93,495.54 | 1,029.52 | 1,320.21 | 11.75 |
+| 200 | high | 122,883.94 | 3,646.81 | 2,039.68 | 28.43 |
+| 1000 | low | 445,769.29 | 1,700.96 | 4,374.68 | 6.08 |
+| 1000 | base | 467,477.69 | 4,467.18 | 6,601.05 | 11.07 |
+| 1000 | high | 614,419.68 | 17,553.66 | 10,198.39 | 27.75 |
 
-The low case also lowers the hardware, travel and labor, uses the prepaid plan and lengthens the lives of the parts, and the high case does the opposite. A scenario does not move the pending items, whose cost is unknown in all three.
+The low case lowers travel and labor and lengthens the lives of the parts, and the high case does the opposite. The low case also pays connectivity up front with a prepaid plan, so its investment of a cellular farm can exceed the base case while its monthly amount is lower. A scenario does not move the pending items, whose cost is unknown in all three.
 
 ### Cost for each farm by number of farms
 
 | Farms | Marginal cash cost | Fixed cloud lines | Gateway cash | Reserve | Cash and reserve for each farm |
 |---|---|---|---|---|---|
-| 200 | 4.08 | 0.85 | 0.22 | 6.84 | 11.99 |
-| 400 | 4.08 | 0.43 | 0.22 | 6.84 | 11.56 |
-| 600 | 4.08 | 0.28 | 0.22 | 6.84 | 11.42 |
-| 800 | 4.08 | 0.21 | 0.22 | 6.84 | 11.35 |
-| 1000 | 4.08 | 0.17 | 0.22 | 6.84 | 11.31 |
+| 200 | 4.08 | 0.85 | 0.22 | 6.60 | 11.75 |
+| 400 | 4.08 | 0.43 | 0.22 | 6.60 | 11.32 |
+| 600 | 4.08 | 0.28 | 0.22 | 6.60 | 11.18 |
+| 800 | 4.08 | 0.21 | 0.22 | 6.60 | 11.11 |
+| 1000 | 4.08 | 0.17 | 0.22 | 6.60 | 11.07 |
 
 At 200 farms the fixed cloud lines add USD 0.85 for each farm and at 1,000 farms USD 0.17. The cost for each farm falls with the number of farms because the fixed cloud lines spread, and it rises with the share of LoRa farms in this estimate because a gateway is a whole unit. The cloud lines that grow with the farms are linear, since the cloud addressing design holds from 200 to 1,000 farms with no change.
 
-## 11. The monthly charge
+## 11. The monthly amount
 
-The card asks for the cost of the equipment and the monthly charge, so that a farmer can judge whether the investment is moderate. This document computes the monthly cost of a farm. It does not compute a charge, because a charge depends on a policy that the Federation has not set, namely whether it charges the farmer at all, whether it subsidizes the platform or the equipment, what margin or interest applies, and what share of the fixed cloud lines belongs to the farms. The options below build a monthly amount from the figures of this document so that one can be approved.
+The card asks for the cost of the equipment and the monthly charge, so that a farmer can judge whether the investment is moderate. A charge depends on a policy of the Federation, which has not set one. This document therefore computes the monthly cost of a farm and records a provisional choice for the exercise.
 
-A fee is a policy decision, so these are ways to build one from the figures above, and none is proposed here. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.
+Decision recorded. isahrnd chose option C as an academic provisional proposal for the exercise, which is the monthly cost with operation, the replacement reserve and the shared cloud expenses, with no margin and no financing. The initial investment is presented apart. The decision is isahrnd's for the exercise. It is not an approval by the Federation, it is not a fee contracted with anyone, and the amount stays provisional while essential costs are missing, which are listed below.
+
+A fee is a policy decision. These are the ways considered to build a monthly amount from the figures above. Option C was chosen by isahrnd for the exercise, and A and B are kept as references. A financed investment and a margin are not part of this version. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.
 
 | Option | How it is built | At 200 farms | At 1,000 farms |
 |---|---|---|---|
 | A. Recover only the marginal cash cost | Data, SIM, cloud lines that grow, maintenance, with no reserve and no shared cost | 4.08 | 4.08 |
-| B. Recover the cash cost, the gateways and the reserve, and the Federation bears the fixed cloud lines | Option A plus the gateway cash cost and the reserve | 11.14 | 11.14 |
-| C. Recover everything recurring, with the fixed cloud lines divided by the farms | Option B plus the fixed cloud lines of the cost document | 11.99 | 11.31 |
-| D. Option C and the investment financed over 36 months at no interest | Option C plus the known investment divided by 36 | 25.37 | 24.69 |
+| B. Recover the cash cost, the gateways and the reserve, and the Federation bears the fixed cloud lines | Option A plus the gateway cash cost and the reserve | 10.90 | 10.90 |
+| C. Recover everything recurring, with the fixed cloud lines divided by the farms. Chosen for the exercise | Option B plus the fixed cloud lines of the cost document | 11.75 | 11.07 |
 
 Each option leaves out the pending items. A subsidy, an interest rate, a margin or a different share of the fixed cloud lines are decisions that no document of the project makes, and whether the farmer is charged any of this is also open.
 
-What approving an option needs. The Federation chooses an option, or another rule, and states the share of the fixed cloud lines, any subsidy and any interest. When it does, this estimate gives the charge for each scenario, and the pending items are added once they are quoted.
+Option C was chosen by isahrnd as an academic provisional proposal for this exercise. The Federation did not approve it, it is not a contracted fee, and it stays provisional while essential costs are missing. It has no margin and no financing. The initial investment is presented apart and is not part of the monthly amount.
+
+Formula for each farm a month, base scenario, 25 percent LoRa, 10 farms for each gateway, with N farms and NL = 0.25 N farms on LoRa and NC = N - NL on cellular:
+
+C(N) = [ NC x (data traffic + fixed charge of the SIM) + N x (cloud lines that grow + maintenance visits) + NL x LoRa messages + G x (gateway data + gateway SIM charge + gateway maintenance) + reserve of the priced parts of the nodes and the gateways + fixed cloud lines ] / N, with G = NL / 10 rounded up.
+
+| Component | Pays | At 200 farms | At 1,000 farms |
+|---|---|---|---|
+| Data traffic and fixed charge of the SIM of the cellular nodes | Monthly cash | 0.87 | 0.87 |
+| Cloud lines that grow with the farms | Monthly cash | 0.01 | 0.01 |
+| Maintenance visits of the nodes | Monthly cash | 3.19 | 3.19 |
+| LoRaWAN messages of the cloud | Monthly cash | 0.00 | 0.00 |
+| Gateways: data traffic, SIM charge and maintenance visits | Monthly cash | 0.22 | 0.22 |
+| Replacement reserve of the priced parts of nodes and gateways | Reserve for later replacements | 6.60 | 6.60 |
+| Fixed cloud lines divided by the farms | Monthly cash, assigned in full to the farms | 0.85 | 0.17 |
+| **Option C, known part** | | 11.75 plus pending | 11.07 plus pending |
+
+| Paid by the initial investment, once | Covered by the monthly amount of option C |
+|---|---|
+| Purchase of the priced hardware of the node, including the SIM card | Data traffic, SIM charge, cloud lines, LoRa messages and maintenance visits |
+| Installation visit of the node, labor and vehicle | The cash cost of the gateways |
+| Purchase and installation of the gateways, including their solar kit and SIM card | The fixed cloud lines divided by the farms |
+| | The reserve that pays the replacement of a part after its life |
+
+Nothing is counted twice. The initial purchase is paid only by the investment, and no amortization of it is in the monthly amount. The reserve pays only the replacements that come after the life of a part, so the purchase of a replacement is paid from it and is not added again. Maintenance visits are cash and are not in the investment. The installation visit is in the investment and is not in the monthly amount.
+
+Investment of a farm apart, base scenario, 25 percent LoRa, 10 farms for each gateway, known part.
+
+| Case | At 200 farms | At 1,000 farms |
+|---|---|---|
+| Nodes, hardware and SIM card, for each farm | 387.18 | 387.18 |
+| Installation visits, for each farm | 47.15 | 47.15 |
+| Gateways, purchase and installation, for each farm | 33.15 | 33.15 |
+| Total, for each farm | 467.48 | 467.48 |
+
+Pending items with the exact datum that is missing and their effect. A pending item raises the investment, the monthly amount through its reserve, or both. None is counted as zero.
+
+| Pending item | Datum that is missing | Effect on the investment | Effect on the monthly amount |
+|---|---|---|---|
+| Enclosure IP67 of the node | A price for an IP67 enclosure that holds the controller board, a 151 x 99 x 95 mm battery and the charge controller, with glands | Raises it by the price | Raises the reserve by the price over its life |
+| Controller board | A price of a board with RS485, a clock with backup power, at least 64 MB of encrypted external flash, switched probe supplies and protected inputs | Raises it by the price | Raises the reserve |
+| Climate sensor | The interface that the node specification leaves pending, and the price of an outdoor probe for 40 to 80 percent humidity and 14 to 30 C | Raises it by the price | Raises the reserve |
+| Grain probe | A price of a probe for grain temperature above 40 C and humidity near 12 percent | Raises it by the price | Raises the reserve |
+| Soil probe | A manufacturer data sheet with range and accuracy, and a price in a stated currency | The estimate may move | The reserve moves with it |
+| Mast and fixings | The mast height and wind rating from the sensors design, and a price | Raises it by the price | Raises the reserve a little |
+| Cable and connectors | The cable lengths of each site and their ratings, and a price | Raises it by the price | None, or a small reserve |
+| Shipping, import duties and IVA | A shipping quote, the customs classification and the rates, and whether IVA applies | Raises it, with IVA up to 19 percent | Raises the reserve in the same proportion |
+| Plan of the operator | A quote with the fixed charge, the price per megabyte and LTE-M service in Colombia | Replaces the SIM card price | Replaces the data and SIM lines of the nodes and gateways |
+| Technician rate, travel and visits | A quote for a technician day and the locations of the farms | Moves the installation | Moves the maintenance visits |
+| Gateway mast, cables and lightning protection | A mast of the height the site study sets, and prices | Raises the gateway purchase | Raises the gateway reserve |
+| Gateway load and kit energy | The consumption of the gateway and the usable energy of the kit from their data sheets | A larger kit raises the gateway purchase if the load is above the limits of the viability table | Raises the gateway reserve |
+| Controller of the battery charge | The lithium profile of the charge controller on its data sheet | A different controller changes its price | Changes its reserve |
+| Calendar life of the parts | Data sheet lives of the battery, panel, probes and radio | None | Moves the reserve in inverse proportion |
+| Fixed cloud lines share | A decision on how much of the fixed lines belongs to the farms | None | Lowers the fixed line share if part is assigned to others |
+
+What a fee still needs. The Federation decides whether it charges the farmer at all, whether it subsidizes the platform or the equipment, whether a margin or financing applies, and what share of the fixed cloud lines belongs to the farms. Until it does, option C is a cost and the card does not have a fee.
 
 ## 12. Context against the price of coffee
 
@@ -318,8 +384,8 @@ The known investment of a farm, base scenario, in kilograms of dry parchment cof
 
 | Case | Known investment, USD | COP at the central TRM | Kilograms of dry parchment coffee | Same at the low and high TRM |
 |---|---|---|---|---|
-| Cellular farm | 465.52 | 1,522,186 | 95.1 | 88.7 to 110.5 |
-| LoRa farm without the gateway share | 397.68 | 1,300,358 | 81.3 | 75.8 to 94.4 |
+| Cellular farm | 451.29 | 1,475,656 | 92.2 | 86.0 to 107.1 |
+| LoRa farm without the gateway share | 383.45 | 1,253,827 | 78.4 | 73.0 to 91.0 |
 
 The comparison shows no profitability and no capacity to pay. The pending items would raise both figures.
 
@@ -327,7 +393,7 @@ The reference price is the internal reference price for dry parchment coffee tha
 
 ### IVA
 
-If IVA of 19% applies in full to the known investment, a cellular farm goes from 465.52 to 553.97. Import duties are unknown and are in neither figure.
+If IVA of 19% applies in full to the known investment, a cellular farm goes from 451.29 to 537.03. Import duties are unknown and are in neither figure.
 
 ## 13. Consistency with the cost document
 
@@ -359,7 +425,7 @@ The price basis lists a gateway at EUR 537.76 at a retailer with VAT. The manufa
 
 | Literal criterion | Where it is answered | Gaps | Assumptions accepted |
 |---|---|---|---|
-| Hardware, installation in one visit and monthly charge for each farm | Sections 4 to 9, 11 and the script. The hardware has a known subtotal and a list of pending items, the installation is priced with its conditions, and the monthly cost is given as cash, reserve and with shared expenses assigned, in three scenarios | Essential parts have no equivalent listing, which are the enclosure, the controller board, the climate sensor, the grain probe, the mast and the cables. The plan of the operator is not contracted. The monthly charge is not defined, since it needs a policy of the Federation, and section 11 gives the options to approve. The totals are known subtotals plus those unknowns | Section 14 |
+| Hardware, installation in one visit and monthly charge for each farm | Sections 4 to 11 and the script. The hardware has a known subtotal and a list of pending items, the installation is priced with its conditions, and the monthly cost is given as cash, reserve and with shared expenses assigned, in three scenarios | Essential parts have no equivalent listing, which are the enclosure, the controller board, the climate sensor, the grain probe, the mast and the cables. The plan of the operator is not contracted. The monthly amount of option C is a provisional cost chosen by isahrnd for the exercise and is not a fee, since a fee needs a policy of the Federation. The totals are known subtotals plus those unknowns, which section 11 lists with the datum that is missing | Section 14 |
 | Sensitivity from 200 to 1,000 farms | Section 10 and the script, in three scenarios | None for the known subtotal | Section 14 |
 
 ## 16. Sources
