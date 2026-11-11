@@ -46,7 +46,7 @@ The [views by actor](actor-views.md) document fixes what the buyer receives and 
 
 ## 2. The path of a query
 
-![Public sack query](../architecture/diagrams/16-public-query.drawio.png)
+![Public sack query](../architecture/diagrams/17-public-query.drawio.png)
 
 | Step | What happens |
 |---|---|

@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "order_id": "order-demo-17",
+  "revision": 1,
+  "state": "CLOSED",
+  "method": "drone",
+  "case_id": "case-demo-88",
+  "farm_id": "farm-demo",
+  "lot_id": "lot-demo-a",
+  "department": "Huila",
+  "reason": {
+    "category": "pest",
+    "finding_code": "coffee_berry_borer",
+    "review_revision": 1
+  },
+  "geometry": {
+    "geometry_version": 7,
+    "geometry_sha256": "f9f07a5ec31894de5f1c8f7f65a5ae7803397630a1cfdc021a51ddb856a4f77e",
+    "strip_parameters_version": 2,
+    "exclusions": [
+      {
+        "exclusion_id": "exclusion-demo-01",
+        "version": 3,
+        "sha256": "9efd50891af235c1c459cc14caeeb9e37558381decf7a78beb527a2e44477808"
+      }
+    ]
+  },
+  "treated_area": {
+    "artifact_id": "treated-area-demo-17",
+    "sha256": "7878b69ece5601d8d595bd69fc79e43a73c287a3287fbd50fe6bb7c4ada8bb38",
+    "area_m2": 4200
+  },
+  "window": {
+    "not_before": "2026-11-12T11:00:00Z",
+    "not_after": "2026-11-15T11:00:00Z",
+    "display_timezone": "America/Bogota"
+  },
+  "operator_id": "operator-demo",
+  "applicator_id": "9c8b7a6d-5e4f-4a3b-8c2d-1e0f9a8b7c62",
+  "drone_id": "drone-demo-02",
+  "campaign_id": "campaign-demo-huila-2026-2",
+  "flight_authorization_ref": "DEMO-AUTH-0001",
+  "planned_product_lot": "LOT-DEMO-551",
+  "prerequisite": {
+    "mission_type": "FOCUS_CONFIRMATION",
+    "execution_id": "exec-demo-42-1",
+    "flight_record_id": "flight-record-demo-42-1",
+    "log_sha256": "23ffaf35346de69b62197fc05b3c6505b774c28bae089aff7c446a7148264ca7"
+  },
+  "farmer_acceptance": {
+    "record_id": "rec-demo-17-01",
+    "accepted": true,
+    "farmer_id": "51a2b3c4-d5e6-4f70-8a91-b2c3d4e5f603",
+    "channel": "app",
+    "recorded_at": "2026-11-11T20:05:00Z"
+  },
+  "created_by": "3f1c2a9e-7b4d-4e21-9a6f-1d2c3b4a5e60",
+  "created_at": "2026-11-11T19:40:00Z",
+  "authorizations": [
+    {
+      "record_id": "rec-demo-17-02",
+      "order_revision": 1,
+      "decision": "authorized",
+      "supervisor_id": "3f1c2a9e-7b4d-4e21-9a6f-1d2c3b4a5e60",
+      "authority": "department_supervisor",
+      "mfa": true,
+      "decided_at": "2026-11-12T10:30:00Z",
+      "reason_code": null
+    }
+  ],
+  "executions": [
+    {
+      "record_id": "rec-demo-17-03",
+      "execution_id": "exec-demo-17-1",
+      "method": "drone",
+      "applicator_id": "9c8b7a6d-5e4f-4a3b-8c2d-1e0f9a8b7c62",
+      "drone_id": "drone-demo-02",
+      "package_digest": "36dfe35c99c3f1ffcafd1cb706f7b36d357d10e7e577a597be5a5933481802bc",
+      "started_at": "2026-11-12T13:10:00Z",
+      "ended_at": "2026-11-12T13:14:00Z",
+      "outcome": "ABORTED",
+      "product_lot_used": "LOT-DEMO-551",
+      "applied": false,
+      "log": {
+        "artifact_id": "flight-log-demo-17-1",
+        "sha256": "b7cab2c6e084095f7bb3701932c3ae5c91a1a84367fb58c21ad00eae9b4debff",
+        "s3_version_id": "demo-version-0001"
+      },
+      "flight_record_id": "flight-record-demo-17-1"
+    },
+    {
+      "record_id": "rec-demo-17-04",
+      "execution_id": "exec-demo-17-2",
+      "method": "drone",
+      "applicator_id": "9c8b7a6d-5e4f-4a3b-8c2d-1e0f9a8b7c62",
+      "drone_id": "drone-demo-02",
+      "package_digest": "36dfe35c99c3f1ffcafd1cb706f7b36d357d10e7e577a597be5a5933481802bc",
+      "started_at": "2026-11-13T12:20:00Z",
+      "ended_at": "2026-11-13T12:41:00Z",
+      "outcome": "SUCCESS",
+      "product_lot_used": "LOT-DEMO-551",
+      "applied": true,
+      "log": {
+        "artifact_id": "flight-log-demo-17-2",
+        "sha256": "9675ae040632b87314d93b04580b270c6b08d3e43b20c0044af3217860b63fea",
+        "s3_version_id": "demo-version-0002"
+      },
+      "flight_record_id": "flight-record-demo-17-2"
+    }
+  ],
+  "verification": {
+    "record_id": "rec-demo-17-05",
+    "execution_id": "exec-demo-61-1",
+    "flight_record_id": "flight-record-demo-61-1",
+    "result": "effective",
+    "recorded_at": "2026-11-27T15:00:00Z"
+  },
+  "closure": {
+    "record_id": "rec-demo-17-06",
+    "supervisor_id": "3f1c2a9e-7b4d-4e21-9a6f-1d2c3b4a5e60",
+    "outcome": "treated",
+    "closed_at": "2026-11-28T14:00:00Z",
+    "follow_up_order_id": null
+  }
+}

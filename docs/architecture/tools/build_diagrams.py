@@ -1194,8 +1194,73 @@ def alert_delivery():
     return p
 
 
+def fumigation_order():
+    p = Page("16 Fumigation order states", 2740, 900, "Fumigation order states: from a confirmed focus to a closure that only a person can sign")
+    zones = [("Before authorization", 40, 490, "#EAF2F8", "#147EBA", "z1"), ("Authorized, no product applied", 580, 490, "#EAF6EC", "#2E7D32", "z2"),
+             ("Application in the field, with no connection", 1120, 490, "#FEF9E7", "#B7950B", "z3"), ("Record, verification and closure", 1660, 1040, "#F4ECF7", "#6A1B9A", "z4")]
+    for name, x, w, fill, stroke, cid in zones:
+        p.zone(name, x, 190, w, 520, fill, stroke, cid=cid, size=13)
+    st = dict(w=170, h=76, size=12)
+    red, grey, green = dict(fill="#FDEDEC", stroke=FAIL), dict(fill="#F2F3F4", stroke=CTRL), dict(fill="#E8F5E9", stroke=TEL)
+    p.step("<b><font style=\"font-size:10px\">PREREQUISITE_PENDING</font></b><br>order created<br>by a supervisor", 60, 260, cid="pre", **st)
+    p.step("<b><font style=\"font-size:10px\">READY_FOR_HUMAN_REVIEW</font></b><br>polygon, log, farmer<br>and permits checked", 320, 260, cid="ready", **st)
+    p.step("<b><font style=\"font-size:10px\">AUTHORIZED</font></b><br>named supervisor,<br>second factor", 600, 260, cid="auth", **st)
+    p.step("<b><font style=\"font-size:10px\">PACKAGE_PRELOADED</font></b><br>station and drone,<br>or brigade phone", 860, 260, cid="pkg", **st)
+    p.step("<b><font style=\"font-size:10px\">EXECUTING</font></b><br>inside the package<br>window", 1140, 260, cid="exec", **st)
+    p.step("<b><font style=\"font-size:10px\">EXECUTED_PENDING_SYNC</font></b><br>log closed<br>in the field", 1400, 260, cid="eps", **st)
+    p.step("<b><font style=\"font-size:10px\">FLIGHT_RECORD_PERSISTED</font></b><br>record verified,<br>planned product lot", 1720, 260, cid="frp", **st)
+    p.step("<b><font style=\"font-size:10px\">VERIFICATION_PENDING</font></b><br>stays open with<br>no verification file", 1980, 260, cid="vp", **st)
+    p.step("<b><font style=\"font-size:10px\">VERIFIED</font></b><br>verification<br>record stored", 2240, 260, cid="ver", **st)
+    p.step("<b><font style=\"font-size:10px\">CLOSED</font></b><br>outcome and any<br>follow-up order", 2500, 260, cid="closed", **green, **st)
+    p.step("<b><font style=\"font-size:10px\">REJECTED</font></b><br>supervisor or<br>farmer refused", 320, 80, cid="rej", **grey, **st)
+    p.step("<b><font style=\"font-size:10px\">CANCELLED</font></b><br>withdrawn<br>before takeoff", 660, 80, cid="can", **grey, **st)
+    p.step("<b><font style=\"font-size:10px\">EXPIRED</font></b><br>window ended,<br>no product applied", 900, 80, cid="exp", **grey, **st)
+    p.step("<b><font style=\"font-size:10px\">BLOCKED</font></b><br>safety condition<br>failed", 320, 480, cid="blk", **red, **st)
+    p.step("<b><font style=\"font-size:10px\">ABORTED</font></b><br>applicator stopped<br>the application", 1140, 480, cid="abo", **red, **st)
+    p.step("<b><font style=\"font-size:10px\">PARTIAL</font></b><br>part of the area<br>treated", 1400, 480, cid="par", **red, **st)
+    p.step("<b><font style=\"font-size:10px\">SYNC_REVIEW_REQUIRED</font></b><br>failed check or<br>other product lot", 1720, 480, cid="syn", **red, **st)
+
+    p.edge("pre", "ready", "checks pass", TEL)
+    p.edge("ready", "auth", "authorizes", BIZ, width=2)
+    p.edge("auth", "pkg", "both acks", TEL)
+    p.edge("pkg", "exec", "takeoff", BIZ)
+    p.edge("exec", "eps", "log closed", BIZ)
+    p.edge("eps", "frp", "record published", TEL)
+    p.edge("frp", "vp", "planned", TEL)
+    p.edge("vp", "ver", "stored", TEL)
+    p.edge("ver", "closed", "closes", BIZ, width=2)
+
+    p.edge("ready", "rej", "refuses", BIZ, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("pre", "rej", "farmer refuses", BIZ, exit=(0.5, 0), entry=(0, 0.5), points=[(145, 118)])
+    p.edge("z1", "can", "", BIZ, exit=(0.97, 0), entry=(0, 0.5), points=[(515, 118)])
+    p.edge("z2", "can", "cancels", BIZ, exit=(0.3, 0), entry=(0.394, 1))
+    p.edge("z2", "exp", "window ends", CTRL, exit=(0.8, 0), entry=(0.424, 1))
+    p.edge("ready", "blk", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("pre", "blk", "", FAIL, exit=(0.7, 1), entry=(0, 0.263), points=[(179, 500)])
+    p.edge("auth", "blk", "", FAIL, exit=(0.5, 1), entry=(1, 0.5), points=[(685, 518)])
+    p.edge("pkg", "blk", "polygon, permit or package fails", FAIL, exit=(0.5, 1), entry=(1, 0.5), points=[(945, 518)])
+    p.edge("blk", "pre", "", BIZ, exit=(0, 0.75), entry=(0.3, 1), points=[(111, 537)])
+    p.edge("exec", "abo", "aborts", FAIL, exit=(0.3, 1), entry=(0.3, 0))
+    p.edge("abo", "exec", "", BIZ, exit=(0.7, 0), entry=(0.7, 1))
+    p.edge("eps", "par", "", FAIL, exit=(0.5, 1), entry=(0.5, 0))
+    p.edge("abo", "par", "product applied", FAIL, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("eps", "syn", "", FAIL, exit=(1, 0.8), entry=(0, 0.5), points=[(1650, 321), (1650, 518)])
+    p.edge("syn", "frp", "accepted", BIZ, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("syn", "par", "incomplete", BIZ, exit=(0.3, 1), entry=(0.8, 1), points=[(1771, 600), (1536, 600)])
+    p.edge("par", "vp", "requests verification", BIZ, exit=(0.3, 1), entry=(0.5, 1), points=[(1451, 660), (2065, 660)])
+    p.text("revise", 130, 514, 60, 20, size=11, color=BIZ)
+    p.text("retry", 1268, 420, 60, 20, size=11, color=BIZ)
+
+    p.legend(40, 740, 560, [(TEL, False, "Platform function, conditional write"), (BIZ, False, "Person, with the group and second factor checked"),
+                            (FAIL, False, "Safety stop or failure"), (CTRL, False, "Scheduler at the end of the window")])
+    p.note("<b>Only a supervisor</b> moves an order to AUTHORIZED or CLOSED, and only the supervisor or the farmer to REJECTED. No model, function, event or upload can authorize.", 640, 740, 640, 60, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Not drawn.</b> READY_FOR_HUMAN_REVIEW expires when its proposed window ends. ABORTED expires when no product left the tank. BLOCKED and EXPIRED can be revised or cancelled, and READY, AUTHORIZED and PACKAGE_PRELOADED can be revised. All 40 moves are in fumigation-order-transitions.json.", 1320, 740, 860, 76)
+    p.note("<b>Audit.</b> Every move, allowed or denied, writes one fumigation.transition event to the log archive.", 2220, 740, 480, 60)
+    return p
+
+
 def public_query():
-    p = Page("16 Public query", 2000, 860, "How a buyer reads one sack by code, and what limits bulk reads of the public query")
+    p = Page("17 Public query", 2000, 860, "How a buyer reads one sack by code, and what limits bulk reads of the public query")
     p.zone("Public internet", 40, 80, 260, 600, "#FDEDEC", FAIL, dashed=True)
     p.card("Buyer phone", "Scans the QR, no sign-in", 60, 150, 220, 64, cid="buyer", net="mobile")
     p.card("Direct caller", "Calls the function URL address", 60, 560, 220, 64, cid="direct", net="pc", stroke=FAIL, dashed=True)
@@ -1233,7 +1298,7 @@ def public_query():
 
 
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), public_query()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
