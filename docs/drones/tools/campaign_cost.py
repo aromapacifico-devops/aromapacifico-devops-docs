@@ -1,13 +1,12 @@
-"""Reproducible economic model for the AromaPacifico drone pilot.
+"""Cost model of the AromaPacifico drone service.
 
-All operating and logistics rates are explicit hypothetical planning inputs, not
-supplier quotes. AWS rates are public list prices for us-east-1, before tax.
-Inference and agrochemical product are deliberately excluded from totals.
+Labor and equipment rates derive from the public references below. The other
+operating and logistics rates are team estimates that a supplier quote replaces.
+AWS rates are public list prices for us-east-1, before tax. Inference and
+agrochemical product stay out of the totals.
 """
 
 from dataclasses import dataclass
-from math import ceil
-
 from flight_frequency import (
     BRIGADES,
     CAMPAIGNS_IN_HARVEST,
@@ -52,6 +51,37 @@ STANDARD_MONTHS = 3
 RETENTION_MONTHS = 60
 
 
+# Labor references, COP. Minimum wage and transport aid of 2026, a public job
+# offer for a drone pilot, an employer load of 52 percent for social security,
+# benefits and payroll levies, and the legal 42-hour week from July 2026.
+TRM = 3269.88
+MONTH_HOURS = 42 * 52 / 12
+EMPLOYER_LOAD = 1.52
+PILOT_SALARY_COP = 4_800_000
+MINIMUM_WAGE_COP = 1_750_905
+TRANSPORT_AID_COP = 249_095
+PILOT_MONTH_USD = PILOT_SALARY_COP * EMPLOYER_LOAD / TRM
+SUPPORT_MONTH_USD = (MINIMUM_WAGE_COP * EMPLOYER_LOAD + TRANSPORT_AID_COP) / TRM
+PILOT_HOUR_USD = PILOT_MONTH_USD / MONTH_HOURS
+SUPPORT_HOUR_USD = SUPPORT_MONTH_USD / MONTH_HOURS
+
+# Equipment reference, USD list price before import tax: one spraying drone of
+# 40 kg payload in its ready-to-fly kit with batteries and charger, and one
+# multispectral mapping drone, per brigade.
+BRIGADE_KIT_USD = 24_519 + 5_919
+
+
+def mission_hours(year: int) -> float:
+    volumes = yearly(year)
+    return sum(SERVICE_HOURS[s] * volumes[s] for s in SERVICES)
+
+
+def equipment_hour(life_years: float) -> float:
+    """Straight-line kit cost over the mission hours of a following year."""
+    hours_per_brigade = mission_hours(2) / BRIGADES
+    return BRIGADE_KIT_USD / life_years / hours_per_brigade
+
+
 @dataclass(frozen=True)
 class Scenario:
     name: str
@@ -77,10 +107,14 @@ def _scenario(name, values):
     return Scenario(name=name, consumables=consumables, **values)
 
 
+# Low and high move labor by 0.85 and 1.5 around the reference, keep the
+# minimum wage as the floor of the support person, and give the kit a life of
+# four, three or two years.
 SCENARIOS = {
-    "conservative": _scenario("Conservador", {
-        "operator_overhead_year": 6000, "pilot_hour": 18,
-        "brigade_support_hour": 12, "equipment_flight_hour": 18,
+    "low": _scenario("Low", {
+        "operator_overhead_year": 6000, "pilot_hour": 0.85 * PILOT_HOUR_USD,
+        "brigade_support_hour": SUPPORT_HOUR_USD,
+        "equipment_flight_hour": equipment_hour(4),
         "maintenance_mission": 8, "insurance_permits_year": 3000,
         "vehicle_km": 0.18, "distance_mission_km": 30,
         "per_diem_person_day": 15, "people": 2,
@@ -89,8 +123,9 @@ SCENARIOS = {
         "consumables": [2, 1, 5, 1, 3],
     }),
     "base": _scenario("Base", {
-        "operator_overhead_year": 9000, "pilot_hour": 25,
-        "brigade_support_hour": 18, "equipment_flight_hour": 28,
+        "operator_overhead_year": 9000, "pilot_hour": PILOT_HOUR_USD,
+        "brigade_support_hour": SUPPORT_HOUR_USD,
+        "equipment_flight_hour": equipment_hour(3),
         "maintenance_mission": 15, "insurance_permits_year": 4500,
         "vehicle_km": 0.25, "distance_mission_km": 45,
         "per_diem_person_day": 25, "people": 2,
@@ -98,9 +133,10 @@ SCENARIOS = {
         "extra_visit_share": 0.10, "extra_visit_cost": 60,
         "consumables": [3, 2, 8, 2, 4],
     }),
-    "high": _scenario("Alto", {
-        "operator_overhead_year": 13500, "pilot_hour": 35,
-        "brigade_support_hour": 26, "equipment_flight_hour": 42,
+    "high": _scenario("High", {
+        "operator_overhead_year": 13500, "pilot_hour": 1.5 * PILOT_HOUR_USD,
+        "brigade_support_hour": 1.5 * SUPPORT_HOUR_USD,
+        "equipment_flight_hour": equipment_hour(2),
         "maintenance_mission": 25, "insurance_permits_year": 7000,
         "vehicle_km": 0.35, "distance_mission_km": 70,
         "per_diem_person_day": 40, "people": 2,
@@ -252,26 +288,95 @@ def fully_loaded_mission_cost(scenario: Scenario, service: str, year: int = 2) -
     return mission_variable_cost(scenario, service)["total"] + shared
 
 
+def hourly_labor(scenario: Scenario, year: int) -> float:
+    return mission_hours(year) * (scenario.pilot_hour + scenario.brigade_support_hour)
+
+
+def dedicated_brigades_total(scenario: Scenario, year: int) -> float:
+    """Annual total when each brigade is staffed full time for the Federation."""
+    factor = scenario.pilot_hour / PILOT_HOUR_USD
+    support = scenario.brigade_support_hour / SUPPORT_HOUR_USD
+    staff = BRIGADES * 12 * (factor * PILOT_MONTH_USD + support * SUPPORT_MONTH_USD)
+    return annual_cost(scenario, year)["total"] - hourly_labor(scenario, year) + staff
+
+
+def department_period(scenario: Scenario, period: str, year: int) -> dict:
+    """One department in one month of the period, split by service."""
+    result = period_cost(scenario, period, year)
+    services = {}
+    for s in SERVICES:
+        n = result["volumes"].get(s, 0) / DEPARTMENTS
+        services[s] = (n, n * mission_variable_cost(scenario, s)["total"])
+    return {"services": services, "total": result["total"] / DEPARTMENTS}
+
+
+def weekly_sweep_total(scenario: Scenario) -> float:
+    """Every farm flown by area once a week, without sensor direction."""
+    area = mission_variable_cost(scenario, "Estimate the harvest")["total"]
+    fixed = scenario.operator_overhead_year + scenario.insurance_permits_year
+    return FARMS * 52 * area + fixed
+
+
 def main():
-    print("Scenario totals (USD before tax; inference and agrochemical excluded)")
-    print("| Scenario | First year | Following year | Per farm, first year |")
-    print("|---|---:|---:|---:|")
+    base = SCENARIOS["base"]
+    print("Reference rates, USD")
+    print(f"| Pilot hour | {PILOT_HOUR_USD:.2f} |")
+    print(f"| Support hour | {SUPPORT_HOUR_USD:.2f} |")
+    print(f"| Equipment flight hour, base | {base.equipment_flight_hour:.2f} |")
+    print(f"| Mission hours, first and following year | {mission_hours(1):.0f} | {mission_hours(2):.0f} |")
+
+    print("\nScenario totals (USD before tax; inference and agrochemical excluded)")
+    print("| Scenario | First year | Following year | Per farm, first year | Per farm, following year |")
+    print("|---|---:|---:|---:|---:|")
     for scenario in SCENARIOS.values():
         y1, y2 = annual_cost(scenario, 1), annual_cost(scenario, 2)
-        print(f"| {scenario.name} | {y1['total']:.2f} | {y2['total']:.2f} | {y1['per_farm']:.2f} |")
-    print("\nBase fully loaded mission cost, following year")
+        print(f"| {scenario.name} | {y1['total']:.2f} | {y2['total']:.2f} | "
+              f"{y1['per_farm']:.2f} | {y2['per_farm']:.2f} |")
+
+    print("\nBase mission cost")
+    print("| Service | Operation | Logistics | Variable | Loaded, following year |")
     for service in SERVICES:
-        variable = mission_variable_cost(SCENARIOS["base"], service)["total"]
-        loaded = fully_loaded_mission_cost(SCENARIOS["base"], service)
-        print(f"| {service} | {variable:.2f} | {loaded:.2f} |")
-    print("\nBase periods")
+        cost = mission_variable_cost(base, service)
+        loaded = fully_loaded_mission_cost(base, service)
+        print(f"| {service} | {cost['operation']:.2f} | {cost['logistics']:.2f} | "
+              f"{cost['total']:.2f} | {loaded:.2f} |")
+
+    print("\nBase annual cost by line")
+    for year in (1, 2):
+        annual = annual_cost(base, year)
+        print(f"Year {year}")
+        for service, value in annual["variable_by_service"].items():
+            print(f"| {service} | {annual['volumes'][service]:.0f} | {value:.2f} |")
+        print(f"| Fixed | {annual['fixed']:.2f} |")
+        print(f"| Campaign mobilization | {annual['campaigns']} | {annual['campaign_logistics']:.2f} |")
+        print(f"| Technology | {annual['technology']['total']:.2f} |")
+        print(f"| Total | {annual['total']:.2f} | per department {annual['per_department']:.2f} |")
+
+    print("\nBase whole-pilot months")
+    for period, year in (("startup", 1), ("harvest", 1), ("outside", 1), ("harvest", 2), ("outside", 2)):
+        result = period_cost(base, period, year)
+        print(f"| {period} y{year} | {result['missions']:.1f} | {result['total']:.2f} | {result['per_farm']:.2f} |")
+
+    print("\nBase campaign period of one department")
     for period, year in (("startup", 1), ("harvest", 2), ("outside", 2)):
-        result = period_cost(SCENARIOS["base"], period, year)
-        print(f"| {period} | {result['missions']:.1f} | {result['total']:.2f} | {result['per_farm']:.2f} |")
+        result = department_period(base, period, year)
+        cells = " | ".join(f"{n:.2f} = {c:.2f}" for n, c in result["services"].values())
+        print(f"| {period} y{year} | {cells} | {result['total']:.2f} |")
+
     print("\nBase sensitivity, following year")
     for multiplier in (0.75, 1.0, 1.25, 1.5):
-        result = annual_cost(SCENARIOS["base"], 2, multiplier)
+        result = annual_cost(base, 2, multiplier)
         print(f"| {multiplier:.2f} | {result['missions']:.0f} | {result['total']:.2f} |")
+    for name, scenario in SCENARIOS.items():
+        print(f"| Dedicated brigades {name} | {dedicated_brigades_total(scenario, 2):.2f} |")
+    print(f"| Weekly sweeps, base | {weekly_sweep_total(base):.2f} |")
+    harvest = period_cost(base, "harvest", 2)["total"]
+    print(f"| Harvest month per brigade day, 22 days | {harvest / BRIGADES / 22:.2f} |")
+    for year in (1, 2):
+        total = annual_cost(base, year)["total"]
+        print(f"| VAT ceiling y{year} | {total * 1.19:.2f} | COP {total * TRM:,.0f} |")
+    for year in range(1, 6):
+        print(f"| Technology y{year} | {technology_cost_for_calendar_year(year)['total']:.2f} |")
 
 
 if __name__ == "__main__":
