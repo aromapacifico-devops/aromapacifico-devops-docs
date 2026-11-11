@@ -1,0 +1,322 @@
+{
+  "schema_version": 1,
+  "audit_event": "fumigation.transition",
+  "initial": "PREREQUISITE_PENDING",
+  "terminal": [
+    "CLOSED",
+    "REJECTED",
+    "CANCELLED"
+  ],
+  "people": [
+    "supervisor",
+    "farmer",
+    "applicator"
+  ],
+  "human_only": {
+    "AUTHORIZED": [
+      "supervisor"
+    ],
+    "CLOSED": [
+      "supervisor"
+    ],
+    "REJECTED": [
+      "supervisor",
+      "farmer"
+    ]
+  },
+  "transitions": [
+    {
+      "from": "PREREQUISITE_PENDING",
+      "to": "READY_FOR_HUMAN_REVIEW",
+      "actor": "platform_function",
+      "trigger": "order.prerequisites.met",
+      "guard": "Published polygon, closed prerequisite log, farmer acceptance, valid permits, treated area not empty"
+    },
+    {
+      "from": "PREREQUISITE_PENDING",
+      "to": "REJECTED",
+      "actor": "farmer",
+      "trigger": "farmer.visit.refused",
+      "guard": "The farmer refuses the visit"
+    },
+    {
+      "from": "PREREQUISITE_PENDING",
+      "to": "BLOCKED",
+      "actor": "platform_function",
+      "trigger": "order.blocked",
+      "guard": "Polygon suspended, exclusion missing or permit expired"
+    },
+    {
+      "from": "PREREQUISITE_PENDING",
+      "to": "CANCELLED",
+      "actor": "supervisor",
+      "trigger": "order.cancelled",
+      "guard": "The supervisor withdraws the order"
+    },
+    {
+      "from": "READY_FOR_HUMAN_REVIEW",
+      "to": "AUTHORIZED",
+      "actor": "supervisor",
+      "trigger": "order.authorized",
+      "guard": "Rules of the fumigation authorization, for this revision"
+    },
+    {
+      "from": "READY_FOR_HUMAN_REVIEW",
+      "to": "REJECTED",
+      "actor": "supervisor",
+      "trigger": "order.rejected",
+      "guard": "The supervisor refuses, with a reason code"
+    },
+    {
+      "from": "READY_FOR_HUMAN_REVIEW",
+      "to": "REJECTED",
+      "actor": "farmer",
+      "trigger": "farmer.visit.refused",
+      "guard": "The farmer withdraws the acceptance"
+    },
+    {
+      "from": "READY_FOR_HUMAN_REVIEW",
+      "to": "BLOCKED",
+      "actor": "platform_function",
+      "trigger": "order.blocked",
+      "guard": "Polygon suspended, exclusion missing or permit expired"
+    },
+    {
+      "from": "READY_FOR_HUMAN_REVIEW",
+      "to": "EXPIRED",
+      "actor": "scheduler",
+      "trigger": "order.window.closed",
+      "guard": "The proposed window ends before any authorization"
+    },
+    {
+      "from": "READY_FOR_HUMAN_REVIEW",
+      "to": "PREREQUISITE_PENDING",
+      "actor": "supervisor",
+      "trigger": "order.revised",
+      "guard": "A new revision, with every check run again"
+    },
+    {
+      "from": "READY_FOR_HUMAN_REVIEW",
+      "to": "CANCELLED",
+      "actor": "supervisor",
+      "trigger": "order.cancelled",
+      "guard": "The supervisor withdraws the order"
+    },
+    {
+      "from": "AUTHORIZED",
+      "to": "PACKAGE_PRELOADED",
+      "actor": "platform_function",
+      "trigger": "package.acknowledged",
+      "guard": "Station and drone acknowledgements with the same digest, or the work sheet acknowledged on the brigade phone"
+    },
+    {
+      "from": "AUTHORIZED",
+      "to": "BLOCKED",
+      "actor": "platform_function",
+      "trigger": "order.blocked",
+      "guard": "Polygon suspended, permit expired or package integrity failed"
+    },
+    {
+      "from": "AUTHORIZED",
+      "to": "EXPIRED",
+      "actor": "scheduler",
+      "trigger": "order.window.closed",
+      "guard": "The window ends before takeoff"
+    },
+    {
+      "from": "AUTHORIZED",
+      "to": "PREREQUISITE_PENDING",
+      "actor": "supervisor",
+      "trigger": "order.revised",
+      "guard": "A new revision, which needs a new authorization"
+    },
+    {
+      "from": "AUTHORIZED",
+      "to": "CANCELLED",
+      "actor": "supervisor",
+      "trigger": "order.cancelled",
+      "guard": "The supervisor withdraws the order before takeoff"
+    },
+    {
+      "from": "PACKAGE_PRELOADED",
+      "to": "EXECUTING",
+      "actor": "applicator",
+      "trigger": "execution.started",
+      "guard": "Inside the window, both acknowledgements match, preflight passed"
+    },
+    {
+      "from": "PACKAGE_PRELOADED",
+      "to": "BLOCKED",
+      "actor": "platform_function",
+      "trigger": "order.blocked",
+      "guard": "Polygon suspended, permit expired or package integrity failed"
+    },
+    {
+      "from": "PACKAGE_PRELOADED",
+      "to": "EXPIRED",
+      "actor": "scheduler",
+      "trigger": "order.window.closed",
+      "guard": "The window ends before takeoff"
+    },
+    {
+      "from": "PACKAGE_PRELOADED",
+      "to": "PREREQUISITE_PENDING",
+      "actor": "supervisor",
+      "trigger": "order.revised",
+      "guard": "A new revision, which needs a new authorization"
+    },
+    {
+      "from": "PACKAGE_PRELOADED",
+      "to": "CANCELLED",
+      "actor": "supervisor",
+      "trigger": "order.cancelled",
+      "guard": "The supervisor withdraws the order before takeoff"
+    },
+    {
+      "from": "EXECUTING",
+      "to": "EXECUTED_PENDING_SYNC",
+      "actor": "applicator",
+      "trigger": "execution.log.closed",
+      "guard": "The log closes on the station or the brigade phone"
+    },
+    {
+      "from": "EXECUTING",
+      "to": "ABORTED",
+      "actor": "applicator",
+      "trigger": "execution.aborted",
+      "guard": "The applicator stops an unsafe application"
+    },
+    {
+      "from": "EXECUTED_PENDING_SYNC",
+      "to": "FLIGHT_RECORD_PERSISTED",
+      "actor": "platform_function",
+      "trigger": "flight.record.published",
+      "guard": "Complete record, outcome SUCCESS, product lot used equals the planned lot"
+    },
+    {
+      "from": "EXECUTED_PENDING_SYNC",
+      "to": "PARTIAL",
+      "actor": "platform_function",
+      "trigger": "flight.record.published",
+      "guard": "Complete record with outcome PARTIAL"
+    },
+    {
+      "from": "EXECUTED_PENDING_SYNC",
+      "to": "SYNC_REVIEW_REQUIRED",
+      "actor": "platform_function",
+      "trigger": "flight.record.review_required",
+      "guard": "Integrity, signature or schema failure, outcome FAILED, or a different product lot"
+    },
+    {
+      "from": "ABORTED",
+      "to": "EXECUTING",
+      "actor": "applicator",
+      "trigger": "execution.started",
+      "guard": "New execution of the same package inside the window"
+    },
+    {
+      "from": "ABORTED",
+      "to": "PARTIAL",
+      "actor": "platform_function",
+      "trigger": "flight.record.published",
+      "guard": "The aborted record shows product applied"
+    },
+    {
+      "from": "ABORTED",
+      "to": "EXPIRED",
+      "actor": "scheduler",
+      "trigger": "order.window.closed",
+      "guard": "The aborted record is persisted, shows no product applied, and the window ends"
+    },
+    {
+      "from": "ABORTED",
+      "to": "SYNC_REVIEW_REQUIRED",
+      "actor": "platform_function",
+      "trigger": "flight.record.review_required",
+      "guard": "The aborted record fails its checks"
+    },
+    {
+      "from": "PARTIAL",
+      "to": "VERIFICATION_PENDING",
+      "actor": "supervisor",
+      "trigger": "verification.requested",
+      "guard": "The supervisor records the part applied and requests the verification. The rest of the area goes to a new order"
+    },
+    {
+      "from": "SYNC_REVIEW_REQUIRED",
+      "to": "FLIGHT_RECORD_PERSISTED",
+      "actor": "supervisor",
+      "trigger": "sync_review.resolved",
+      "guard": "Evidence uploaded again and verified, or a different product lot accepted with a reason"
+    },
+    {
+      "from": "SYNC_REVIEW_REQUIRED",
+      "to": "PARTIAL",
+      "actor": "supervisor",
+      "trigger": "sync_review.resolved",
+      "guard": "The evidence shows an incomplete application"
+    },
+    {
+      "from": "FLIGHT_RECORD_PERSISTED",
+      "to": "VERIFICATION_PENDING",
+      "actor": "platform_function",
+      "trigger": "verification.requested",
+      "guard": "The verification mission is planned for the treated area"
+    },
+    {
+      "from": "VERIFICATION_PENDING",
+      "to": "VERIFIED",
+      "actor": "platform_function",
+      "trigger": "flight.record.published",
+      "guard": "The verification record is complete and stored"
+    },
+    {
+      "from": "VERIFIED",
+      "to": "CLOSED",
+      "actor": "supervisor",
+      "trigger": "order.closed",
+      "guard": "The supervisor reviews the verification and records the outcome"
+    },
+    {
+      "from": "BLOCKED",
+      "to": "PREREQUISITE_PENDING",
+      "actor": "supervisor",
+      "trigger": "order.revised",
+      "guard": "A new revision once the cause is gone"
+    },
+    {
+      "from": "BLOCKED",
+      "to": "CANCELLED",
+      "actor": "supervisor",
+      "trigger": "order.cancelled",
+      "guard": "The supervisor withdraws the order"
+    },
+    {
+      "from": "EXPIRED",
+      "to": "PREREQUISITE_PENDING",
+      "actor": "supervisor",
+      "trigger": "order.revised",
+      "guard": "A new revision with a new window, which needs a new authorization"
+    },
+    {
+      "from": "EXPIRED",
+      "to": "CANCELLED",
+      "actor": "supervisor",
+      "trigger": "order.cancelled",
+      "guard": "The supervisor withdraws the order"
+    }
+  ],
+  "after_application": {
+    "from": "EXECUTING",
+    "unreachable": [
+      "CANCELLED",
+      "EXPIRED"
+    ],
+    "except": [
+      [
+        "ABORTED",
+        "EXPIRED"
+      ]
+    ]
+  }
+}
