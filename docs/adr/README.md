@@ -37,3 +37,4 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Infrastructure checks](infrastructure-checks.md) | Automatic checks on each pull request, with pinned tools |
 | [Public lookup path](public-lookup-path.md) | Function URL behind CloudFront, ceiling of five reserved copies |
 | [Farm monthly amount](farm-monthly-amount.md) | Recover the recurring cost of a farm with no margin, investment apart |
+| [Verification closure](verification-closure.md) | Verified needs stored photos and a persisted result, every verification is a drone flight of still photos |
