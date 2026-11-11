@@ -280,6 +280,23 @@ At list price the custom metrics and the dashboards alone cost USD 10.50, which 
 
 There are 10 custom signals and 15 series in this catalog. Which of them an alarm needs is decided by the alarm design, and this document does not choose.
 
+### Minimal alternative
+
+The full proposal above stays as the reference for the team to decide. This alternative keeps the same logs, the same service metrics and the same identifiers, and cuts the two lines that cost the most, the custom metrics and the dashboards. It is a proposal and it is not forced to fit the reference budget.
+
+| Change | What is lost |
+|---|---|
+| Six custom metrics instead of 15 series. The nodes silent over 24 hours, the time from reading to handoff, the undelivered alert, the undelivered SMS, the gaps and anomalies together, and the failed or limited runs of the deletion job | The time to handoff is not split by kind and link, and the gaps and anomalies are not split by kind. The split is still read by a query |
+| I-04, I-05, I-15 and F-04 are read by a log query instead of a metric | They no longer draw a graph, and no alarm can watch them. An operator runs the saved query. A metric filter would bring back a billed custom metric |
+| No dashboard of our own. The console views of each service and saved Logs Insights queries replace them | There is no single page with the signals of ingestion, applications and the centers together. An operator opens each view |
+
+| Month | Logs ingested, GB | Logs and queries | Metrics | Dashboards | Total at list price before alarms | Each alarm adds |
+|---|---|---|---|---|---|---|
+| Normal month | 0.38 | 0.21 | 1.80 | 0.00 | 2.01 | USD 0.10 |
+| Harvest month | 0.86 | 0.47 | 1.80 | 0.00 | 2.27 | USD 0.10 |
+
+At list price, with no free tier, this is USD 2.01 in a normal month and USD 2.27 in a harvest month before any alarm. That is USD 0.19 under the reference in a normal month and USD 0.07 over it in a harvest month. Each alarm that the alarm design adds costs USD 0.10 more, so eight alarms, as an example and not a decision, would bring the totals to about USD 2.81 and USD 3.07, which is USD 0.61 and USD 0.87 over. The reference of USD 2.20 is therefore not met once alarms are counted, and it is not stated as met. The team decides between the full proposal, this alternative and a higher reference. The free tier is not used in these figures. The set of kept metrics is a proposal for the alarm design to confirm, and the checker verifies that each kept metric is a custom signal of the catalog and does not exceed its full series.
+
 ### Traces with X-Ray
 
 A trace follows a request through the services that report to X-Ray, which in this design would be the functions and the APIs. A reading published by a node reaches IoT Core with no trace, and IoT Core records its own trace ID in the audit design. A custody event travels from a device that carries none. A trace is kept 30 days, and the default sampling rule of the SDK records the first request of each second and 5 percent of the rest.
