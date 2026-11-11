@@ -136,6 +136,18 @@ SCANNED_GB_PER_MONTH = 2.0  # assumption, queries of an operator
 DASHBOARDS = 2  # assumption, platform operations and centers
 GB = 2 ** 30
 
+# ---- Minimal alternative: the custom metrics kept, with the series each keeps ----
+# Signals not listed here are read by a log query. A kept signal may lose its dimensions.
+MINIMAL_METRICS = {
+    "I-01": (1, "nodes silent over 24 hours"),
+    "I-06": (1, "time from reading to handoff, with no split by kind and link"),
+    "I-07": (1, "alert not delivered"),
+    "I-08": (1, "SMS of an urgent alert not delivered"),
+    "A-04": (1, "gaps and anomalies together, with no split by kind"),
+    "D-05": (1, "failed or limited runs only"),
+}
+MINIMAL_DASHBOARDS = 0  # the console views of the services and saved queries replace the dashboards
+
 
 def read(rel):
     p = DOCS / rel
@@ -197,6 +209,14 @@ def run_checks():
                 check(s["keyword"] in t, f"{s['id']}: {s['doc']} no longer contains '{s['keyword']}'")
         if s["kind"] == "custom":
             check(len(s["dims"]) <= 2, f"{s['id']} has more than two dimensions")
+    custom_ids = {s["id"]: s for s in S if s["kind"] == "custom"}
+    for i, (n, _) in MINIMAL_METRICS.items():
+        check(i in custom_ids, f"the minimal alternative keeps {i}, which is not a custom signal")
+        if i in custom_ids:
+            full = 1
+            for _, c in custom_ids[i]["dims"]:
+                full *= c
+            check(1 <= n <= full, f"the minimal alternative gives {i} {n} series and the full design has {full}")
     check(any(s["status"] == "pending" for s in S), "the pending reconciliation of the flight objects is missing")
     check({s["area"] for s in S} >= {"Ingestion", "Applications", "Database", "WAN links", "Flight objects"}, "an area of the criterion has no signal")
     wan = [s for s in S if s["area"] == "WAN links"]
@@ -321,6 +341,28 @@ def main():
     print(f"| Use one dashboard of up to 50 metrics instead of {DASHBOARDS} | Saves USD {(DASHBOARDS - 1) * PRICE['dashboard']:.2f} at list price, and none within the free tier |")
     print(f"| Take the free tier into account in the cost document | Brings the series, the dashboards and the logs inside the reference budget, and its owner decides |")
     print(f"There are {keep} custom signals and {series} series in this catalog. Which of them an alarm needs is decided by the alarm design, and this document does not choose.")
+
+    print("")
+    print("## Minimal alternative")
+    kept = sum(n for n, _ in MINIMAL_METRICS.values())
+    print("| Month | Logs ingested, GB | Logs, queries | Metrics | Dashboards | Total at list price before alarms | Each alarm adds |")
+    print("|---|---|---|---|---|---|---|")
+    for label, inv, req, gb in cost_rows(vol):
+        logs = gb * PRICE["log_ingest_gb"] + gb * PRICE["log_store_gb_month"] * (OPERATIONAL_RETENTION_DAYS / 30)
+        qry = SCANNED_GB_PER_MONTH * PRICE["log_scan_gb"]
+        met = kept * PRICE["custom_metric_first_10000"]
+        dash = MINIMAL_DASHBOARDS * PRICE["dashboard"]
+        print(f"| {label} | {gb:.2f} | {logs + qry:.2f} | {met:.2f} | {dash:.2f} | {logs + qry + met + dash:.2f} | USD {PRICE['alarm']:.2f} |")
+    print("")
+    print("| Signal | Minimal alternative |")
+    print("|---|---|")
+    for s in S:
+        if s["kind"] == "custom":
+            if s["id"] in MINIMAL_METRICS:
+                print(f"| {s['id']} | Kept as {MINIMAL_METRICS[s['id']][0]} metric, {MINIMAL_METRICS[s['id']][1]} |")
+            else:
+                print(f"| {s['id']} | Read by a log query |")
+    print(f"MINIMAL_SERIES={kept}")
 
     print("\n## Optional traces with X-Ray, not adopted by default")
     print("A trace follows a request through the services that report to X-Ray, which in this design would be the functions and the APIs. A reading published by a node reaches IoT Core with no trace, and IoT Core records its own trace ID in the audit design. A custody event travels from a device that carries none. A trace is kept 30 days, and the default sampling rule of the SDK records the first request of each second and 5 percent of the rest.")
