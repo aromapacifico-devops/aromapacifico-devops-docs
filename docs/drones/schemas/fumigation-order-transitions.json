@@ -237,17 +237,10 @@
     },
     {
       "from": "PARTIAL",
-      "to": "AUTHORIZED",
-      "actor": "supervisor",
-      "trigger": "order.resumed",
-      "guard": "The supervisor allows a new execution for the rest of the treated area inside the window"
-    },
-    {
-      "from": "PARTIAL",
       "to": "VERIFICATION_PENDING",
       "actor": "supervisor",
       "trigger": "verification.requested",
-      "guard": "The supervisor accepts the partial application and requests the verification"
+      "guard": "The supervisor records the part applied and requests the verification. The rest of the area goes to a new order"
     },
     {
       "from": "SYNC_REVIEW_REQUIRED",
@@ -312,5 +305,18 @@
       "trigger": "order.cancelled",
       "guard": "The supervisor withdraws the order"
     }
-  ]
+  ],
+  "after_application": {
+    "from": "EXECUTING",
+    "unreachable": [
+      "CANCELLED",
+      "EXPIRED"
+    ],
+    "except": [
+      [
+        "ABORTED",
+        "EXPIRED"
+      ]
+    ]
+  }
 }

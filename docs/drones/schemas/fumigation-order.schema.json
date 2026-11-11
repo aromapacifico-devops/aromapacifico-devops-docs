@@ -120,7 +120,7 @@
         "properties": {
           "record_id": { "$ref": "#/$defs/record_id" },
           "order_revision": { "type": "integer", "minimum": 1 },
-          "decision": { "type": "string", "enum": ["authorized", "rejected", "resumed"] },
+          "decision": { "type": "string", "enum": ["authorized", "rejected"] },
           "supervisor_id": { "$ref": "#/$defs/subject" },
           "authority": { "type": "string", "enum": ["department_supervisor", "named_backup"] },
           "mfa": { "type": "boolean", "enum": [true] },

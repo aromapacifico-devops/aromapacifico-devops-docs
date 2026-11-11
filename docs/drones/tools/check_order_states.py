@@ -6,8 +6,9 @@ With no arguments it reads schemas/fumigation-order-transitions.json and schemas
 1. The states of the transitions match the state enum of the order schema.
 2. Every state is reachable from the initial state, and every state can reach a terminal state.
 3. Terminal states have no exit, and every other state has at least one.
-4. Only the people listed in human_only move an order into AUTHORIZED, CLOSED or REJECTED.
-5. Every transition names a known actor, a trigger and a guard, and the file names its audit event.
+4. Once an application starts, the order cannot reach the states in after_application except through the listed moves.
+5. Only the people listed in human_only move an order into AUTHORIZED, CLOSED or REJECTED.
+6. Every transition names a known actor, a trigger and a guard, and the file names its audit event.
 Exits 1 on the first failed check.
 """
 import json
@@ -72,6 +73,14 @@ def main():
             fail(f"terminal state {state} has an exit")
         if state not in terminal and state not in forward:
             fail(f"{state} has no exit and is not terminal")
+    rule = machine["after_application"]
+    skip = {tuple(move) for move in rule["except"]}
+    after = {}
+    for t in machine["transitions"]:
+        if (t["from"], t["to"]) not in skip:
+            after.setdefault(t["from"], set()).add(t["to"])
+    for state in sorted(set(rule["unreachable"]) & reach(rule["from"], after)):
+        fail(f"{state} is reachable after {rule['from']}, so applied product could skip the verification")
     print(f"OK {len(states)} states, {len(machine['transitions'])} transitions, "
           f"only people reach {', '.join(sorted(machine['human_only']))}")
 
