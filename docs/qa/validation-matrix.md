@@ -50,7 +50,7 @@ Each row is one requirement, in the order of the challenge. Links point to the d
 | R-03 | Trip tracking to the collection center and to Buenaventura | [Carrier tracking](../network/carrier-tracking.md), [carrier application contract](../traceability/carrier-application-contract.md), [port delivery](../network/port-delivery.md) | `COVERED-DESIGN` |
 | R-04 | Sack lookup by code for the farmer, the center and the buyer | [Actor views](../traceability/actor-views.md), [public query](../traceability/public-query.md) | `COVERED-DESIGN` |
 | R-05 | Drone service with the five services and a chosen operating mode | [Operating mode](../drones/operating-mode.md), [drones](../drones/README.md) | `COVERED-DESIGN` |
-| R-06 | The platform hosts the farmer, carrier and web lookup applications without building them | [Overview](../architecture/overview.md), [design system](../design/design-system.md) | `COVERED-DESIGN` |
+| R-06 | The platform hosts the farmer, carrier and web lookup applications without building them | [Architecture of the pilot](../architecture/overview.md), [design system](../design/design-system.md) | `COVERED-DESIGN` |
 | R-07 | Farm without wired access publishes over cellular, with store-and-forward of 24 hours at most | [Farm connectivity](../network/farm-connectivity.md), [autonomous node](../iot/autonomous-node.md) | `PARTIAL`, field timing pending |
 | R-08 | Farms out of coverage send readings and objects with no new base station and no weekly visit | [LoRa out of coverage](../network/lora-out-of-coverage.md) | `PARTIAL`, spectrum and site study pending |
 | R-09 | The mission loads before takeoff, the log comes back over a defined link and fumigation waits for its closure | [Drone mission link](../network/drone-mission-link.md), [flight objects](../drones/flight-objects.md) | `COVERED-DESIGN` |
@@ -162,7 +162,7 @@ Each row is one requirement, in the order of the challenge. Links point to the d
 | R-75 | Base components and usage rules applied to the three applications in one sheet | [Design system](../design/design-system.md) | `COVERED-DESIGN` |
 | R-76 | Cost of the normal month, harvest month, farm hardware and drone campaign at current prices, with at least three savings decisions | [Pilot cost](../governance/pilot-cost.md) | `COVERED-DESIGN`, quotes pending |
 | R-77 | Plan of the 100 hours with owner, order and dependency, each task pointing to a box of the diagram | [Implementation scope](../architecture/implementation-scope.md), planning workbook in `docs/planning/` | `CODE-AVAILABLE` as documentary evidence |
-| R-78 | Architecture document of the seven points with the complete diagram | [Overview](../architecture/overview.md), [architecture diagrams](../architecture/diagrams/) | `PENDING`, the integrated document is tracked in [T-08](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/65) |
+| R-78 | Architecture document of the seven points with the complete diagram | [Architecture of the pilot](../architecture/overview.md), [architecture diagrams](../architecture/diagrams/) | `COVERED-DESIGN`; T-08 is closed after PR #202 added the integrated document and PDF |
 | R-79 | Presentation of 20 minutes to a Federation architect | Tracked in [T-09](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/66) | `PENDING` |
 | R-80 | Every assumption outside the challenge is written down | [Assumptions](../assumptions.md) | `COVERED-DESIGN` |
 
@@ -300,7 +300,7 @@ PDF pp. 7-8 makes Epic 6 the only epic counted in 2 weeks/100 hours. The code mu
 
 | Task | PDF source and required content | Evidence / owner | State / pending |
 |---|---|---|---|
-| D-01 Architecture | p. 8, task 1: seven points and full diagram, including addressing, firewall, store-and-forward, pest-to-spray and inference | [Overview](../architecture/overview.md), diagrams; #65 | `PENDING`: T-08 integrates the final document/PDF |
+| D-01 Architecture | p. 8, task 1: seven points and full diagram, including addressing, firewall, store-and-forward, pest-to-spray and inference | [Architecture of the pilot](../architecture/overview.md), diagrams; #65 | `COVERED-DESIGN`: PR #202 added the integrated document/PDF and T-08 is closed |
 | D-02 100-hour plan | p. 8, task 2: only Epic 6, hours, owner, order, max 100 hours/2 weeks and link to diagram boxes | planning workbook, [implementation scope](../architecture/implementation-scope.md); #77 | Documentary evidence available |
 | D-03 Infrastructure as code | p. 8, task 3: Epic 6 pattern aligned with the diagram | infrastructure repository | `CODE-AVAILABLE`; PLAN-ONLY |
 | D-04 Cost and design system | p. 8, task 4: both parts of Epic 7 | [Pilot cost](../governance/pilot-cost.md), [design system](../design/design-system.md); #55/#57 | `COVERED-DESIGN`; cost does not replace design system |
@@ -391,7 +391,7 @@ The R-01 to R-80 tables in section 2 provide each requirement statement, reposit
 | R-75 | p. 7, challenge 7 | Design system/sheet | #57 | Document/image checker | Applications out of scope |
 | R-76 | pp. 7-8, Epic 7/criterion 6 | Consolidated cost | #50-#55 | Formula/source review | Quotes and later price refresh pending |
 | R-77 | pp. 7-8, Epic 6/task 2 | 100-hour plan | #77 | Workbook/static review | Documentary evidence available |
-| R-78 | p. 8, task 1 | Integrated architecture | #10/#65 | Document/link review | T-08 remains open |
+| R-78 | p. 8, task 1 | Integrated architecture | #10/#65 | Document/link review | T-08 is closed; PR #202 supplies the integrated document/PDF |
 | R-79 | p. 8, task 5/criterion 8 | Presentation | #66 | 20-minute review | T-09 remains open |
 | R-80 | p. 4, objective; p. 9, scope | Assumption register | #2 | Register review | Owners validate assumptions before operation |
 
