@@ -167,14 +167,61 @@
     "verification": {
       "type": ["object", "null"],
       "additionalProperties": false,
-      "required": ["record_id", "execution_id", "flight_record_id", "result", "recorded_at"],
+      "required": [
+        "record_id", "execution_id", "flight_record_id", "attempt", "capture_mode", "source_objects", "result",
+        "decided_by", "reviewer_id", "confidence", "model_id", "prompt_version", "evaluated_at", "recorded_at"
+      ],
       "properties": {
         "record_id": { "$ref": "#/$defs/record_id" },
         "execution_id": { "type": "string", "pattern": "^exec-[a-z0-9-]{3,40}$" },
         "flight_record_id": { "type": "string", "pattern": "^flight-record-[a-z0-9-]{3,40}$" },
+        "attempt": { "type": "integer", "minimum": 1 },
+        "capture_mode": { "type": "string", "enum": ["photo_set", "short_path"] },
+        "source_objects": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key", "s3_version_id", "sha256"],
+            "properties": {
+              "key": { "type": "string", "minLength": 1, "maxLength": 1024 },
+              "s3_version_id": { "type": "string", "minLength": 1, "maxLength": 1024 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
+        },
         "result": { "type": "string", "enum": ["effective", "partly_effective", "not_effective"] },
+        "decided_by": { "type": "string", "enum": ["inference", "supervisor"] },
+        "reviewer_id": { "anyOf": [{ "$ref": "#/$defs/subject" }, { "type": "null" }] },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "model_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 200 },
+        "prompt_version": { "type": ["integer", "null"], "minimum": 1 },
+        "evaluated_at": { "type": "string", "format": "date-time" },
         "recorded_at": { "type": "string", "format": "date-time" }
-      }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "decided_by": { "const": "inference" } } },
+          "then": {
+            "properties": {
+              "reviewer_id": { "type": "null" },
+              "confidence": { "type": "number" },
+              "model_id": { "type": "string" },
+              "prompt_version": { "type": "integer" }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "decided_by": { "const": "supervisor" } } },
+          "then": {
+            "properties": {
+              "reviewer_id": { "$ref": "#/$defs/subject" },
+              "confidence": { "type": "null" }
+            }
+          }
+        }
+      ]
     },
     "closure": {
       "type": ["object", "null"],
