@@ -1,6 +1,6 @@
 # Hardware, installation and monthly cost of a farm
 
-This document estimates what one farm needs to join the platform and what it costs each month. It separates the initial investment from the recurring cost, gives low, base and high scenarios, prices the cellular farm and the LoRa farm apart, treats the gateway as shared equipment, shows how the figures move from 200 to 1,000 farms, and records the provisional option chosen for the monthly amount. It is an estimate from listed prices and stated assumptions. Nothing was bought, quoted or ordered, no supplier was contacted, and no figure here is a fee that a farmer is asked to pay.
+This document estimates what one farm needs to join the platform and what it costs each month. It separates the initial investment from the recurring cost, gives low, base and high scenarios, prices the cellular farm and the LoRa farm apart, treats the gateway as shared equipment, shows how the figures move from 200 to 1,000 farms, and records the provisional option adopted for the monthly amount. It is an estimate from listed prices and stated assumptions. Nothing was bought, quoted or ordered, no supplier was contacted, and no figure here is a fee that a farmer is asked to pay.
 
 ## Contents
 
@@ -14,7 +14,7 @@ This document estimates what one farm needs to join the platform and what it cos
 8. Shared equipment
 9. Monthly cost
 10. From 200 to 1,000 farms
-11. The monthly charge
+11. The monthly amount
 12. Context against the price of coffee
 13. Consistency with the cost document
 14. Assumptions and pending confirmations
@@ -110,7 +110,7 @@ The node specification asks for 12.8 V, 12 Ah nominal, LiFePO4, a battery manage
 | Accessories | Not part of the requirement | F2 terminals, no accessory listed | None listed | None listed |
 | Meets the node requirement | | Yes, on the data sheet | No, the energy and the charge limit are not consistent | No, the BMS is not stated and the energy is stated lower |
 
-The base case no longer uses a battery that is known to fall short. The battery of every scenario is the Power-Sonic reference, which meets the requirement on its data sheet, and the two cheaper or other listings are kept as references that are not equivalent. The reserve of the battery uses this price. The calendar life of the battery was not read, and the lives in years remain assumptions.
+The battery of every scenario is the Power-Sonic reference, which meets the requirement on its data sheet, and the two cheaper or other listings are kept as references that are not equivalent. The reserve of the battery uses this price. The calendar life of the battery was not read, and the lives in years remain assumptions.
 
 ## 5. Hardware of one farm
 
@@ -232,8 +232,7 @@ Cash cost and the replacement reserve are kept apart. A replacement bought later
 | Replacement reserve of the priced parts | 4.22 | 6.41 | 9.98 | 5.73 | reserve |
 | **Marginal cash plus reserve** | 5.63 | 10.77 | 26.88 | 8.94 | |
 
-The plan of the operator is not contracted. The connectivity lines use a published self-service tariff of a global provider, whose coverage and LTE-M service in Colombia are not confirmed, and a prepaid plan for the low case. They are estimates and not the connectivity cost of an offer, so complete connectivity is not stated.
-The earlier figure of USD 3.21 a month for a cellular farm held 3.19 of maintenance visit labor and vehicle, 0.01 of cloud lines and 0.02 of data traffic. It held no fixed charge of a SIM. The maintenance visit was 99 percent of it.
+The plan of the operator is not contracted. The connectivity lines use a published self-service tariff of a global provider, whose coverage and LTE-M service in Colombia are not confirmed, and a prepaid plan for the low case. They are estimates and not the connectivity cost of an offer, so complete connectivity is not stated. The maintenance visit is the largest line of the marginal cash cost in every scenario.
 
 The monthly cost with the shared expenses assigned for a whole fleet, with the fixed cloud lines, the gateways and the reserve, is in section 10.
 
@@ -307,21 +306,19 @@ At 200 farms the fixed cloud lines add USD 0.85 for each farm and at 1,000 farms
 
 ## 11. The monthly amount
 
-The card asks for the cost of the equipment and the monthly charge, so that a farmer can judge whether the investment is moderate. A charge depends on a policy of the Federation, which has not set one. This document therefore computes the monthly cost of a farm and records a provisional choice for the exercise.
+The card asks for the cost of the equipment and the monthly charge, so that a farmer can judge whether the investment is moderate. A charge depends on a policy of the Federation, which has not set one. This document therefore computes the monthly cost of a farm and adopts a provisional option, recorded in the [monthly amount decision](../adr/farm-monthly-amount.md).
 
-Decision recorded. isahrnd chose option C as an academic provisional proposal for the exercise, which is the monthly cost with operation, the replacement reserve and the shared cloud expenses, with no margin and no financing. The initial investment is presented apart. The decision is isahrnd's for the exercise. It is not an approval by the Federation, it is not a fee contracted with anyone, and the amount stays provisional while essential costs are missing, which are listed below.
-
-A fee is a policy decision. These are the ways considered to build a monthly amount from the figures above. Option C was chosen by isahrnd for the exercise, and A and B are kept as references. A financed investment and a margin are not part of this version. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.
+A fee is a policy decision. These are the ways considered to build a monthly amount from the figures above. Option C is adopted, and A and B are kept as references. A financed investment and a margin are not part of this version. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.
 
 | Option | How it is built | At 200 farms | At 1,000 farms |
 |---|---|---|---|
 | A. Recover only the marginal cash cost | Data, SIM, cloud lines that grow, maintenance, with no reserve and no shared cost | 4.08 | 4.08 |
 | B. Recover the cash cost, the gateways and the reserve, and the Federation bears the fixed cloud lines | Option A plus the gateway cash cost and the reserve | 10.90 | 10.90 |
-| C. Recover everything recurring, with the fixed cloud lines divided by the farms. Chosen for the exercise | Option B plus the fixed cloud lines of the cost document | 11.75 | 11.07 |
+| C. Recover everything recurring, with the fixed cloud lines divided by the farms. Adopted | Option B plus the fixed cloud lines of the cost document | 11.75 | 11.07 |
 
 Each option leaves out the pending items. A subsidy, an interest rate, a margin or a different share of the fixed cloud lines are decisions that no document of the project makes, and whether the farmer is charged any of this is also open.
 
-Option C was chosen by isahrnd as an academic provisional proposal for this exercise. The Federation did not approve it, it is not a contracted fee, and it stays provisional while essential costs are missing. It has no margin and no financing. The initial investment is presented apart and is not part of the monthly amount.
+Option C is a provisional proposal of the team. The Federation did not approve it, it is not a contracted fee, and it stays provisional while essential costs are missing. It has no margin and no financing. The initial investment is presented apart and is not part of the monthly amount.
 
 Formula for each farm a month, base scenario, 25 percent LoRa, 10 farms for each gateway, with N farms and NL = 0.25 N farms on LoRa and NC = N - NL on cellular:
 
@@ -399,7 +396,7 @@ If IVA of 19% applies in full to the known investment, a cellular farm goes from
 
 The cloud lines of this estimate come from the cost document of this repository and are checked against it by the script, which fails if a value changes.
 
-The cost document gives USD 177.05 for a normal month and USD 200.41 for a harvest month for the production platform, after its later correction. The project status file of the handbook gives USD 177.23 and USD 201.11 for the same total. The two sources differ by 0.18 and 0.70, and this estimate reads the cost document. The status file is not edited here, and its owner decides which value stands.
+The cost document gives USD 177.05 for a normal month and USD 200.41 for a harvest month for the production platform, and this estimate takes its fixed lines of USD 170.10 from it.
 
 The price basis lists a gateway at EUR 537.76 at a retailer with VAT. The manufacturer store lists USD 382.00 for the 8 channel variant without LTE and USD 1,199.00 for the bundle with a solar kit and LTE, which is the one priced here. The two are listings of different items, and the owner of the price basis decides whether to add the manufacturer listing.
 
@@ -425,7 +422,7 @@ The price basis lists a gateway at EUR 537.76 at a retailer with VAT. The manufa
 
 | Literal criterion | Where it is answered | Gaps | Assumptions accepted |
 |---|---|---|---|
-| Hardware, installation in one visit and monthly charge for each farm | Sections 4 to 11 and the script. The hardware has a known subtotal and a list of pending items, the installation is priced with its conditions, and the monthly cost is given as cash, reserve and with shared expenses assigned, in three scenarios | Essential parts have no equivalent listing, which are the enclosure, the controller board, the climate sensor, the grain probe, the mast and the cables. The plan of the operator is not contracted. The monthly amount of option C is a provisional cost chosen by isahrnd for the exercise and is not a fee, since a fee needs a policy of the Federation. The totals are known subtotals plus those unknowns, which section 11 lists with the datum that is missing | Section 14 |
+| Hardware, installation in one visit and monthly charge for each farm | Sections 4 to 11 and the script. The hardware has a known subtotal and a list of pending items, the installation is priced with its conditions, and the monthly cost is given as cash, reserve and with shared expenses assigned, in three scenarios | Essential parts have no equivalent listing, which are the enclosure, the controller board, the climate sensor, the grain probe, the mast and the cables. The plan of the operator is not contracted. The monthly amount of option C is a provisional cost adopted by the team and is not a fee, since a fee needs a policy of the Federation. The totals are known subtotals plus those unknowns, which section 11 lists with the datum that is missing | Section 14 |
 | Sensitivity from 200 to 1,000 farms | Section 10 and the script, in three scenarios | None for the known subtotal | Section 14 |
 
 ## 16. Sources
