@@ -136,13 +136,13 @@ The values are invented for the example.
 |---|---|---|---|
 | A separate `buyer_views` table, written with each event | The public function can only read that table, so even a flaw in it cannot reach a farm, a trip or a person | One more table and one more write per event | **Chosen** |
 | Filter at read time | No new table | The function that anyone can reach holds read access to every record, and one missed field leaks data | Discarded |
-| A buyer map inside `sacks`, limited with the `dynamodb:Attributes` condition of IAM | No new table | Protection rests on a condition list that must name every attribute exactly, and a projection of the wrong attribute fails open in testing only | Discarded |
+| A buyer map inside `sacks`, limited with the `dynamodb:Attributes` condition of IAM | No new table | Protection rests on a condition list that must name every attribute exactly, and a missing or misspelled name shows up only in testing | Discarded |
 
 The domain function writes the buyer view in the same transaction as the event and the `sacks` item, so the view never disagrees with the state. It builds the view from the allow list, and the schema check runs in the pipeline of the function.
 
 Drying arrives later than the sack in most cases. A sack registered after its lot summary exists copies the summary at registration. When the daily job writes a summary, it finds the sacks of that lot through a sparse index on `drying_lot_id` in `sacks` and updates the drying block of their buyer views.
 
-The view is a projection, so it can always be rebuilt by replaying the events of a sack. Recovery restores `buyer_views` with point-in-time recovery to the same second as the two sack tables, and the replay of a sample checks it, which keeps the public query inside its 4 hours.
+The view is a projection, so it can always be rebuilt by replaying the events of a sack. Recovery has to restore `buyer_views` with point-in-time recovery to the same second as the two sack tables, and a replay of a sample checks it. That keeps the public query inside its 4 hours. The [recovery](../architecture/recovery.md) design does not list this table yet, and its owners add it.
 
 ### Unknown and unused codes
 
@@ -187,7 +187,7 @@ A center operator account carries the center where the person works as an attrib
 
 Each read of a sack writes an audit event with the view returned, `buyer`, `center` or `farmer`, as the [audit](../security/audit.md) design records. The public query uses no cache in front of the function, since a cached answer would skip that record.
 
-The role of the public query function holds `dynamodb:GetItem` on `buyer_views` and nothing else on the data tables. Only the domain function and the daily job of the drying lots write that table. Both indexes this document needs on `sacks`, on `farm_id` and on `drying_lot_id`, keep only the keys.
+The role of the public query function holds `dynamodb:GetItem` on `buyer_views` and nothing else on the data tables. Only the domain function and the daily job of the drying lots write that table. The two indexes this document needs on `sacks`, on `farm_id` and on `drying_lot_id`, keep only the keys. The custody chain does not define them yet, and its owner adds them.
 
 ## 7. What fails and what happens then
 
@@ -212,8 +212,8 @@ Calculated from the AWS price list for us-east-1 for a harvest month, at USD 0.6
 | Sparse index on `drying_lot_id` | 36,000 sacks, 1 write unit each | About 0.02 |
 | Index on `farm_id` for the farmer list | 36,000 sacks, 1 write unit each | About 0.02 |
 | Public reads | 108,000 reads, three per sack, at half a read unit each | About 0.01 |
-| Storage | 720,000 views of about 0.6 KB, about 0.4 GB | Inside the 25 GB that carry no charge |
-| **Total** | | **About 0.39** |
+| Storage | 720,000 views of about 0.6 KB, about 0.4 GB, at USD 0.25 per GB a month | About 0.10, or nothing while the account stays under the 25 GB that carry no charge |
+| **Total** | | **About 0.49** |
 
 The extra table costs less than a dollar in the busiest month, which is a small price for keeping the internet-facing function away from personal data.
 
@@ -232,6 +232,6 @@ The extra table costs less than a dollar in the busiest month, which is a small 
 |---|---|
 | `GetItem` and `Query` accept the condition keys `dynamodb:Attributes`, `dynamodb:LeadingKeys` and `dynamodb:Select` | [Service authorization reference for DynamoDB](https://servicereference.us-east-1.amazonaws.com/v1/dynamodb/dynamodb.json) |
 | A transactional write consumes two write units per item up to 1 KB | [DynamoDB read and write capacity](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/read-write-operations.html) |
-| DynamoDB prices for us-east-1 | [Price basis](../governance/price-basis.md) |
+| DynamoDB prices for us-east-1, storage included | [Price basis](../governance/price-basis.md) |
 | Event catalog, tables and volumes | [Custody chain](custody-chain.md) |
 | Lot summary fields | [Farmer history](../iot/farmer-history.md) |
