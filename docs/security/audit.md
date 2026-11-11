@@ -37,6 +37,7 @@ The Federation must be able to rebuild who read a sack, who changed an alert thr
 | Change of a threshold | Cognito subject of the platform operator | Zone type and variable, with values before and after | Millisecond UTC timestamp | Event ID, API request ID | Domain function, and CloudTrail for any table write |
 | Publication of telemetry | Device client ID and certificate principal | MQTT topic, which carries environment and node | Millisecond UTC timestamp | Trace ID, source IP and port | IoT Core |
 | Delivery of a flight object | Cognito subject of the drone operator, and the role that signed the URL | Bucket and object key, with the case | Millisecond UTC timestamp | Event ID, API request ID, CloudTrail event ID | Upload function, and CloudTrail for the write |
+| Change of state of a fumigation order | Cognito subject and role of the person, or the role of the function or scheduler | Order and revision | Millisecond UTC timestamp | Event ID, API request ID when a person acts | Order transition function |
 
 Events written by the platform share one envelope, so a single table reads them all.
 
@@ -57,10 +58,10 @@ Events written by the platform share one envelope, so a single table reads them 
 
 | Field | Content |
 |---|---|
-| `event_type` | `sack.read`, `threshold.changed` or `flight_object.authorized` |
+| `event_type` | `sack.read`, `threshold.changed`, `flight_object.authorized` or `fumigation.transition` |
 | `event_time` | Time the function handled the request, in UTC with milliseconds |
 | `actor` | `type` is `buyer`, `user` or `service`. `id` is the Cognito subject, never a name or an email |
-| `resource.id` | Sack code, `<zone_type>#<variable>` for a threshold, or `<bucket>/<key>` for an object |
+| `resource.id` | Sack code, `<zone_type>#<variable>` for a threshold, `<bucket>/<key>` for an object, or `<order_id>#<revision>` for a fumigation order |
 | `request.id` | API Gateway request ID, which joins the event to the API access log |
 | `request.ip_prefix` | Source address cut to /24 for IPv4 and /48 for IPv6 |
 | `outcome` | `allowed`, or `denied` when authorization refused the action |
@@ -71,6 +72,7 @@ Events written by the platform share one envelope, so a single table reads them 
 | `sack.read` | `view` returned (buyer, center, farmer) and `channel` (qr, app) |
 | `threshold.changed` | `zone_type`, `variable`, `before` and `after` with `min` and `max`, and `reason` |
 | `flight_object.authorized` | `case_id`, `ground_station` and `url_valid_seconds` |
+| `fumigation.transition` | `case_id`, `from`, `to`, `trigger`, `execution_id`, `record_id` and `reason_code`, as the [fumigation order](../drones/fumigation-order.md) defines |
 
 A threshold change carries its values, because the question an auditor asks is what the limit was before and who moved it.
 
@@ -107,6 +109,7 @@ CloudWatch Logs keeps platform events and IoT entries for 90 days in each worklo
 | Read of a sack | The query function writes the event to the audit log group, a subscription filter sends it to a CloudWatch Logs destination in the log archive account, and Firehose writes it under `app/` |
 | Change of a threshold | The domain function writes the event the same way. CloudTrail also records every write on the ranges table, so a change made outside the API leaves evidence too |
 | Publication of telemetry | IoT Core logs `Publish-In` at INFO level for the thing groups of farm nodes, and the same subscription path writes it under `iot/` |
+| Change of state of a fumigation order | The transition function writes `fumigation.transition` the same way, for every move it allows or denies |
 | Delivery of a flight object | The upload function writes `flight_object.authorized` when it hands out a presigned URL. CloudTrail records the `PutObject` on the flight object bucket, signed by the role of that function |
 
 **Platform events.** A function writes its audit event to a dedicated log group before it answers. The log group has one subscription filter whose target is a destination in the log archive account. That destination feeds a Firehose stream that decompresses the CloudWatch Logs records, keeps only the message, and writes one event per line. A workload role therefore never holds write access to the archive.
