@@ -326,7 +326,7 @@ def main():
     print("")
     print("The plan of the operator is not contracted. The connectivity lines use a published self-service tariff of a global provider, whose coverage and LTE-M service in Colombia are not confirmed, and a prepaid plan for the low case. They are estimates and not the connectivity cost of an offer, so complete connectivity is not stated.")
     m3 = maintenance_month("base")
-    print(f"The earlier figure of USD 3.21 a month for a cellular farm held {usd(m3)} of maintenance visit labor and vehicle, {usd(cv)} of cloud lines and 0.02 of data traffic. It held no fixed charge of a SIM. The maintenance visit was 99 percent of it.")
+    print("The maintenance visit is the largest line of the marginal cash cost in every scenario.")
 
     print("\n## Gateways, shared equipment, by scenario")
     print("| Item for each gateway | Low | Base | High | Counted |")
@@ -408,7 +408,7 @@ def main():
         print(f"| {n} | {usd(f['rec_nodes'] / n)} | {usd(f['fixed'] / n)} | {usd(gc / n)} | {usd(f['reserve'] / n)} | {usd((f['rec_cash_own'] + f['fixed'] + f['reserve']) / n)} |")
 
     print("\n## Options considered for the monthly amount")
-    print("A fee is a policy decision. These are the ways considered to build a monthly amount from the figures above. Option C was chosen by isahrnd for the exercise, and A and B are kept as references. A financed investment and a margin are not part of this version. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.")
+    print("A fee is a policy decision. These are the ways considered to build a monthly amount from the figures above. Option C is adopted, and A and B are kept as references. A financed investment and a margin are not part of this version. Values are base scenario, 25 percent LoRa, 10 farms for each gateway, in USD for each farm a month, before the pending items, tax and duties.")
     print("")
     print("| Option | How it is built | At 200 farms | At 1,000 farms |")
     print("|---|---|---|---|")
@@ -426,7 +426,7 @@ def main():
     print("Each option leaves out the pending items. A subsidy, an interest rate, a margin or a different share of the fixed cloud lines are decisions that no document of the project makes, and whether the farmer is charged any of this is also open.")
 
     print("\n## Option C, provisional proposal for the exercise")
-    print("Option C was chosen by isahrnd as an academic provisional proposal for this exercise. The Federation did not approve it, it is not a contracted fee, and it stays provisional while essential costs are missing. It has no margin and no financing. The initial investment is presented apart and is not part of the monthly amount.")
+    print("Option C is a provisional proposal of the team. The Federation did not approve it, it is not a contracted fee, and it stays provisional while essential costs are missing. It has no margin and no financing. The initial investment is presented apart and is not part of the monthly amount.")
     print("")
     print("Formula for each farm a month, base scenario, 25 percent LoRa, 10 farms for each gateway, with N farms and NL = 0.25 N farms on LoRa and NC = N - NL on cellular:")
     print("")
@@ -501,7 +501,7 @@ def main():
     print(f"If IVA of {IVA:.0%} applies in full to the known investment, a cellular farm goes from {usd(vi['cell'])} to {usd(vi['cell'] * (1 + IVA))}. Import duties are unknown and are in neither figure.")
 
     print("\n## Cost document, two values for one total")
-    print(f"The cost document of this repository gives {cost_total[0]} for a normal month and {cost_total[1]} for a harvest month. The project status of the handbook gives 177.23 and 201.11. The script reads the first.")
+    print(f"The cost document of this repository gives {cost_total[0]} for a normal month and {cost_total[1]} for a harvest month.")
     print("OK")
 
 
