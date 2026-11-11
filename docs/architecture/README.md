@@ -19,6 +19,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Lot geometry lifecycle](diagrams/12-lot-geometry-lifecycle.drawio.png) | Which states can a lot polygon pass through, and which strips keep spraying away |
 | [Center operation](diagrams/13-center-operation.drawio.png) | How does a center receive, label and dispatch sacks, and what limits it at 400 sacks a day |
 | [Crop case states](diagrams/14-crop-case-states.drawio.png) | How does a cultivation alert become a focus confirmed or discarded by a person |
+| [Alert delivery sequence](diagrams/15-alert-delivery-sequence.drawio.png) | How does an alert reach the farmer, and how is each step of its delivery recorded |
 | [Fumigation order states](diagrams/16-fumigation-order-states.drawio.png) | Which states can a fumigation order pass through, and which moves only a person can make |
 | [Public query](diagrams/17-public-query.drawio.png) | How does a buyer read one sack, and what limits bulk reads of the public query |
 | [Center cloud link](diagrams/18-center-cloud-link.drawio.png) | How does a center reach the cloud, which routes and names does it use, and what happens when the link fails |
@@ -48,10 +49,6 @@ The [inference Region and data leaving the country](../security/inference-data-e
 
 The [planning workbook](../planning/Planeacion_Integral_AromaPacifico_2026client.xlsx) holds the backlog and the 100-hour plan of the infrastructure code, with its owners, dependencies and diagram boxes.
 
-## Regenerating the diagrams
-
-`tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page on Linux, and `tools/export_diagrams.ps1` does the same on Windows with draw.io Desktop.
-
 The [center operations](../network/collection-center-operations.md) define reception, labels, work with no internet and the capacity of a center.
 
 The [center cloud link](../network/center-cloud-link.md) defines the tunnels, the routes on both sides, the names of the cloud services from a center and the behavior when the link fails.
@@ -61,3 +58,9 @@ The [failure policy](failure-policy.md) sets the retries, dead letter queues, al
 The [observability design](observability.md) defines the identifiers that correlate a sack, a lot and a flight, the structure of an operational log, the catalog of signals and the cost of the telemetry. The [release notes and change policy](../release-notes/README.md) set when a production change may run, who approves it, how the Federation hears of it and how it goes back. The [service level objectives](service-levels.md) set the targets for crop alert delivery and for the availability of the sack query, with their error budgets.
 
 The [operational alarms](operational-alarms.md) list who is told, what they do first and what the set of alarms costs, and they separate what the platform detects from what a person finds in a daily list.
+
+The [visual identity](../design/visual-identity.md) and the [design system](../design/design-system.md) define the brand, the tokens and the components, and apply them to the farmer, carrier and buyer views.
+
+## Regenerating the diagrams
+
+`tools/build_diagrams.py` writes `diagrams/platform-architecture.drawio`, `tools/check_diagrams.py` verifies codes, legends and address ranges, and `tools/export_diagrams.sh` renders each page on Linux, and `tools/export_diagrams.ps1` does the same on Windows with draw.io Desktop.
