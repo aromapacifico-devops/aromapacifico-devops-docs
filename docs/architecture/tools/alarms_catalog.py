@@ -33,6 +33,17 @@ PRICE_ALARM = 0.10
 PRICE_COMPOSITE = 0.50
 EMAIL_FREE = 1000
 EMAIL_PER_1000 = 2.00 / 100  # USD 2.00 per 100,000 notifications
+# volumes assumed for the small charges that the totals leave out because free allowances absorb them
+SCHEDULED_CHECKS = 25 * 3 * 2  # orders a month in harvest, three waiting states, two checks
+PLATFORM_EVENTS = 300
+NOTICES = 1000
+SNS_REQUESTS = 1000
+
+
+def small_charges():
+    """What the event rules, schedules and notices would cost with no free allowance at all."""
+    return SCHEDULED_CHECKS * 1.00 / 1e6 + PLATFORM_EVENTS * 1.00 / 1e6 + NOTICES * 2.00 / 100000 + SNS_REQUESTS * 0.50 / 1e6
+
 
 # kind: alarm (a billed metric alarm), rule (an event rule that notifies), review (a daily saved query read by a person), pending
 # own: the card defines it, or the document that promised it
@@ -204,6 +215,8 @@ def run_checks():
         covered |= {f"AL-{k:02d}" for k in range(int(lo), int(hi) + 1)}
     for a_ in ALARMS:
         check(a_["id"] in covered, f"{a_['id']} is not in the document")
+    check(f"about USD {small_charges():.2f} a month" in doc, "the document does not state the small charges that the free allowances absorb")
+    check("apply no free tier to CloudWatch" in doc, "the document does not say where free allowances are and are not used")
     tel = telemetry()
     nd = sum(a_["count"] for a_ in ALARMS if a_["status"] == "documented")
     npr = sum(a_["count"] for a_ in ALARMS if a_["status"] == "proposed")
@@ -254,6 +267,7 @@ def main():
         d1, d2 = v + n_all * PRICE_ALARM, v + (n_all + npr) * PRICE_ALARM
         print(f"| {m} | {v:.2f} | {d1:.2f} | {d1 - 2.20:.2f} | {d2:.2f} | {d2 - 2.20:.2f} |")
     print(f"\nMetric math merges nothing, since each metric in an expression is billed as one alarm metric. A composite alarm costs USD {PRICE_COMPOSITE:.2f} and adds to its parts.")
+    print(f"Without any free allowance, the schedules, platform events and notices at the assumed volumes would add about USD {small_charges():.2f} a month, and the totals leave them out because the allowances of Scheduler and SNS absorb them.")
     print(f"Event rules carry no alarm charge. The events are billed to the bus at USD 1.00 per million custom events and email notifications are free up to {EMAIL_FREE:,} a month and USD {EMAIL_PER_1000:.2f} per 1,000 after. One-time schedules are free for the first 14 million invocations a month.")
     for e in errors:
         print("FAIL", e)
