@@ -141,14 +141,9 @@ Each flight closes its own log. The confirmation or delimitation flight closes f
 
 ## 9. Cost
 
-The shared service avoids two expensive alternatives, a drone for each farmer and weekly sweeps over all 200 farms.
+The shared service avoids two expensive alternatives, a drone for each farmer and weekly sweeps over all 200 farms. With the same rates, weekly area sweeps cost about USD 2.15 million a year, while the shared brigades directed by sensors cost about USD 112,000 a year after the first, USD 145,000 in the first year with the start-up delimitation, and USD 20,400 in a harvest month, about USD 102 per farm. A drone for each farmer adds 200 kits and leaves fumigation without a certified pilot.
 
-| Option | Yearly cost in the team's model, USD |
-|---|---|
-| Own drone per farmer or weekly sweeps | About 18,000 |
-| Shared brigades directed by sensors | About 5,640 |
-
-In a harvest month, the shared service costs about USD 1,980, or USD 9.90 per farm. These are estimates from the team's model, resting on the assumptions of section 6, and the cost document holds their detail.
+These figures come from the base scenario of the [drone campaign cost](campaign-cost-estimation.md), which holds the rates, their sources, the low and high scenarios and the cost of each mission and campaign.
 
 Cloud cost for inference is small next to flight cost. At about USD 1.75 per 1,000 images, a harvest month of 9,000 images costs about USD 16.
 
