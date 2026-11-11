@@ -14,4 +14,12 @@ Documents delivered to the Federation carry a PDF next to the Markdown file, in 
 tools/build-pdf.sh -k "Cost document" -d "Prices of November 2026" docs/governance/pilot-cost.md
 ```
 
-The script needs pandoc 3 or later and Chromium or Chrome, and it reads the Outfit and Roboto Mono fonts from Google Fonts, so it needs internet access. The logo and the waves of the cover in `tools/pdf/` are cut from `docs/design/aroma-pacifico-branding.pdf`.
+Several documents join into one PDF with `-o`, each starting on a new page, and links between them stay inside the PDF.
+
+```bash
+tools/build-pdf.sh -o docs/release-notes/release-notes.pdf -k "Release notes" -s "Change policy, templates and filled examples" -d "November 2026" \
+  docs/release-notes/README.md docs/release-notes/application-template.md docs/release-notes/infrastructure-template.md \
+  docs/release-notes/examples/application-ingestion-1.1.0.md docs/release-notes/examples/infrastructure-telemetry-ingestion-1.0.1.md
+```
+
+The script needs pandoc 3 or later, Python 3 and Chromium or Chrome, and it reads the Outfit and Roboto Mono fonts from Google Fonts, so it needs internet access. The logo and the waves of the cover in `tools/pdf/` are cut from `docs/design/aroma-pacifico-branding.pdf`.

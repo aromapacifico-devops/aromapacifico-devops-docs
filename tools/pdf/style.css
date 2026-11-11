@@ -78,10 +78,14 @@ h2 {
 }
 h3 { font-weight: 600; font-size: 12pt; margin: 6mm 0 2.5mm 0; page-break-after: avoid; }
 
+/* Each later document of a joined PDF starts on a new page under its own title. */
+div.page-break { break-before: page; }
+main h1 { font-weight: 900; font-size: 24pt; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 6mm 0; }
+
 /* The purpose and the contents list fill the first page after the cover. */
-#contents + ol { padding-left: 7mm; margin-bottom: 0; page-break-after: always; }
-#contents + ol li { margin: 0 0 2.2mm 0; font-size: 11pt; }
-#contents + ol a { color: var(--text-primary); }
+h2[id$="-contents"] + ol { padding-left: 7mm; margin-bottom: 0; page-break-after: always; }
+h2[id$="-contents"] + ol li { margin: 0 0 2.2mm 0; font-size: 11pt; }
+h2[id$="-contents"] + ol a { color: var(--text-primary); }
 
 p { margin: 0 0 3mm 0; }
 ul, ol { margin: 0 0 3mm 0; padding-left: 6mm; }
