@@ -31,6 +31,8 @@
     "aws_vpn_gateway": "ec2:vpn-gateway"
   },
   "outside_cross_reference": [
+    "aws_cloudwatch_event_rule",
+    "aws_cloudwatch_event_target",
     "aws_cloudwatch_log_subscription_filter",
     "aws_default_security_group",
     "aws_dynamodb_table_item",
@@ -55,6 +57,7 @@
     "aws_s3_bucket_public_access_block",
     "aws_s3_bucket_server_side_encryption_configuration",
     "aws_s3_bucket_versioning",
+    "aws_sqs_queue_redrive_allow_policy",
     "aws_vpc_security_group_ingress_rule",
     "aws_vpc_security_group_rules_exclusive",
     "aws_vpn_connection_route"
