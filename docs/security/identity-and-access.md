@@ -127,6 +127,7 @@ No function role holds the permission to write an authorization, so a compromise
 | Focus confirmation function | Read one prefix of the object bucket, detect labels, invoke one model, write results | Named bucket prefix, model and table |
 | Verification and estimation functions | Same pattern | Own prefix |
 | Domain functions | One role per domain, sacks, trips and drones | Own tables |
+| Public query function | Read one item of the buyer view table | `buyer_views` only, with no other data table |
 | IoT rule | Send to one queue and one delivery stream | Named resources |
 | Pilot report workflow | Export three tables, run queries in one Athena workgroup, write report files | Named tables, workgroup and reports prefix |
 | Firehose delivery | Write to the telemetry archive | Named bucket and key |
@@ -153,7 +154,7 @@ A stolen device can only publish as itself, and revocation stops it. One certifi
 | Control | Purpose |
 |---|---|
 | Random code of 60 bits | A code cannot be derived or listed |
-| Buyer view only | The response holds no farm, farmer or trip |
+| Buyer view only | The response comes from a table that holds only the buyer view, and the function can read nothing else. [Views by actor](../traceability/actor-views.md) lists every field |
 | WAF rate rule | Limits automated reading, with a threshold above the peak of 30 reads a minute |
 | Audit of each read | Required for the sack |
 
