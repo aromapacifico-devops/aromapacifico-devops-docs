@@ -1,6 +1,6 @@
 # Platform architecture
 
-Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production. [Persistence and archive](persistence-and-archive.md) explains where data lives for five years, how it is read and restored, and how it is deleted. [Inference functions](inference-functions.md) defines the four event-driven results, their permissions, failure behavior and cost.
+Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production. [Persistence and archive](persistence-and-archive.md) explains where data lives for five years, how it is read and restored, and how it is deleted. [Inference functions](inference-functions.md) defines the four event-driven results, their permissions, failure behavior and cost. [Delivery pipelines](delivery-pipelines.md) explains how the platform, ingestion and flight object changes reach production and go back.
 
 | Diagram | Question it answers |
 |---|---|
@@ -25,6 +25,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Inference functions](diagrams/19-inference-functions.drawio.png) | How does a complete mission record or archive object reach one of four inference results |
 | [Signals and correlation](diagrams/20-signals-and-correlation.drawio.png) | Which identifiers travel with a sack, a lot and a flight, and where is each signal read |
 | [Flight object transport](diagrams/21-flight-object-transport.drawio.png) | Where does each flight object live, and which events carry it from the ground station to a published flight record |
+| [Delivery pipelines](diagrams/22-delivery-pipelines.drawio.png) | How does one version of the platform, the ingestion or the flight object code move from a pull request to production, and how does it go back |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 

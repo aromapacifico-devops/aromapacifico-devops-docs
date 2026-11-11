@@ -1517,8 +1517,71 @@ def flight_object_transport():
     return p
 
 
+def delivery_pipelines():
+    p = Page("22 Delivery pipelines", 2000, 1060, "Delivery pipelines: one exact version moves from pull request to production in the platform, ingestion and flight object pipelines")
+    stages = ["Pull request", "Release", "Package or plan", "Test", "Approval and freeze", "Production"]
+    xs = [300 + i * 280 for i in range(6)]
+    for x, name in zip(xs, stages):
+        p.text(name, x, 62, 240, 26, size=13, bold=True, align="center")
+    lanes = [
+        ("Platform<br><font style='font-size:11px'>infra and six module repositories, built</font>", 96, CTRL, "pl", True, [
+            ("Checks and review", "fmt, validate, tests, Checkov, gitleaks", None),
+            ("Module release", "Exact vX.Y.Z tag, changelog", None),
+            ("Saved plan", "State bucket, summary on the pull request", "s3"),
+            ("Apply test", "Then the smoke test reading", None),
+            ("Approval and freeze", "prod environment, harvest calendar", None),
+            ("Apply production", "Exactly the approved plan", None)]),
+        ("Ingestion<br><font style='font-size:11px'>ingestion repository, designed</font>", 236, TEL, "in", False, [
+            ("Unit and contract tests", "Readings, ranges, alerts, schemas", None),
+            ("Release tag", "vX.Y.Z, changelog", None),
+            ("Artifact bucket", "ingestion/function/version.zip", "s3"),
+            ("CodeDeploy, all at once", "Hook with a synthetic reading", "codedeploy"),
+            ("Approval and freeze", "Version must have passed test", None),
+            ("CodeDeploy canary", "10 percent for 10 minutes", "codedeploy")]),
+        ("Flight object<br><font style='font-size:11px'>flight reception repository, designed</font>", 376, OBJ, "fl", False, [
+            ("Unit, contract and design checks", "Completion rule, schemas, checker", None),
+            ("Release tag", "vX.Y.Z, changelog", None),
+            ("Artifact bucket", "flight-reception/function/version.zip", "s3"),
+            ("CodeDeploy, all at once", "Hook with a synthetic flight", "codedeploy"),
+            ("Approval and freeze", "Version must have passed test", None),
+            ("CodeDeploy canary", "10 percent for 10 minutes", "codedeploy")]),
+    ]
+    for label, y, color, key, built, cards in lanes:
+        p.zone("", 40, y, 1920, 130, "#F4F6F7", "#566573")
+        p.text(f"<b>{label}</b>", 56, y + 20, 230, 90, size=14)
+        for i, (title, sub, icon) in enumerate(cards):
+            colour = STORAGE if icon == "s3" else "#C925D1"
+            stroke = FAIL if title.startswith("Approval") else "#7F8C8D"
+            p.card(title, sub, xs[i], y + 30, 240, 70, f"{key}{i}", stroke=stroke, icon=icon, color=colour if icon else None, impl=built and not title.startswith("Approval"), dashed=not built)
+        for i in range(5):
+            p.edge(f"{key}{i}", f"{key}{i + 1}", "", color, width=2)
+
+    p.zone("How a function release lands in an environment", 40, 526, 1920, 290, "#FFFFFF", "#0B3D91")
+    p.card("Release workflow", "GitHub Actions job in the environment", 60, 590, 220, 70, "rw")
+    p.card("Release role", "fnc-aroma-env-role-pipeline-release", 380, 590, 220, 70, "rr", icon="identity_and_access_management", color=SEC)
+    p.card("New function version", "Code from the artifact, published", 700, 590, 220, 70, "fv", icon="lambda", color=COMPUTE)
+    p.card("CodeDeploy", "Deployment group with alarms", 1020, 590, 220, 70, "cd", icon="codedeploy", color="#C925D1")
+    p.card("live alias", "Old and new version, weighted", 1340, 590, 220, 70, "al", icon="lambda", color=COMPUTE)
+    p.card("Queues and event rules", "Every trigger calls live", 1660, 590, 250, 70, "tr", icon="sqs", color=APP)
+    p.card("CloudWatch alarms", "Errors, dead letter messages", 1020, 730, 220, 64, "cw", icon="cloudwatch_2", color=MGMT)
+    p.edge("rw", "rr", "OIDC assume", CTRL)
+    p.edge("rr", "fv", "update, publish", CTRL)
+    p.edge("fv", "cd", "create deployment", CTRL)
+    p.edge("cd", "al", "shift weights", CTRL)
+    p.edge("tr", "al", "invoke", TEL)
+    p.edge("cw", "cd", "alarm fires", FAIL, dashed=True, exit=(0.5, 0), entry=(0.5, 1))
+    p.edge("cd", "al", "move back", FAIL, dashed=True, exit=(0.8, 1), entry=(0.5, 1), points=[(1196, 700), (1450, 700)])
+
+    p.note("<b>Who owns what.</b> Terraform creates each function with a first package, its role, its triggers, the live alias, the deployment group and the alarms, and ignores later code and alias changes. The application pipeline owns the code and moves the alias.", 40, 836, 620, 96)
+    p.note("<b>Rollback.</b> Platform, point the environment to the previous module tag and run the same deploy. Functions, CodeDeploy moves the alias back during the canary, or a manual release of the previous version moves it later. Data never rolls back, so changes keep the old version working.", 680, 836, 640, 96, fill="#FDEDEC", stroke=FAIL)
+    p.note("<b>Secrets.</b> No pipeline holds an access key, since every job assumes a role through OIDC. VPN keys and third-party keys live in Secrets Manager, and Terraform and function settings hold only their ARN. Saved plans stay in the private state bucket.", 1340, 836, 620, 96, fill="#EAF2F8", stroke="#0B3D91")
+    p.legend(40, 946, 900, [(CTRL, False, "Platform step, and the release path inside an environment"), (TEL, False, "Ingestion step, and calls from triggers"), (OBJ, False, "Flight object step"), (FAIL, True, "Alarm and automatic rollback")])
+    p.note("Thick blue cards are built in the infrastructure code. Dashed cards are designed and wait for the application repositories. Red borders mark the approval of a person in the protected prod environment, followed by the harvest freeze gate.", 960, 946, 1000, 74, fill="#FFFFFF", stroke="#AEB6BF")
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link(), inference_functions(), signals_and_correlation(), flight_object_transport()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link(), inference_functions(), signals_and_correlation(), flight_object_transport(), delivery_pipelines()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")

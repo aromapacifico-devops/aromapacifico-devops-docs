@@ -50,7 +50,7 @@ The code also applies in the demonstration accounts, which the environments docu
 | Release notes | Nothing | Two templates with one example each, delivered with the project |
 | Second cloud | Nothing | Contracts and equivalence table |
 
-The project asks for three deployment pipelines, one each for the platform, the ingestion and the reception of flight objects. They deploy software, which makes them separate from the data paths that carry readings and objects. The code builds the platform pipeline, which is the one the 100 hours require. The other two deploy application code that this project does not write, so they stay as designs with the same promotion and rollback rules.
+The project asks for three deployment pipelines, one each for the platform, the ingestion and the reception of flight objects. They deploy software, which makes them separate from the data paths that carry readings and objects. The code builds the platform pipeline, which is the one the 100 hours require. The other two deploy application code that this project does not write, so they stay as designs with the same promotion and rollback rules, described in [Delivery pipelines](delivery-pipelines.md).
 
 ## 3. Boxes the code implements
 
