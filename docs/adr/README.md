@@ -40,3 +40,4 @@ Each record states the problem, the options and the decision, in terms a reviewe
 | [Verification closure](verification-closure.md) | Verified needs stored photos and a persisted result, every verification is a drone flight of still photos |
 | [Function releases](function-releases.md) | Own repository per application pipeline, Lambda alias moved by CodeDeploy, canary with automatic rollback in production |
 | [Inference failure policy](inference-failure-policy.md) | Four receives, a dead letter queue for each function and each rule, results stored before events, no state change on failure |
+| [Inference cost unit](inference-cost-unit.md) | Cost per 1,000 images analyzed as headline, a cost per trigger beside it, 8,500 harvest images |

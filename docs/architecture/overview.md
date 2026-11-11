@@ -145,7 +145,7 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 | CloudWatch, alarms and logs | 2.20 | 2.20 |
 | **Total** | **177.05** | **200.41** |
 
-About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links.
+About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links. The [inference cost](../governance/inference-cost.md) document gives the cost per 1,000 invocations in harvest, by trigger and per image.
 
 ## 8. What the infrastructure code builds
 
