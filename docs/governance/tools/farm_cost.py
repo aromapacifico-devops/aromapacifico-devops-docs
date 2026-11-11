@@ -55,7 +55,7 @@ NODE_MB = (5.5, 5.5, 20.0)  # low, base (price basis), high (assumption: firmwar
 GATEWAY_MB = (20.0, 50.0, 150.0)  # assumption, no documented figure for a Basics Station gateway
 
 # ---- Cloud lines, copied from docs/governance/cloud-cost.md and checked against it ----
-CLOUD_FIXED = 170.10
+CLOUD_FIXED = 173.70
 CLOUD_VAR = {"Telemetry ingestion": (0.72, 0.98), "Alert delivery": (2.03, 10.17)}
 CLOUD_BASE_FARMS = 200
 LORA_MESSAGE_USD = 0.000006
@@ -226,7 +226,7 @@ def check_cost_document():
 def main():
     cost_total = check_cost_document()
     assert 30 + 20 + 10 + 15 + 25 == ON_SITE_MIN
-    assert math.isclose(CLOUD_FIXED, 109.50 + 43.80 + 5.00 + 1.60 + 8.00 + 2.20)
+    assert math.isclose(CLOUD_FIXED, 109.50 + 43.80 + 5.00 + 1.60 + 8.00 + 5.80)
     assert math.isclose(12.8 * 12, 153.6)
     assert PREPAID["mb_included"] / NODE_MB[0] > 12
 
@@ -282,7 +282,7 @@ def main():
     print(f"| **Known subtotal, LoRa farm** | {' | '.join(usd(hardware('lora', s)) for s in SC)} | known part only |")
     print(f"| SIM card or prepaid plan, one time, cellular farm | {' | '.join(usd(one_time_connectivity('cell', s)) for s in SC)} | estimate, no plan is contracted |")
     print("")
-    print("Pending items of every farm, each an unknown cost: " + "; ".join(PENDING_FARM) + ".")
+    print("Each farm still has items with an unknown cost. They are " + "; ".join(PENDING_FARM) + ".")
 
     print("\n## Installation, one visit, of one farm, by scenario")
     print("| Component | Low | Base | High | Origin |")
@@ -354,7 +354,7 @@ def main():
     print("")
     print("The consumption of the gateway and the usable energy of the kit are not read from the data sheet of the gateway or of the kit, so the contrast with them is pending. The statement of the seller that the kit gives more than 5 days is not checked here. If the load is above the limits above, the kit is not viable and a larger battery or panel is another pending cost.")
     print("")
-    print(f"Pending for each gateway: {'; '.join(PENDING_GATEWAY)}. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.")
+    print(f"Each gateway still has items with an unknown cost. They are {'; '.join(PENDING_GATEWAY)}. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.")
     print("")
     print("The number of farms for each gateway is an economic assumption and says nothing about radio coverage. Gateways are rounded up and each is counted once.")
     print("")

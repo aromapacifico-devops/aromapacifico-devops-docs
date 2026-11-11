@@ -133,19 +133,20 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 |---|---|---|
 | Telemetry ingestion | 0.72 | 0.98 |
 | APIs for positions, sacks and queries | 1.01 | 2.31 |
-| Inference | 2.63 | 15.75 |
+| Inference | 1.63 | 16.26 |
 | New objects in S3, for that month | 0.11 | 0.65 |
 | Alert delivery, SMS at its upper bound | 2.03 | 10.17 |
 | Audit and the small event-driven pieces | 0.45 | 0.45 |
+| Operational telemetry, logs, metrics and traces | 2.13 | 2.55 |
 | VPN, three connections | 109.50 | 109.50 |
 | Interface endpoints, three in two zones | 43.80 | 43.80 |
 | KMS, five keys | 5.00 | 5.00 |
 | Secrets, four | 1.60 | 1.60 |
 | WAF, web ACL and three rules | 8.00 | 8.00 |
-| CloudWatch, alarms and logs | 2.20 | 2.20 |
-| **Total** | **177.05** | **200.41** |
+| CloudWatch, alarms and the operations dashboard | 5.80 | 5.80 |
+| **Total** | **181.78** | **207.07** |
 
-About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links. The [inference cost](../governance/inference-cost.md) document gives the cost per 1,000 invocations in harvest, by trigger and per image.
+About 84 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links. The [inference cost](../governance/inference-cost.md) document gives the cost per 1,000 invocations in harvest, by trigger and per image.
 
 ## 8. What the infrastructure code builds
 
@@ -172,9 +173,12 @@ Development, test and production come from the same code with different variable
 
 | Subject | Documents |
 |---|---|
-| Governance | Landing zone, cloud selection, requirement matrix |
-| Security | Identity and access, encryption and revocation, personal data and retention |
-| Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
-| Automation and change | Implementation scope, environments and promotion |
-| Workloads | Sensors, alert ranges, telemetry ingestion, alert to drone confirmation, inference functions, drone operating mode, drone roles and permits, lot boundaries, harvest estimation, sack identity, sack states, custody chain, views by actor, carrier application contract |
+| Governance | Landing zone, cloud selection, requirement matrix, tags, tag policy and budgets, audit of sensitive events |
+| Security | Identity and access, encryption, secrets and revocation, personal data and retention, firewall policy, inference Region and data leaving the country |
+| Network and connectivity | Farm connectivity, mobile network validity, out-of-coverage LoRa path, drone mission link, carrier tracking, port delivery, collection center LAN, center WLAN, center WAN sizing, center cloud link, cloud addressing |
+| Automation and change | Implementation scope, environments and promotion, delivery pipelines, release notes and change policy |
+| Workloads | Sensors, alert ranges, telemetry ingestion, ingestion sizing, alert delivery, farmer history, alert to drone confirmation, drone operating mode, drone roles and permits, lot boundaries, focus confirmation, fumigation order, post-fumigation verification, harvest estimation, flight objects, inference functions, failure policy, sack identity, sack states, custody chain, views by actor, public query, carrier application contract, collection center operations, persistence and archive, recovery |
+| Observability | Observability design, operational alarms, service level objectives |
+| Cost | Price basis, monthly cloud cost, farm hardware and monthly amount, drone campaign cost, inference cost |
+| Design system | Visual identity, design system applied to the three views |
 | Decisions and assumptions | Decision records and assumption register |

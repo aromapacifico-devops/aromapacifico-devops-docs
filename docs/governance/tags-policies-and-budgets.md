@@ -71,7 +71,7 @@ Three layers apply, and each one stops a different mistake.
 | Tag policy | AWS Organizations, attached to the organization root | Resources of the listed types that lack a required key, reported as noncompliant, and values outside the allowed list | Pilot |
 | Provider compliance check | `terraform plan` and `apply`, with `tag_policy_compliance = "error"` | Creating a resource, or changing its tags, when the effective tag policy requires a key the resource lacks | Pilot |
 
-The policy lives in [`policies/tag-policy.json`](policies/tag-policy.json). It requires the six keys on the 28 resource types the platform creates or will create, listed in [`policies/tag-resource-types.json`](policies/tag-resource-types.json), and fixes the capitalization of every key and its allowed values. Tag policies are created in the management account, so the standalone demonstration account cannot attach one. There the root validation is the block, and the check script of section 6 keeps the policy ready for the pilot.
+The policy lives in [`policies/tag-policy.json`](policies/tag-policy.json). It requires the six keys on the 29 resource types the platform creates or will create, listed in [`policies/tag-resource-types.json`](policies/tag-resource-types.json), and fixes the capitalization of every key and its allowed values. Tag policies are created in the management account, so the standalone demonstration account cannot attach one. There the root validation is the block, and the check script of section 6 keeps the policy ready for the pilot.
 
 The provider check has three limits that the team must know.
 
@@ -97,11 +97,11 @@ Each environment has its own account in the pilot, so the budget of an environme
 
 | Environment | Monthly limit, USD | Basis |
 |---|---|---|
-| Production | 230 | USD 200.41 in a harvest month, plus a margin |
+| Production | 230 | USD 207.07 in a harvest month, plus a margin |
 | Test | 15 | 80 hours of use and its platform key |
 | Development | 10 | 80 hours of use and its platform key |
 
-A normal month of production costs USD 177.05, 77 percent of the limit, and stays quiet. A harvest month reaches about 87 percent and sends the 80 percent alert. That alert is expected in harvest. It asks for a look at the volumes and opens no incident.
+A normal month of production costs USD 181.78, 79 percent of the limit, and stays quiet. A harvest month reaches about 90 percent and sends the 80 percent alert. That alert is expected in harvest. It asks for a look at the volumes and opens no incident. A harvest month in which all 200 estimation flights fall reaches about USD 236.76, 103 percent, and sends the 100 percent alert as well.
 
 ### Demonstration
 

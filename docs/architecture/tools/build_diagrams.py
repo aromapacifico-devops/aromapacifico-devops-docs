@@ -1,8 +1,10 @@
 """Builds docs/architecture/diagrams/platform-architecture.drawio with fixed coordinates."""
+import base64
 from pathlib import Path
 from xml.sax.saxutils import quoteattr
 
 OUT = Path(__file__).resolve().parent.parent / "diagrams" / "platform-architecture.drawio"
+ASSETS = OUT.parent / "assets"
 
 COMPUTE, DATA, STORAGE, NET, SEC, APP, ML, MGMT, IOT = (
     "#ED7100", "#C925D1", "#7AA116", "#8C4FFF", "#DD344C", "#E7157B", "#01A88D", "#E7157B", "#7AA116")
@@ -65,6 +67,11 @@ class Page:
         style = (f"sketch=0;html=1;aspect=fixed;image;image=img/lib/azure2/{image};verticalLabelPosition=bottom;"
                  f"verticalAlign=top;align=center;fontSize=11;fontColor={INK};")
         return self._v(label, style, x, y, size, size)
+
+    def picture(self, path, x, y, w, h):
+        data = base64.b64encode((ASSETS / path).read_bytes()).decode()
+        style = f"shape=image;html=1;imageAspect=0;strokeColor=none;image=data:image/png,{data};"
+        return self._v("", style, x, y, w, h)
 
     def badge(self, code, x, y):
         style = ("rounded=1;whiteSpace=wrap;html=1;fillColor=#0B3D91;strokeColor=#0B3D91;fontColor=#FFFFFF;"
@@ -304,8 +311,13 @@ def overview():
     p.card("Blob Storage", "Replaces S3", 2224, 820, 178, 66, azure="storage/Storage_Accounts.svg", dashed=True, stroke="#0078D4")
     p.card("Cosmos DB", "Replaces DynamoDB", 2414, 820, 178, 66, azure="databases/Azure_Cosmos_DB.svg", dashed=True, stroke="#0078D4")
     p.note("No resources run here. Portable contracts, the equivalence table and the five-year archive keep the exit available with no idle cost.", 2224, 900, 368, 118, fill="#FFFFFF", stroke="#0078D4")
-    p.zone("H. Design system", 2206, 1052, 404, 150, *G["des"])
-    p.note("Logo, palette with sack states and crop alert, type for phone and web, spacing, base components and rules of use for the three applications.", 2224, 1088, 368, 98, fill="#FFFFFF", stroke=G["des"][1])
+    p.zone("H. Design system", 2206, 1052, 404, 368, *G["des"])
+    p._v("", f"rounded=0;html=1;fillColor=#FFFFFF;strokeColor={G['des'][1]};", 2224, 1088, 368, 166)
+    p.picture("brand-logo.png", 2258, 1102, 300, 89)
+    p.picture("brand-colors.png", 2240, 1204, 336, 22)
+    for i, (name, hex_) in enumerate((("Roast red", "#8C0303"), ("Pacific blue", "#0378A6"), ("Sun", "#F29F05"), ("Ink", "#161412"))):
+        p.text(f"{name}<br>{hex_}", 2240 + i * 85, 1228, 82, 24, size=9)
+    p.note("Logo, isotype, one ink and negative versions, palette with sack states and crop alert, type for phone and web, spacing, the five base components and rules of use for outdoor contrast, icons and the buyer view. Applied to the farmer, carrier and buyer views.", 2224, 1266, 368, 136, fill="#FFFFFF", stroke=G["des"][1])
 
     # Flows
     p.edge("node", "iot", "①", TEL, exit=(1, 0.5), entry=(0, 0.3), points=[(556, 314), (556, 456)], width=2)

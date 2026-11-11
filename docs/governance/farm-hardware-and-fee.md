@@ -42,7 +42,7 @@ All amounts are in US dollars before tax, with pesos at the TRM of the price bas
 | Document | What it fixes and this estimate keeps |
 |---|---|
 | [Price basis](price-basis.md) | USD, the TRM of 3,269.88 with its low and high, IVA of 19 percent excluded, the cellular module board at USD 35.86, a prepaid plan of a global provider and the 5.5 MB a month for a node |
-| [Cloud cost](cloud-cost.md) | The fixed lines of USD 170.10 and the variable lines for 200 farms. Only two variable lines grow with the farms, telemetry ingestion and alert delivery. Every other line belongs to carriers, centers, buyers or drones and is not assigned to a farm here |
+| [Cloud cost](cloud-cost.md) | The fixed lines of USD 173.70 and the variable lines for 200 farms. Only two variable lines grow with the farms, telemetry ingestion and alert delivery. Every other line belongs to carriers, centers, buyers or drones and is not assigned to a farm here |
 | [Autonomous node](../iot/autonomous-node.md) | The bill of materials by class, a 12.8 V 12 Ah battery, a 20 W panel, the five steps of 100 minutes on the site, and the cellular and LoRa variants |
 | [LoRa out of coverage](../network/lora-out-of-coverage.md) | The shared gateway, the energy table of its solar kit and a LoRa farm with no data plan |
 
@@ -129,7 +129,7 @@ Known subtotal of priced parts. The pending items are not in it and are not zero
 | **Known subtotal, LoRa farm** | 336.30 | 336.30 | 336.30 | known part only |
 | SIM card or prepaid plan, one time, cellular farm | 15.00 | 3.00 | 3.00 | estimate, no plan is contracted |
 
-Pending items of every farm, each an unknown cost: Enclosure IP67; Controller board; Climate sensor; Grain probe; Mast and fixings; Cable and connectors; Shipping, import duties and IVA of every item.
+Each farm still has items with an unknown cost. They are Enclosure IP67; Controller board; Climate sensor; Grain probe; Mast and fixings; Cable and connectors; Shipping, import duties and IVA of every item.
 
 ## 6. Installation in one visit
 
@@ -205,7 +205,7 @@ The gateway bundle lists a solar kit with its battery, its panel and the mountin
 
 The consumption of the gateway and the usable energy of the kit are not read from the data sheet of the gateway or of the kit, so the contrast with them is pending. The statement of the seller that the kit gives more than 5 days is not checked here. If the load is above the limits above, the kit is not viable and a larger battery or panel is another pending cost.
 
-Pending for each gateway: Mast of the height the site study sets; Cables and lightning protection; Shipping, import duties and IVA. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.
+Each gateway still has items with an unknown cost. They are Mast of the height the site study sets; Cables and lightning protection; Shipping, import duties and IVA. The gateway of the price basis, EUR 537.76 at a retailer with VAT, differs from the USD 382.00 that the manufacturer store lists for the 8 channel variant without LTE and from the USD 1,199.00 for the bundle used here.
 
 The number of farms for each gateway is an economic assumption and says nothing about radio coverage. Gateways are rounded up and each is counted once.
 
@@ -244,21 +244,21 @@ Investment and recurring cost are separate. Recurring cash holds the nodes, the 
 
 | Farms | LoRa share | Gateways | Investment, nodes | Investment, installation | Investment, gateways | Investment total, known | Monthly cash | Monthly reserve | Cash and reserve for each farm |
 |---|---|---|---|---|---|---|---|---|---|
-| 200 | 0% | 0 | 80,828.00 | 9,429.50 | 0.00 | 90,257.50 | 1,042.98 | 1,281.60 | 11.62 |
-| 200 | 25% | 5 | 77,436.00 | 9,429.50 | 6,630.04 | 93,495.54 | 1,029.52 | 1,320.21 | 11.75 |
-| 200 | 50% | 10 | 74,044.00 | 9,429.50 | 13,260.08 | 96,733.58 | 1,016.06 | 1,358.82 | 11.87 |
-| 400 | 0% | 0 | 161,656.00 | 18,859.00 | 0.00 | 180,515.00 | 1,915.86 | 2,563.20 | 11.20 |
-| 400 | 25% | 10 | 154,872.00 | 18,859.00 | 13,260.08 | 186,991.08 | 1,888.93 | 2,640.42 | 11.32 |
-| 400 | 50% | 20 | 148,088.00 | 18,859.00 | 26,520.15 | 193,467.15 | 1,862.01 | 2,717.64 | 11.45 |
-| 600 | 0% | 0 | 242,484.00 | 28,288.50 | 0.00 | 270,772.50 | 2,788.74 | 3,844.80 | 11.06 |
-| 600 | 25% | 15 | 232,308.00 | 28,288.50 | 19,890.11 | 280,486.61 | 2,748.35 | 3,960.63 | 11.18 |
-| 600 | 50% | 30 | 222,132.00 | 28,288.50 | 39,780.23 | 290,200.73 | 2,707.97 | 4,076.45 | 11.31 |
-| 800 | 0% | 0 | 323,312.00 | 37,718.00 | 0.00 | 361,030.00 | 3,661.61 | 5,126.41 | 10.99 |
-| 800 | 25% | 20 | 309,744.00 | 37,718.00 | 26,520.15 | 373,982.15 | 3,607.77 | 5,280.84 | 11.11 |
-| 800 | 50% | 40 | 296,176.00 | 37,718.00 | 53,040.30 | 386,934.30 | 3,553.92 | 5,435.27 | 11.24 |
-| 1000 | 0% | 0 | 404,140.00 | 47,147.50 | 0.00 | 451,287.50 | 4,534.49 | 6,408.01 | 10.94 |
-| 1000 | 25% | 25 | 387,180.00 | 47,147.50 | 33,150.19 | 467,477.69 | 4,467.18 | 6,601.05 | 11.07 |
-| 1000 | 50% | 50 | 370,220.00 | 47,147.50 | 66,300.38 | 483,667.88 | 4,399.88 | 6,794.09 | 11.19 |
+| 200 | 0% | 0 | 80,828.00 | 9,429.50 | 0.00 | 90,257.50 | 1,046.58 | 1,281.60 | 11.64 |
+| 200 | 25% | 5 | 77,436.00 | 9,429.50 | 6,630.04 | 93,495.54 | 1,033.12 | 1,320.21 | 11.77 |
+| 200 | 50% | 10 | 74,044.00 | 9,429.50 | 13,260.08 | 96,733.58 | 1,019.66 | 1,358.82 | 11.89 |
+| 400 | 0% | 0 | 161,656.00 | 18,859.00 | 0.00 | 180,515.00 | 1,919.46 | 2,563.20 | 11.21 |
+| 400 | 25% | 10 | 154,872.00 | 18,859.00 | 13,260.08 | 186,991.08 | 1,892.53 | 2,640.42 | 11.33 |
+| 400 | 50% | 20 | 148,088.00 | 18,859.00 | 26,520.15 | 193,467.15 | 1,865.61 | 2,717.64 | 11.46 |
+| 600 | 0% | 0 | 242,484.00 | 28,288.50 | 0.00 | 270,772.50 | 2,792.34 | 3,844.80 | 11.06 |
+| 600 | 25% | 15 | 232,308.00 | 28,288.50 | 19,890.11 | 280,486.61 | 2,751.95 | 3,960.63 | 11.19 |
+| 600 | 50% | 30 | 222,132.00 | 28,288.50 | 39,780.23 | 290,200.73 | 2,711.57 | 4,076.45 | 11.31 |
+| 800 | 0% | 0 | 323,312.00 | 37,718.00 | 0.00 | 361,030.00 | 3,665.21 | 5,126.41 | 10.99 |
+| 800 | 25% | 20 | 309,744.00 | 37,718.00 | 26,520.15 | 373,982.15 | 3,611.37 | 5,280.84 | 11.12 |
+| 800 | 50% | 40 | 296,176.00 | 37,718.00 | 53,040.30 | 386,934.30 | 3,557.52 | 5,435.27 | 11.24 |
+| 1000 | 0% | 0 | 404,140.00 | 47,147.50 | 0.00 | 451,287.50 | 4,538.09 | 6,408.01 | 10.95 |
+| 1000 | 25% | 25 | 387,180.00 | 47,147.50 | 33,150.19 | 467,477.69 | 4,470.78 | 6,601.05 | 11.07 |
+| 1000 | 50% | 50 | 370,220.00 | 47,147.50 | 66,300.38 | 483,667.88 | 4,403.48 | 6,794.09 | 11.20 |
 
 Every total is a known subtotal. The pending items of the nodes and gateways and the shipping, duties and IVA add to it.
 
@@ -266,29 +266,29 @@ Every total is a known subtotal. The pending items of the nodes and gateways and
 
 | Farms | LoRa share | Farms for each gateway | Gateways, rounded up | Investment known | Monthly cash | Monthly reserve | Cash and reserve for each farm |
 |---|---|---|---|---|---|---|---|
-| 200 | 25% | 5 | 10 | 100,125.58 | 1,073.87 | 1,392.59 | 12.33 |
-| 200 | 25% | 10 | 5 | 93,495.54 | 1,029.52 | 1,320.21 | 11.75 |
-| 200 | 25% | 20 | 3 | 90,843.52 | 1,011.77 | 1,291.26 | 11.52 |
-| 200 | 50% | 5 | 20 | 109,993.65 | 1,104.77 | 1,503.58 | 13.04 |
-| 200 | 50% | 10 | 10 | 96,733.58 | 1,016.06 | 1,358.82 | 11.87 |
-| 200 | 50% | 20 | 5 | 90,103.54 | 971.70 | 1,286.44 | 11.29 |
-| 1000 | 25% | 5 | 50 | 500,627.88 | 4,688.97 | 6,962.94 | 11.65 |
-| 1000 | 25% | 10 | 25 | 467,477.69 | 4,467.18 | 6,601.05 | 11.07 |
-| 1000 | 25% | 20 | 13 | 451,565.60 | 4,360.73 | 6,427.34 | 10.79 |
-| 1000 | 50% | 5 | 100 | 549,968.26 | 4,843.44 | 7,517.88 | 12.36 |
-| 1000 | 50% | 10 | 50 | 483,667.88 | 4,399.88 | 6,794.09 | 11.19 |
-| 1000 | 50% | 20 | 25 | 450,517.69 | 4,178.09 | 6,432.19 | 10.61 |
+| 200 | 25% | 5 | 10 | 100,125.58 | 1,077.47 | 1,392.59 | 12.35 |
+| 200 | 25% | 10 | 5 | 93,495.54 | 1,033.12 | 1,320.21 | 11.77 |
+| 200 | 25% | 20 | 3 | 90,843.52 | 1,015.37 | 1,291.26 | 11.53 |
+| 200 | 50% | 5 | 20 | 109,993.65 | 1,108.37 | 1,503.58 | 13.06 |
+| 200 | 50% | 10 | 10 | 96,733.58 | 1,019.66 | 1,358.82 | 11.89 |
+| 200 | 50% | 20 | 5 | 90,103.54 | 975.30 | 1,286.44 | 11.31 |
+| 1000 | 25% | 5 | 50 | 500,627.88 | 4,692.57 | 6,962.94 | 11.66 |
+| 1000 | 25% | 10 | 25 | 467,477.69 | 4,470.78 | 6,601.05 | 11.07 |
+| 1000 | 25% | 20 | 13 | 451,565.60 | 4,364.33 | 6,427.34 | 10.79 |
+| 1000 | 50% | 5 | 100 | 549,968.26 | 4,847.04 | 7,517.88 | 12.36 |
+| 1000 | 50% | 10 | 50 | 483,667.88 | 4,403.48 | 6,794.09 | 11.20 |
+| 1000 | 50% | 20 | 25 | 450,517.69 | 4,181.69 | 6,432.19 | 10.61 |
 
 ### Scenarios low, base and high
 
 | Farms | Scenario | Investment known | Recurring cash a month | Reserve a month | Recurring cash and reserve for each farm |
 |---|---|---|---|---|---|
-| 200 | low | 89,153.86 | 476.27 | 874.94 | 6.76 |
-| 200 | base | 93,495.54 | 1,029.52 | 1,320.21 | 11.75 |
-| 200 | high | 122,883.94 | 3,646.81 | 2,039.68 | 28.43 |
-| 1000 | low | 445,769.29 | 1,700.96 | 4,374.68 | 6.08 |
-| 1000 | base | 467,477.69 | 4,467.18 | 6,601.05 | 11.07 |
-| 1000 | high | 614,419.68 | 17,553.66 | 10,198.39 | 27.75 |
+| 200 | low | 89,153.86 | 479.87 | 874.94 | 6.77 |
+| 200 | base | 93,495.54 | 1,033.12 | 1,320.21 | 11.77 |
+| 200 | high | 122,883.94 | 3,650.41 | 2,039.68 | 28.45 |
+| 1000 | low | 445,769.29 | 1,704.56 | 4,374.68 | 6.08 |
+| 1000 | base | 467,477.69 | 4,470.78 | 6,601.05 | 11.07 |
+| 1000 | high | 614,419.68 | 17,557.26 | 10,198.39 | 27.76 |
 
 The low case lowers travel and labor and lengthens the lives of the parts, and the high case does the opposite. The low case also pays connectivity up front with a prepaid plan, so its investment of a cellular farm can exceed the base case while its monthly amount is lower. A scenario does not move the pending items, whose cost is unknown in all three.
 
@@ -296,13 +296,13 @@ The low case lowers travel and labor and lengthens the lives of the parts, and t
 
 | Farms | Marginal cash cost | Fixed cloud lines | Gateway cash | Reserve | Cash and reserve for each farm |
 |---|---|---|---|---|---|
-| 200 | 4.08 | 0.85 | 0.22 | 6.60 | 11.75 |
-| 400 | 4.08 | 0.43 | 0.22 | 6.60 | 11.32 |
-| 600 | 4.08 | 0.28 | 0.22 | 6.60 | 11.18 |
-| 800 | 4.08 | 0.21 | 0.22 | 6.60 | 11.11 |
+| 200 | 4.08 | 0.87 | 0.22 | 6.60 | 11.77 |
+| 400 | 4.08 | 0.43 | 0.22 | 6.60 | 11.33 |
+| 600 | 4.08 | 0.29 | 0.22 | 6.60 | 11.19 |
+| 800 | 4.08 | 0.22 | 0.22 | 6.60 | 11.12 |
 | 1000 | 4.08 | 0.17 | 0.22 | 6.60 | 11.07 |
 
-At 200 farms the fixed cloud lines add USD 0.85 for each farm and at 1,000 farms USD 0.17. The cost for each farm falls with the number of farms because the fixed cloud lines spread, and it rises with the share of LoRa farms in this estimate because a gateway is a whole unit. The cloud lines that grow with the farms are linear, since the cloud addressing design holds from 200 to 1,000 farms with no change.
+At 200 farms the fixed cloud lines add USD 0.87 for each farm and at 1,000 farms USD 0.17. The cost for each farm falls with the number of farms because the fixed cloud lines spread, and it rises with the share of LoRa farms in this estimate because a gateway is a whole unit. The cloud lines that grow with the farms are linear, since the cloud addressing design holds from 200 to 1,000 farms with no change.
 
 ## 11. The monthly amount
 
@@ -314,7 +314,7 @@ A fee is a policy decision. These are the ways considered to build a monthly amo
 |---|---|---|---|
 | A. Recover only the marginal cash cost | Data, SIM, cloud lines that grow, maintenance, with no reserve and no shared cost | 4.08 | 4.08 |
 | B. Recover the cash cost, the gateways and the reserve, and the Federation bears the fixed cloud lines | Option A plus the gateway cash cost and the reserve | 10.90 | 10.90 |
-| C. Recover everything recurring, with the fixed cloud lines divided by the farms. Adopted | Option B plus the fixed cloud lines of the cost document | 11.75 | 11.07 |
+| C. Recover everything recurring, with the fixed cloud lines divided by the farms. Adopted | Option B plus the fixed cloud lines of the cost document | 11.77 | 11.07 |
 
 Each option leaves out the pending items. A subsidy, an interest rate, a margin or a different share of the fixed cloud lines are decisions that no document of the project makes, and whether the farmer is charged any of this is also open.
 
@@ -332,8 +332,8 @@ C(N) = [ NC x (data traffic + fixed charge of the SIM) + N x (cloud lines that g
 | LoRaWAN messages of the cloud | Monthly cash | 0.00 | 0.00 |
 | Gateways: data traffic, SIM charge and maintenance visits | Monthly cash | 0.22 | 0.22 |
 | Replacement reserve of the priced parts of nodes and gateways | Reserve for later replacements | 6.60 | 6.60 |
-| Fixed cloud lines divided by the farms | Monthly cash, assigned in full to the farms | 0.85 | 0.17 |
-| **Option C, known part** | | 11.75 plus pending | 11.07 plus pending |
+| Fixed cloud lines divided by the farms | Monthly cash, assigned in full to the farms | 0.87 | 0.17 |
+| **Option C, known part** | | 11.77 plus pending | 11.07 plus pending |
 
 | Paid by the initial investment, once | Covered by the monthly amount of option C |
 |---|---|
@@ -396,7 +396,7 @@ If IVA of 19% applies in full to the known investment, a cellular farm goes from
 
 The cloud lines of this estimate come from the cost document of this repository and are checked against it by the script, which fails if a value changes.
 
-The cost document gives USD 177.05 for a normal month and USD 200.41 for a harvest month for the production platform, and this estimate takes its fixed lines of USD 170.10 from it.
+The cost document gives USD 181.78 for a normal month and USD 207.07 for a harvest month for the production platform, and this estimate takes its fixed lines of USD 173.70 from it.
 
 The price basis lists a gateway at EUR 537.76 at a retailer with VAT. The manufacturer store lists USD 382.00 for the 8 channel variant without LTE and USD 1,199.00 for the bundle with a solar kit and LTE, which is the one priced here. The two are listings of different items, and the owner of the price basis decides whether to add the manufacturer listing.
 

@@ -124,7 +124,7 @@ STATUS = {"existing", "derived", "pending"}
 KINDS = {"service", "custom", "logquery", "event"}
 
 # ---- Operational logs and their retention ----
-OPERATIONAL_RETENTION_DAYS = 30  # assumption approved by isahrnd for the exercise
+OPERATIONAL_RETENTION_DAYS = 30  # design assumption, the Federation confirms it
 AUDIT_RETENTION = "90 days in CloudWatch and five years in S3, from the personal data design"
 
 # ---- Prices, AWS Price List API read 2026-11-11, us-east-1 ----
@@ -315,7 +315,7 @@ def main():
     print(f"| Bytes written for each API request | {BYTES_PER_API_REQUEST} | Assumption |")
     print(f"| Gigabytes scanned by queries a month | {SCANNED_GB_PER_MONTH:g} | Assumption |")
     print(f"| Dashboards | {DASHBOARDS} | Assumption |")
-    print(f"| Retention of operational logs | {OPERATIONAL_RETENTION_DAYS} days | Assumption approved by isahrnd for the exercise |")
+    print(f"| Retention of operational logs | {OPERATIONAL_RETENTION_DAYS} days | Design assumption, the Federation confirms it |")
     print(f"| Custom metric series of the catalog | {series} | The catalog above |")
     print("")
     print("| Month | Function invocations | API requests | Logs ingested, GB | Ingestion | Storage | Queries | Metrics | Dashboards | Total at list price | Total with the free tier | Alarms that fit the rest of the budget, with the free tier |")

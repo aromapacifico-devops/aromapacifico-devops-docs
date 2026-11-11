@@ -1,136 +1,147 @@
-# Identidad Visual del Sistema Propio 2026 — AromaPacífico (E7-07)
+# Visual identity of the three applications
 
-> **Especificación de la identidad visual de las tres aplicaciones del piloto.**
-> **Proyecto:** AromaPacífico – DevOps & IoT Platform (Cauca, Huila, Tolima, Buenaventura).
-> **Issue:** [`aromapacifico-devops-docs#56`](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/56) · **Épica:** E7 (Costo y Sistema de Diseño) · **Responsable:** Daniel Mejía (`Dearxia1`, Senior).
-> **Desbloquea a:** [`aromapacifico-devops-docs#57`](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/57) (`[E7-08] Definir tokens y aplicar sistema a las tres vistas`, Isabella Hernández).
-> **Figma:** [AromaPacifico](https://www.figma.com/design/sFAlRb7c5pxXKsQK7ZRub0/AromaPacifico) · **PDFs en el repo:** `docs/design/`.
+This document defines the visual identity of the three applications of the pilot, the farmer application, the carrier application and the public lookup of a sack. It sets the brand, its versions, the colors, the type and the tokens that the [design system](design-system.md) applies to every screen. The source is the design file [AromaPacifico in Figma](https://www.figma.com/design/sFAlRb7c5pxXKsQK7ZRub0/AromaPacifico), and the PDF files of this folder are exports of it.
 
----
+## Contents
 
-## 1. Contexto y objetivos
+1. Context and goals
+2. The brand
+3. Color system
+4. Type system
+5. Tokens
+6. Components and screens
+7. Deliverables
+8. Pending confirmations
 
-El manual de marca de 2020 quedó obsoleto: no consideraba la telemetría en tiempo real, la inspección con drones, la custodia de sacos ni el trabajo en campo de 2026.
+## 1. Context and goals
 
-La identidad responde a tres canales:
-1. **App del caficultor.** Se usa en fincas a plena luz del día. Exige contraste alto, frases cortas y números un toque más abajo, para quien confía más en su cuaderno que en una aplicación.
-2. **App del transportador.** Se usa en carretera y junto al camión, con una mano. Pide botones grandes en la zona del pulgar, lectura rápida del avance de la carga y funcionamiento sin datos.
-3. **Consulta pública del comprador.** Se abre al escanear el QR del saco, sin cuenta, sobre todo desde el teléfono. Transmite origen, fechas del recorrido y secado, y nada más.
+The brand manual of 2020 is outdated. It did not consider real-time telemetry, drone inspection, sack custody or the field work of 2026, so the pilot gets an identity of its own.
 
-## 2. La marca
+The identity serves three channels.
 
-### 2.1. Isotipo y logotipo
+1. The farmer application is used on farms in full daylight. It needs high contrast, short sentences and few figures, for a farmer who trusts the notebook more than an application.
+2. The carrier application is used on the road and next to the truck, with one hand. It needs large buttons within reach of the thumb, a quick reading of the progress of the load, and work with no data.
+3. The public lookup of the buyer opens when the QR code of the sack is scanned, with no account and mostly from a phone. It shows origin, the dates of the journey and the drying, and nothing more.
 
-La marca vigente es la que está dibujada en el archivo de Figma (slide `Slide 16:9 - 1`):
+## 2. The brand
 
-- **Isotipo:** tres llamas de vapor entrelazadas que suben como el aroma de una taza. Los colores son rojo (`#8C0303`), azul (`#0378A6`) y dorado (`#F29F05`).
-- **Logotipo:** la palabra **AROMA PACIFICO** en dos líneas, en Outfit Black y en negro, junto al isotipo.
+### 2.1. Isotype and logotype
 
-| Llama | Color | Significado |
+The current brand is the one drawn in the design file, on the slide `Slide 16:9 - 1`.
+
+- The isotype is three intertwined flames of steam that rise like the aroma of a cup, in red `#8C0303`, blue `#0378A6` and gold `#F29F05`.
+- The logotype is the word AROMA PACIFICO on two lines, in Outfit Black and in black, beside the isotype.
+
+| Flame | Color | Meaning |
 |---|---|---|
-| Roja | `#8C0303` | Tueste y tierra de origen |
-| Dorada | `#F29F05` | Sol andino y sello de calidad del grano |
-| Azul | `#0378A6` | Mar de Buenaventura y señal de telemetría |
+| Red | `#8C0303` | Roast and land of origin |
+| Gold | `#F29F05` | Andean sun and the quality seal of the bean |
+| Blue | `#0378A6` | Sea of Buenaventura and telemetry signal |
 
-La versión con ondas (rojo, naranja y azul al pie del slide) es el motivo gráfico de la marca. Aparece en la cabecera del portal del comprador como una franja de tres colores.
+The version with waves, red, orange and blue at the foot of the slide, is the graphic motif of the brand. It appears in the header of the buyer lookup as a band of three colors.
 
-### 2.2. Versiones del logotipo
+### 2.2. Versions of the logo
 
-| Versión | Regla | Estado |
+| Version | Rule | Component in the design file |
 |---|---|---|
-| **Principal (color)** | Isotipo en sus tres colores y palabra en negro, sobre fondo blanco o `surface/canvas`. Componente `Logo/Principal` | Hecha en Figma |
-| **Una tinta** | Isotipo y palabra en negro `#111111`, sin semitonos. Para costales de fique, recibos térmicos de báscula y sellos de acopio. Componente `Logo/Una tinta` | Hecha en Figma |
-| **Negativa** | Isotipo y palabra en blanco sobre fondo oscuro `#161412`. El rojo `#8C0303` sobre ese fondo solo da cerca de 2:1, así que las llamas no conservan sus colores. Componente `Logo/Negativo` | Hecha en Figma |
+| Main, in color | Isotype in its three colors and the word in black, on white or on `surface/canvas` | `Logo/Principal` |
+| One ink | Isotype and word in black `#111111`, with no halftones. For fique sacks, thermal scale receipts and stamps of the collection centers | `Logo/Una tinta` |
+| Negative | Isotype and word in white on the dark background `#161412`. The red `#8C0303` on that background gives about 2 to 1, so the flames do not keep their colors | `Logo/Negativo` |
 
-Las tres están en el slide `Branding 7 — Versiones del logotipo`. Los SVG se exportan desde cada componente en Figma.
+The three versions live on the slide of logo versions of the design file, and the SVG of each one is exported from its component.
 
-### 2.3. Área de reserva y tamaños mínimos
+### 2.3. Clear space and minimum sizes
 
-- **Área de reserva:** un margen libre alrededor del logotipo igual a la altura de una llama del isotipo. Ningún elemento puede invadirla.
-- **Isotipo:** 20 × 20 px en teléfono y 16 × 16 px como favicon.
-- **Logotipo completo:** 110 px de ancho en pantalla y 40 mm en impresión sobre sacos.
+| Element | Rule |
+|---|---|
+| Clear space | A free margin around the logo equal to the height of one flame of the isotype. No element enters it |
+| Isotype | 20 by 20 pixels on a phone and 16 by 16 pixels as a favicon |
+| Full logo | 110 pixels wide on screen and 40 mm in print on sacks |
 
-## 3. Sistema cromático
+## 3. Color system
 
-Bajo sol directo el reflejo reduce el contraste percibido, así que el texto de las aplicaciones usa tintas de contraste AAA (7:1 o más). Los ratios de esta nota se calcularon con la fórmula WCAG 2.2.
+Direct sunlight reduces the perceived contrast, so the text of the applications uses inks of AAA contrast, 7 to 1 or more. The ratios of this document come from the WCAG 2.2 formula.
 
-### 3.1. Marca y acción
+### 3.1. Brand and action
 
-| Token | HEX | Contraste sobre blanco | Uso |
+| Token | Hexadecimal | Contrast on white | Use |
 |---|---|---|---|
-| `brand/red` | `#8C0303` | 9.9:1 (AAA) | Marca. **No se usa como color de botón**, para no confundirse con la alerta |
-| `brand/pacific` | `#0378A6` | 5.0:1 (AA) | Telemetría y conectividad |
-| `brand/sun` | `#F29F05` | 2.2:1 | Acento y sello de calidad. **Solo gráfico**, nunca texto |
-| `action/primary` | alias de `brand/pacific` | 5.0:1 con texto blanco | Botones primarios, enlaces y foco |
+| `brand/red` | `#8C0303` | 9.9 to 1, AAA | Brand. It is never a button color, so it is never confused with an alert |
+| `brand/pacific` | `#0378A6` | 5.0 to 1, AA | Telemetry and connectivity |
+| `brand/sun` | `#F29F05` | 2.2 to 1 | Accent and quality seal. Graphic only, never text |
+| `action/primary` | Alias of `brand/pacific` | 5.0 to 1 with white text | Primary buttons, links and focus |
 
-### 3.2. Superficies y texto
+### 3.2. Surfaces and text
 
-| Token | HEX | Contraste sobre `surface/canvas` | Función |
+| Token | Hexadecimal | Contrast on `surface/canvas` | Use |
 |---|---|---|---|
-| `surface/canvas` | `#FBF9F5` | Base | Fondo diurno cálido, anti-reflejo |
-| `surface/card` | `#FFFFFF` | Base | Tarjetas, con borde de 1 px |
-| `surface/muted` | `#F5F2EB` | Base | Secciones secundarias y barras de estado |
-| `surface/border` | `#E7E5E4` | — | Divisores y bordes |
-| `text/primary` | `#161412` | 17.5:1 (AAA) | Texto principal |
-| `text/secondary` | `#44403C` | 9.8:1 (AAA) | Etiquetas y metadatos |
-| `text/muted` | `#78716C` | 4.6:1 (AA) | Microcopia. No para información crítica |
-| `text/inverse` | `#FFFFFF` | — | Texto sobre fondos oscuros o de acción |
+| `surface/canvas` | `#FBF9F5` | Base | Warm daytime background that reduces glare |
+| `surface/card` | `#FFFFFF` | Base | Cards, with a 1 pixel border |
+| `surface/muted` | `#F5F2EB` | Base | Secondary sections and status bars |
+| `surface/border` | `#E7E5E4` | Does not apply | Dividers and borders |
+| `text/primary` | `#161412` | 17.5 to 1, AAA | Main text |
+| `text/secondary` | `#44403C` | 9.8 to 1, AAA | Labels and metadata |
+| `text/muted` | `#78716C` | 4.6 to 1, AA | Microcopy. Never for critical information |
+| `text/inverse` | `#FFFFFF` | Does not apply | Text on dark or action backgrounds |
 
-**Regla 95/5.** Los neutros cálidos ocupan casi toda la pantalla. El color de marca y los colores semánticos solo señalan.
+Warm neutrals fill almost the whole screen, about 95 percent, and the brand and semantic colors only signal, about 5 percent.
 
-### 3.3. Estados del saco
+### 3.3. Sack states
 
-Los 7 estados lógicos del saco (ver `docs/traceability/sack-states.md`) se agrupan en 4 badges:
+The seven states of a sack, defined in `docs/traceability/sack-states.md`, group into four badges.
 
-| Estado lógico | Badge | Fondo | Borde | Texto |
+| State | Badge | Fill | Border | Text |
 |---|---|---|---|---|
-| `in_preparation` | En preparación | `#F5F5F4` | `#D6D3D1` | `#44403C` |
-| `in_transit_to_center`, `in_transit_to_port` | En tránsito | `#E0F2FE` | `#BAE6FD` | `#0369A1` |
-| `at_center_accepted`, `delivered_accepted` | Aceptado | `#DCFCE7` | `#BBF7D0` | `#15803D` |
-| `at_center_rejected`, `delivered_rejected` | Rechazado | `#FEE2E2` | `#FECACA` | `#991B1B` |
+| `in_preparation` | In preparation | `#F5F5F4` | `#D6D3D1` | `#44403C` |
+| `in_transit_to_center`, `in_transit_to_port` | In transit | `#E0F2FE` | `#BAE6FD` | `#0369A1` |
+| `at_center_accepted`, `delivered_accepted` | Accepted | `#DCFCE7` | `#BBF7D0` | `#15803D` |
+| `at_center_rejected`, `delivered_rejected` | Rejected | `#FEE2E2` | `#FECACA` | `#991B1B` |
 
-### 3.4. Alertas de cultivo y secado
+### 3.4. Crop and drying alerts
 
-| Nivel | Fondo | Borde | Texto | Comportamiento |
+| Level | Fill | Border | Text | Behavior |
 |---|---|---|---|---|
-| Normal | `#F0FDF4` | `#86EFAC` | `#166534` | "Tu cultivo está dentro del rango" |
-| Preventiva | `#FFFBEB` | `#FCD34D` | `#92400E` | Lectura fuera de rango agronómico |
-| Urgente | `#FEF2F2` | `#DC2626` (2 px) | `#991B1B` | Grano sobre 40 °C: "Actúa ahora". Banda de alta prioridad, visible al sol |
+| Normal | `#F0FDF4` | `#86EFAC` | `#166534` | "Tu cultivo está dentro del rango", the crop is within range |
+| Preventive | `#FFFBEB` | `#FCD34D` | `#92400E` | A reading outside the agronomic range |
+| Urgent | `#FEF2F2` | `#DC2626`, 2 pixels | `#991B1B` | Grain above 40 degrees, "Actúa ahora". A high priority band that stays visible in the sun |
 
-El rojo de alerta (`#DC2626` y `#991B1B`) está reservado a la alerta urgente y al badge Rechazado.
+The alert red, `#DC2626` and `#991B1B`, is reserved for the urgent alert and the rejected badge.
 
-## 4. Sistema tipográfico
+## 4. Type system
 
-- **Familia de marca:** **Outfit**, para las tres aplicaciones y la consulta web. Va incluida en las aplicaciones y no depende de la red. Si no carga, la respaldan `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`.
-- **Monoespaciada:** **Roboto Mono**, con respaldo `ui-monospace, "SF Mono", Menlo, Consolas, monospace` y cifras tabulares. Todo código de saco, peso, temperatura, humedad o coordenada la lleva.
-- **Pesos:** Black para el nombre de marca y los titulares de origen, SemiBold para títulos, Medium para etiquetas y Regular para el cuerpo.
+| Role | Family | Fallback |
+|---|---|---|
+| Brand and interface, in the three applications and the web lookup | Outfit, bundled with the applications so it does not depend on the network | `system-ui, -apple-system, "Segoe UI", Roboto, sans-serif` |
+| Codes and figures, such as sack codes, weights, temperatures, humidity and coordinates | Roboto Mono with tabular figures | `ui-monospace, "SF Mono", Menlo, Consolas, monospace` |
 
-| Estilo en Figma | Fuente | Tamaño / interlineado | Tracking | Uso |
+Weights are Black for the brand name and the origin headings, SemiBold for titles, Medium for labels and Regular for body text.
+
+| Style in the design file | Font | Size and line height | Tracking | Use |
 |---|---|---|---|---|
-| `text/display-origin` | Outfit Black | 38 / 44 | −2 % | Origen en la consulta del comprador |
-| `text/title-screen` | Outfit SemiBold | 24 / 32 | −2 % | Título de pantalla |
-| `text/title-card` | Outfit SemiBold | 18 / 24 | −1 % | Encabezado de tarjeta o lote |
-| `text/body-base` | Outfit Regular | 16 / 24 | 0 | Frases descriptivas |
-| `text/body-bold` | Outfit SemiBold | 16 / 24 | 0 | Datos de selección táctil |
-| `text/caption` | Outfit Medium | 13 / 18 | +2 % | Marcas de tiempo relativas |
-| `text/data-mono` | Roboto Mono Bold | 15 / 20 | +4 % | Código de saco: `AP-7K3M-Q29X-TDHB-6` |
+| `text/display-origin` | Outfit Black | 38 / 44 | minus 2 percent | Origin in the buyer lookup |
+| `text/title-screen` | Outfit SemiBold | 24 / 32 | minus 2 percent | Screen title |
+| `text/title-card` | Outfit SemiBold | 18 / 24 | minus 1 percent | Heading of a card or lot |
+| `text/body-base` | Outfit Regular | 16 / 24 | 0 | Descriptive sentences |
+| `text/body-bold` | Outfit SemiBold | 16 / 24 | 0 | Data chosen by touch |
+| `text/caption` | Outfit Medium | 13 / 18 | plus 2 percent | Relative time stamps |
+| `text/data-mono` | Roboto Mono Bold | 15 / 20 | plus 4 percent | Sack code, such as `AP-7K3M-Q29X-TDHB-6` |
 
-Texto mínimo: 16 px en el cuerpo y 13 px solo en marcas de tiempo.
+The minimum text size is 16 pixels in the body and 13 pixels only for time stamps.
 
-## 5. Tokens (`tokens.json`)
+## 5. Tokens
 
-Están definidos como variables en Figma (colecciones **Color**, **Espaciado** y **Radio**). Este JSON sirve para Tokens Studio o para generar variables en código.
+The tokens are variables of the design file, in the collections Color, Espaciado and Radio. The block below serves Tokens Studio or the generation of variables in code, and `tools/design_system.py` reads it to check the design system.
 
 ```json
 {
   "color": {
     "brand": {
-      "red": { "value": "#8C0303", "type": "color", "description": "Tueste y tierra de origen" },
-      "pacific": { "value": "#0378A6", "type": "color", "description": "Pacífico y telemetría" },
-      "sun": { "value": "#F29F05", "type": "color", "description": "Sol andino, solo gráfico" }
+      "red": { "value": "#8C0303", "type": "color", "description": "Roast and land of origin" },
+      "pacific": { "value": "#0378A6", "type": "color", "description": "Pacific and telemetry" },
+      "sun": { "value": "#F29F05", "type": "color", "description": "Andean sun, graphic only" }
     },
     "action": {
-      "primary": { "value": "{color.brand.pacific}", "type": "color", "description": "Acción primaria" }
+      "primary": { "value": "{color.brand.pacific}", "type": "color", "description": "Primary action" }
     },
     "surface": {
       "canvas": { "value": "#FBF9F5", "type": "color" },
@@ -139,9 +150,9 @@ Están definidos como variables en Figma (colecciones **Color**, **Espaciado** y
       "border": { "value": "#E7E5E4", "type": "color" }
     },
     "text": {
-      "primary": { "value": "#161412", "type": "color", "description": "17.5:1 sobre canvas" },
-      "secondary": { "value": "#44403C", "type": "color", "description": "9.8:1 sobre canvas" },
-      "muted": { "value": "#78716C", "type": "color", "description": "4.6:1 sobre canvas" },
+      "primary": { "value": "#161412", "type": "color", "description": "17.5:1 on canvas" },
+      "secondary": { "value": "#44403C", "type": "color", "description": "9.8:1 on canvas" },
+      "muted": { "value": "#78716C", "type": "color", "description": "4.6:1 on canvas" },
       "inverse": { "value": "#FFFFFF", "type": "color" }
     },
     "status": {
@@ -172,45 +183,45 @@ Están definidos como variables en Figma (colecciones **Color**, **Espaciado** y
 }
 ```
 
-## 6. Componentes y pantallas
+## 6. Components and screens
 
-### 6.1. Reglas comunes
+### 6.1. Common rules
 
-- **Móvil:** 390 × 844 y debe funcionar igual en 360 × 800. **Web del comprador:** móvil primero y escritorio 1440.
-- **Área táctil mínima:** 48 × 48 px. Las acciones principales del transportador van en el tercio inferior.
-- **Cards:** fondo `surface/card`, borde `surface/border` de 1 px y radio 14 (`radius/lg`). Los badges, en píldora (`radius/full`).
-- **Botón primario:** `action/primary` con texto blanco. **Botón destructivo** ("Terminar secado"): borde `#991B1B` sobre blanco y siempre con confirmación.
-- **Sin conexión:** toda pantalla muestra una barra fija con "Actualizado el martes a las 6:10" o "Se enviará cuando el teléfono tenga datos".
-- **Hora:** Colombia (UTC−5), en formato humano ("Hace 40 min").
+| Subject | Rule |
+|---|---|
+| Size | Phone at 390 by 844, and the same layout at 360 by 800. The buyer web is phone first, with a desktop layout at 1440 |
+| Touch area | At least 48 by 48 pixels. The main actions of the carrier sit in the lower third |
+| Cards | Fill `surface/card`, 1 pixel border `surface/border` and radius 14 (`radius/lg`). Badges are pills (`radius/full`) |
+| Buttons | The primary button uses `action/primary` with white text. The destructive button, such as ending a drying, has a `#991B1B` border on white and always asks for a confirmation |
+| No connection | Every screen shows a fixed bar with the last update, such as "Actualizado el martes a las 6:10", or the pending send, "Se enviará cuando el teléfono tenga datos" |
+| Time | Colombia time, UTC minus 5, in a human form such as "Hace 40 min" |
 
-### 6.2. Componentes en Figma
+### 6.2. Components in the design file
 
-`Badge/Estado` (4 variantes), `Botón` (primario, secundario y destructivo), `Alerta` (normal, preventiva y urgente), `Barra/Pestañas` (4 variantes), `Barra/Sin datos` (3 variantes) y `Fila/Saco`.
+`Badge/Estado` with 4 variants, `Botón` with primary, secondary and destructive, `Alerta` with normal, preventive and urgent, `Barra/Pestañas` with 4 variants, `Barra/Sin datos` with 3 variants, and `Fila/Saco`. The design system adds the field component.
 
-### 6.3. Pantallas
+### 6.3. Screens
 
-| Vista | Pantallas | Fuente funcional |
+| View | Screens | Functional source |
 |---|---|---|
-| **Caficultor** | C1 Finca · C2 Finca con variable fuera de rango · C3 Los números · C4 Secado sin lote · C5 Secado con alerta urgente · C6 Confirmar terminar secado · C7 Alertas · C8 Registrar saco | `docs/iot/farmer-history.md` |
-| **Transportador** | T1 Viaje abierto · T2 Escáner · T3 Llegada al centro · T4 Entrega en puerto (3 pasos) · T5 Recordatorio de 10 h · T6 Sin datos y tareas · T7 Viaje en pausa | `docs/traceability/carrier-application-contract.md` |
-| **Comprador** | B1 Resultado móvil · B2 Resultado en escritorio · B3 Rechazado · B3 Código no registrado · B4 Escribir el código | `docs/traceability/actor-views.md`, `public-query.md` |
+| Farmer | Farm, farm with a variable out of range, the numbers, drying with no lot, drying with an urgent alert, confirm the end of drying, alerts, register a sack | `docs/iot/farmer-history.md` |
+| Carrier | Open trip, scanner, arrival at the center, delivery at the port in three steps, reminder after 10 hours, no data and tasks, paused trip | `docs/traceability/carrier-application-contract.md` |
+| Buyer | Result on a phone, result on a desktop, rejected, code not registered, write the code | `docs/traceability/actor-views.md`, `docs/traceability/public-query.md` |
 
-Los valores de las pantallas (lote, receptor, recibo, códigos de saco y lecturas) son ejemplos.
+The values on the screens, such as lots, receivers, receipts, sack codes and readings, are examples. The copy of the screens is in Spanish, the language of the applications.
 
-## 7. Entregables
+## 7. Deliverables
 
-| Entregable | Dónde |
+| Deliverable | Where |
 |---|---|
-| Archivo de diseño | Figma `sFAlRb7c5pxXKsQK7ZRub0` |
-| Slides de branding (7) | Página 1: portada, racional, paleta, estados del saco, alertas y tipografía, tres vistas, versiones del logotipo |
-| Mockups, componentes y tokens | Página "Mockups — tres vistas", y colecciones de variables y estilos de texto del archivo |
-| PDFs | `docs/design/aroma-pacifico-branding.pdf`, `farmer-views.pdf`, `carrier-views.pdf`, `buyer-views.pdf` |
+| Design file | Figma file `sFAlRb7c5pxXKsQK7ZRub0` |
+| Branding slides | The first page of the design file, with cover, rationale, palette, sack states, alerts and type, the three views, and the logo versions |
+| Mockups, components and tokens | The page of mockups of the three views, and the collections of variables and text styles of the design file |
+| PDF exports | `docs/design/aroma-pacifico-branding.pdf`, `farmer-views.pdf`, `carrier-views.pdf` and `buyer-views.pdf` |
 
-## 8. Pendientes y decisiones
+## 8. Pending confirmations
 
-| Pendiente | Responsable |
-|---|---|
-| Confirmar `action/primary` en azul y que el rojo queda solo para marca y peligro | Isabella (E7-08) |
-| Enlazar las pantallas a las variables de Figma | Isabella (E7-08) |
-| Elegir el set de iconos. Los mockups usan trazos de 2 px, estilo Lucide | Isabella (E7-08) |
-| Consulta del comprador en español e inglés, con conmutador ES / EN | Federación |
+| Item | Who confirms | Effect if it fails |
+|---|---|---|
+| The screens of the design file link to its variables, since the mockups still hold fixed values | Design owner | A change of a token must be repeated by hand on each screen |
+| The buyer lookup in Spanish and English, with an ES and EN switch | Federation | The switch is removed and the lookup stays in Spanish |

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>$pagetitle$</title>
+$for(css)$
+<link rel="stylesheet" href="$css$">
+$endfor$
+<style>
+@page { @bottom-left { content: "Aroma Pacifico  ·  $pagetitle$"; font-family: "Outfit", sans-serif; font-size: 8pt; color: #78716C; } }
+@page :first { @bottom-left { content: none; } }
+</style>
+</head>
+<body>
+<section class="cover">
+  <img class="cover-logo" src="$logo$" alt="Aroma Pacifico">
+  <p class="cover-kicker">$kicker$</p>
+  <h1 class="cover-title">$title$</h1>
+  <p class="cover-subtitle">$subtitle$</p>
+  <p class="cover-date">$date$</p>
+  <img class="cover-waves" src="$waves$" alt="">
+</section>
+<main>
+$body$
+</main>
+</body>
+</html>

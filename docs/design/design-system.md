@@ -108,11 +108,11 @@ The rule has two levels. Text that carries a decision outdoors reaches 7 to 1 wh
 | Link on the canvas | `action/primary` | `surface/canvas` | 4.71 | AA |
 | Badge accepted | `status/accepted/text` | its fill | 4.57 | AA |
 | Microcopy on the canvas | `text/muted` | `surface/canvas` | 4.56 | AA |
-| Microcopy on a muted surface | `text/muted` | `surface/muted` | 4.29 | Below AA |
+| Microcopy on a muted surface, do not use for normal text | `text/muted` | `surface/muted` | 4.29 | Below AA |
 
-Eight combinations reach AAA, ten stop at AA and one is below AA. The system does not claim AAA for every pair. The body text, the labels, the logotype, the badge in preparation and the urgent alert reach it. The primary button, the links, the badges of transit and acceptance, the normal and preventive alerts and the microcopy stop at AA. Brand sun, at 2.16, is a graphic accent and is never text. A disabled control is outside the contrast requirement, as WCAG 2.2 states for inactive components.
+Eight combinations reach AAA, ten stop at AA and one is below AA. The system does not claim AAA for every pair. The body text, the labels, the logotype, the badge in preparation and the urgent alert reach it. The primary button, the links, the badges of transit and acceptance, the normal and preventive alerts and the microcopy stop at AA. Brand sun, at 2.16, is a graphic accent and is never text. A disabled control is outside the contrast requirement, as WCAG 2.2 states for inactive components, so the disabled button on the sheet uses `text/muted` on `surface/muted` and is not an example for active text.
 
-The one combination below AA is microcopy on a muted surface, such as a relative time on the offline bar. The rule is that a muted surface carries `text/secondary`, and the variant below is proposed for the places where the lighter text is wanted.
+The one combination below AA is microcopy on a muted surface. It is marked do not use for normal text. It is not a choice of this document. The mockups of the identity already draw it, in the offline bar of the farmer and carrier screens and in the footer of the lookup, so it is a pair inherited from them. The components and the sheet here put `text/secondary` on a muted surface, at 9.19, and none of them uses the lighter text there. The variant below is offered to the owner of the identity for the places where they want the lighter look, and nothing in this document depends on it.
 
 | Variant | Replaces | Old | Proposed | Ratio on canvas, card and muted |
 |---|---|---|---|---|
@@ -192,16 +192,18 @@ It checks the design as written. It measures no real device in sunlight, it does
 
 ## 9. Proposals for the visual identity
 
-These changes belong to the owner of the identity, and none is applied here.
+The owner of the identity decides these, and none is applied to a token or to the design file. The table says what each one changes in this document and whether the components depend on it.
 
-| Proposal | Reason |
-|---|---|
-| Add the field as a component | Four screens need it, which are register a sack, the scanner, the delivery receipt and write the code |
-| Add `text/muted-strong` for text on a muted surface, or use `text/secondary` there | The pair is 4.29 and falls below AA |
-| Set the field border and the off toggle outline to `text/muted` | The default border is 1.26 and fails the 3 to 1 rule for controls |
-| Describe the contrast as two levels and drop the statement that all text is AAA | The primary button, the links and several badges stop at AA |
-| Offer a darker blue for the primary button where AAA is wanted | The blue gives 4.95 with white text |
-| Link the screens to the variables of the design file | The mockups still hold fixed values |
+| Proposal | Components that depend on it | If it is declined |
+|---|---|---|
+| Add the field as a component of the identity | The field of the register, scanner, delivery and code screens | The field stays defined here and is not in the design file |
+| Use `text/muted` as the field border and as the outline of the off toggle | The field and the toggle of the delivery screen | The default border is 1.26 and fails the 3 to 1 rule for controls, so those two parts would fail |
+| Describe the contrast as two levels and drop the statement that all text is AAA | None. The rules here already use two levels | The identity keeps a claim that its own tokens do not meet |
+| Mark text on a muted surface as `text/secondary`, or add `text/muted-strong` | None. The components use `text/secondary` there | The offline bar and the lookup footer of the mockups stay at 4.29 |
+| Offer a darker blue for the primary button where AAA is wanted | None. The primary button reaches AA at 4.95 | The button stays at AA |
+| Link the screens to the variables of the design file | None | The mockups keep fixed values |
+
+Every other component, rule and screen uses only the tokens as they stand. The field and the off toggle are the two parts that depend on an unaccepted proposal, so the design system is complete in this repository and its adoption in the design file waits on the owner.
 
 ## 10. Assumptions and pending confirmations
 

@@ -49,7 +49,7 @@ table{border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(
 .cap{font-size:13px;color:var(--t2);font-weight:500;letter-spacing:.02em;margin:6px 0 4px}
 .btn{height:48px;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:0 16px;font-weight:600;font-size:16px;min-width:150px}
 .p{background:var(--act);color:var(--inv)}.s{background:var(--card);color:var(--act);border:1.5px solid var(--act)}.d{background:var(--card);color:var(--a-urgent-text);border:1.5px solid var(--a-urgent-text)}
-.off{background:var(--muted);color:var(--t3s);border:1.5px solid var(--border)}.foc{outline:2px solid var(--act);outline-offset:2px}
+.off{background:var(--muted);color:var(--t3);border:1.5px solid var(--border)}.foc{outline:2px solid var(--act);outline-offset:2px}
 .field{width:250px}.field label{display:block;font-size:14px;font-weight:500;color:var(--t2);margin-bottom:4px}
 .field .in{height:48px;border-radius:10px;background:var(--card);border:1.5px solid var(--t3);padding:0 12px;display:flex;align-items:center;font-size:16px}
 .field .h{font-size:13px;color:var(--t3);margin-top:4px}.field .e{font-size:13px;color:var(--a-urgent-text);margin-top:4px;display:flex;gap:4px;align-items:center}
@@ -80,7 +80,7 @@ table{border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(
         return '<div class="tabs">' + "".join(f'<div class="{"on" if n == on else ""}">{ic(i, 24)}{n}</div>' for i, n in items) + "</div>"
 
     sw = ""
-    for name, path in (("canvas", "surface/canvas"), ("card", "surface/card"), ("muted", "surface/muted"), ("border", "surface/border"), ("text primary", "text/primary"), ("text secondary", "text/secondary"), ("text muted", "text/muted"), ("action", "action/primary"), ("brand red", "brand/red"), ("brand sun", "brand/sun"), ("muted strong (proposed)", "")):
+    for name, path in (("canvas", "surface/canvas"), ("card", "surface/card"), ("muted", "surface/muted"), ("border", "surface/border"), ("text primary", "text/primary"), ("text secondary", "text/secondary"), ("text muted", "text/muted"), ("action", "action/primary"), ("brand red", "brand/red"), ("brand sun", "brand/sun"), ("muted strong (proposed, unused)", "")):
         val = var["t3s"] if not path else T(path)
         sw += f'<div class="sw"><i style="background:{val}"></i><b>{name}</b><span>{val}</span></div>'
 
@@ -88,7 +88,7 @@ table{border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(
     for name, fg, bg, where, r, lv in ds.MATRIX:
         rows += f"<tr><td>{html.escape(name)}</td><td>{r:.2f}</td><td class='{lv}'>{lv}</td></tr>"
     half = (len(ds.MATRIX) + 1) // 2
-    ct = lambda a: "<table><tr><th>Combination</th><th>Ratio</th><th>Level</th></tr>" + "".join(f"<tr><td>{html.escape(m[0])}</td><td>{m[4]:.2f}</td><td class='{m[5]}'>{m[5]}</td></tr>" for m in a) + "</table>"
+    ct = lambda a: "<table><tr><th>Combination</th><th>Ratio</th><th>Level</th></tr>" + "".join(f"<tr><td>{html.escape(m[0])}</td><td>{m[4]:.2f}</td><td class='{m[5]}'>{'graphic only' if m[0] in ds.NOT_TEXT else ('not for text' if m[5]=='fail' else m[5])}</td></tr>" for m in a) + "</table>"
 
     comp = f"""
 <div class="row">
@@ -142,4 +142,11 @@ table{border-collapse:collapse;font-size:13px}td,th{border-bottom:1px solid var(
 <div>{carrier1}<div class="note">Carrier, open trip with the offline bar</div></div>
 <div>{carrier4}<div class="note">Carrier, first of three delivery steps, off toggles keep a 3:1 outline</div></div>
 <div>{buyer1}<div class="note">Buyer lookup. Only fields of the public view appear. Weight, centers, hours and minutes, people, trips and places stay out</div></div></div></div>"""
+    for rule in re.findall(r"\.([\w-]+)\{([^}]*)\}", css):
+        sel, decl = rule
+        if "background:var(--muted)" in decl and "color:var(--t3)" in decl and sel != "off":
+            raise SystemExit(f"the sheet puts text/muted on surface/muted in .{sel}")
+    for frag in re.findall(r'style="([^"]*)"', body):
+        if "background:var(--muted)" in frag and "color:var(--t3)" in frag:
+            raise SystemExit("the sheet puts text/muted on surface/muted in an inline style")
     Path(out).write_text(f"<!DOCTYPE html><html lang='en'><head><meta charset='utf-8'><style>{css}</style></head><body>{body}</body></html>", encoding="utf-8")
