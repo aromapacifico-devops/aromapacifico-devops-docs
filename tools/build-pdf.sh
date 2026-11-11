@@ -26,7 +26,7 @@ src=$(realpath "$1")
 pdf=${src%.md}.pdf
 title=$(grep -m1 '^# ' "$src" | sed 's/^# //')
 work=$(mktemp -d)
-trap 'rm -rf "$work"' EXIT; [ -n "${KEEP_HTML:-}" ] && trap 'cp "$work/page.html" "$KEEP_HTML"; rm -rf "$work"' EXIT
+trap 'rm -rf "$work"' EXIT
 
 DOC_DIR=$(realpath --relative-to="$root" "$(dirname "$src")") pandoc "$src" \
   --from gfm \
