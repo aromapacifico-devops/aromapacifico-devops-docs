@@ -1,358 +1,273 @@
-# Estimación de campañas y costo operativo de drones
+# Drone campaign cost
 
-Este documento construye el modelo económico verificable de los cinco servicios de drones del piloto AromaPacífico. Separa las decisiones aprobadas de los precios públicos, las estimaciones propias y los valores que requieren cotización. Los totales son presupuestos hipotéticos, no ofertas comerciales. Todos los importes están en USD antes de impuestos y se reproducen con [`tools/campaign_cost.py`](tools/campaign_cost.py).
+This document gives the cost of the drone service of the pilot, by mission, by campaign of one department, by month and by year. It covers the five services, the certified operator, the brigade, the equipment, the travel and the storage of the flight evidence. Labor and equipment rates come from public Colombian and supplier references, the other operating rates are team estimates shown in three scenarios, and cloud prices come from the AWS Price List API. Every figure is in USD before tax and is reproduced by [`tools/campaign_cost.py`](tools/campaign_cost.py), which takes its flight counts from [`tools/flight_frequency.py`](tools/flight_frequency.py).
 
-## 1. Contexto
+## Contents
 
-La historia [E7-04](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/53) pide el costo de una campaña con los cinco servicios, el operador, el desplazamiento y el almacenamiento, además de la cadencia en cosecha y fuera de cosecha. Depende de las decisiones de roles y campañas de [E4-02](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/30), la estimación de cosecha de [E4-07](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/35) y la base de precios de [E7-01](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/issues/50).
+1. Terms
+2. Scope
+3. Cadence and volumes
+4. Rates and their sources
+5. Cost model
+6. Cost per mission
+7. Cost per campaign of one department
+8. Monthly and yearly cost
+9. Scenarios and sensitivity
+10. Previous figures
+11. Risks
+12. Assumptions and pending confirmations
+13. Sources
 
-El servicio usa tres brigadas de un operador certificado, una por departamento. La Federación conserva la plataforma, los datos y la autorización humana. Una campaña es la ronda programada de una brigada por las fincas de un departamento. Las misiones de confirmación, fumigación y verificación nacen de alertas y no esperan a una campaña.
+## 1. Terms
 
-## 2. Alcance y exclusiones
-
-El total incluye:
-
-- operación del operador certificado, piloto, apoyo de brigada, equipo, mantenimiento, seguros, permisos y consumibles no químicos;
-- distancia, vehículo/combustible, viáticos, transporte de equipo, movilización de campaña y visitas adicionales esperadas;
-- S3, solicitudes de objetos, transición de clase y Lambda para comprobación de evidencia y ortomosaico;
-- los cinco servicios: delimitación, confirmación, fumigación autorizada, verificación y estimación de cosecha.
-
-El total no incluye:
-
-- inferencia o filtro de personas: pertenece a E7-05 y se muestra por separado;
-- producto agroquímico, dosis, agua y disposición de sobrantes: faltan producto, área tratada y receta agronómica;
-- IVA, aranceles, financiación, descuentos, créditos o reservas;
-- costo de supervisores de la Federación, que ya son personal de la organización y no tiene costo incremental aprobado;
-- conectividad general, VPN y endpoints ya contabilizados en el costo de plataforma, para evitar doble conteo.
-
-## 3. Auditoría y fuentes
-
-### 3.1 Evidencias revisadas
-
-| Evidencia | Resultado de la revisión |
+| Term | Meaning |
 |---|---|
-| PR [#144](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/pull/144), E4-02 | Aprobó operador contratado, tres brigadas, 18 campañas ordinarias/año, 936 misiones el primer año y 756 después. Sin revisiones ni comentarios de PR; fusionado el 10-11-2026. |
-| PR [#109](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/pull/109), E4-07 | Aprobó una misión de estimación por finca y cosecha, 100 imágenes/finca como supuesto y resultado sin orden de empaque. Sin revisiones ni comentarios de PR; fusionado el 10-11-2026. |
-| PR [#135](https://github.com/aromapacifico-devops/aromapacifico-devops-docs/pull/135), E7-01 | Aprobó USD, `us-east-1`, precios on-demand y valores antes de IVA. Dejó expresamente sin verificar el dron y otros equipos. Sin revisiones ni comentarios de PR; fusionado el 10-11-2026. |
-| [`operating-mode.md`](operating-mode.md) | Define los cinco servicios y contiene los antecedentes de USD 5.640/año y USD 1.980/mes de cosecha, sin desglose reproducible. |
-| [`roles-permits-and-campaigns.md`](roles-permits-and-campaigns.md) | Fuente aprobada de roles, permisos, campaña frente a alerta y volúmenes. Resuelve quién posee el certificado que `operating-mode.md` aún presenta como pendiente. |
-| [`harvest-estimation.md`](harvest-estimation.md) | Fija 200 estimaciones/año, 100 imágenes por misión como supuesto y costos AWS; la inferencia queda fuera de este total. |
-| [`tools/flight_frequency.py`](tools/flight_frequency.py) | Fuente ejecutable de frecuencia. Este modelo importa sus constantes y su función `yearly`; no vuelve a escribir los volúmenes. |
-| [`fleet-and-harvest-estimates.md`](../adr/fleet-and-harvest-estimates.md) | Decisión aprobada: tres brigadas, cuatro meses de cosecha y unas 9.000 imágenes en cosecha. |
-| [`assumptions.md`](../assumptions.md) | Registra TRM, impuestos, brigadas, imágenes y frecuencia como supuestos/decisiones trazables. |
-| [`price-basis.md`](../governance/price-basis.md) | Fuente de región, moneda, fecha, impuestos y precios AWS. |
-| [`personal-data-and-retention.md`](../security/personal-data-and-retention.md) | Retención aprobada: 90 días en Standard, Glacier Instant Retrieval hasta cinco años y eliminación al quinto año. |
+| Brigade | One pilot and one support person with one spraying drone and one mapping drone, one per department |
+| Campaign | The scheduled round of a brigade over the farms of its department, once a month in harvest and once every three months outside harvest |
+| Alert mission | A confirmation, fumigation or verification flight raised by a sensor alert, flown on the next field day without waiting for a campaign |
+| Campaign period | One department in one month, adding the scheduled round and the alert missions flown in that month |
+| Start-up round | The first delimitation of all 200 farms, spread over two months of the first year |
+| Variable cost | Cost of one completed mission, including the expected share of a repeated visit |
+| Loaded cost | Variable cost plus an even share of the fixed lines, campaign mobilization and cloud cost over all missions of the year |
 
-### 3.2 Suficiencia de E7-01
+## 2. Scope
 
-E7-01 sí contiene fuentes oficiales fechadas suficientes para S3 y Lambda, moneda, región y tratamiento fiscal. El 10-11-2026 se volvieron a leer las listas oficiales; sus archivos indican publicación del 09-11-2026 para S3 y del 30-10-2026 para Lambda. E7-01 no es suficiente para valorar la operación física: su criterio de hardware quedó abierto y su cierre dice que el dron requiere cotización de E7-04. Por eso ninguna tarifa de operador, piloto, dron, seguro o permiso se marca como verificada.
+The totals include the operator management fee, pilot and support hours, equipment wear, maintenance, insurance and permits, non-chemical consumables, vehicle and fuel, per diem, equipment transport, campaign mobilization, repeated visits, and the storage, requests and processing of the drone images in S3 and Lambda.
 
-### 3.3 Registro de precios y supuestos
+The totals leave out four items, each for a stated reason.
 
-Fecha de consulta: **10-11-2026**. Impuestos: **no incluidos**. La tarifa general de IVA del registro aprobado es 19%; se aplica solo como sensibilidad porque no se confirmó qué líneas lo causan.
+| Item left out | Reason | Where it is counted |
+|---|---|---|
+| Inference and the person filter on images | It has its own cost per 1,000 invocations | The inference cost document, at about USD 1.75 per 1,000 images |
+| Agrochemical product, water and disposal | Product, dose and treated area depend on an agronomic prescription | Pending, as treated area times dose times price |
+| VAT, import duties, financing and discounts | Which lines bear VAT is unconfirmed | Section 9 shows a 19 percent ceiling |
+| Federation supervisors, VPN, endpoints and keys | Supervisors are existing staff, and the network lines are in the platform cost | [Cloud cost](../governance/cloud-cost.md) |
 
-| Concepto | Cantidad/unidad | Precio unitario, USD | Estado | Fuente y URL | Supuesto usado |
-|---|---:|---:|---|---|---|
-| S3 Standard, `us-east-1` | GB-mes | 0,023 | Precio verificado | [AWS Price List S3](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/us-east-1/index.json), publicado 09-11-2026 | Primeros 90 días |
-| S3 Glacier Instant Retrieval | GB-mes | 0,004 | Precio verificado | [AWS Price List S3](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/us-east-1/index.json), publicado 09-11-2026 | Meses 4 a 60 |
-| S3 PUT / GET / transición | 1.000 solicitudes | 0,005 / 0,0004 / 0,02 | Precio verificado | [AWS Price List S3](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/us-east-1/index.json), publicado 09-11-2026 | Un PUT y un GET por imagen; una transición |
-| Transferencia de entrada a S3 | GB | 0 | Precio verificado | [Precios de S3](https://aws.amazon.com/s3/pricing/), consulta 10-11-2026 | Egreso no cuantificado; requiere patrón de descarga |
-| Lambda | GB-s / millón de solicitudes | 0,0000166667 / 0,20 | Precio verificado | [AWS Price List Lambda](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSLambda/current/us-east-1/index.json), publicado 30-10-2026 | Sin capa gratuita |
-| Imagen | 1 imagen | 3 MB | Decisión aprobada | [`personal-data-and-retention.md`](../security/personal-data-and-retention.md) | Se sustituye por medición del proveedor |
-| TRM | COP por USD | 3.269,88 | Decisión aprobada | [Datos abiertos de la Superfinanciera](https://www.datos.gov.co/Econom-a-y-Finanzas/Tasa-de-Cambio-Representativa-del-Mercado-TRM/32sa-8pi3), consulta 10-11-2026 | Solo conversión informativa; el modelo calcula en USD |
-| Piloto | hora | 18 / 25 / 35 | Estimación propia | Escenarios conservador/base/alto de este documento | No es salario ni cotización |
-| Apoyo de brigada | persona-hora | 12 / 18 / 26 | Estimación propia | Escenarios de este documento | Una persona adicional |
-| Uso de equipo | hora de vuelo | 18 / 28 / 42 | Estimación propia | Escenarios de este documento | Amortización operativa, sin afirmar precio de dron |
-| Mantenimiento | misión | 8 / 15 / 25 | Estimación propia | Escenarios de este documento | Se suma al uso horario |
-| Operador certificado | año, tres brigadas | 6.000 / 9.000 / 13.500 | Estimación propia | Escenarios de este documento | Gestión contractual y cumplimiento, no pilotos |
-| Seguros y permisos | año, tres brigadas | 3.000 / 4.500 / 7.000 | Estimación propia | Escenarios de este documento | Se reemplaza con póliza y tasas aplicables |
-| Vehículo y combustible | km | 0,18 / 0,25 / 0,35 | Estimación propia | Escenarios de este documento | Distancia media 30 / 45 / 70 km por misión |
-| Viático | persona-día | 15 / 25 / 40 | Estimación propia | Escenarios de este documento | Dos personas, prorrateo por horas/8 |
-| Transporte de equipo | misión | 5 / 10 / 18 | Estimación propia | Escenarios de este documento | Adicional al costo por km |
-| Movilización fija | campaña-departamento | 35 / 60 / 100 | Estimación propia | Escenarios de este documento | Planeación/carga/descarga de la ronda |
-| Visita adicional | visita | 35 / 60 / 110 | Estimación propia | Escenarios de este documento | Probabilidad 5% / 10% / 20% |
-| Consumibles no químicos | misión | 1 a 12 según servicio | Estimación propia | [`tools/campaign_cost.py`](tools/campaign_cost.py) | Baterías menores, limpieza y material; no agroquímico |
-| Operador, dron, póliza y permisos reales | contrato | Pendiente | Valor por cotizar | Proceso de contratación de la Federación | Sustituye las estimaciones anteriores |
-| Agroquímico | L o kg tratado | Pendiente | Valor por cotizar | Receta agronómica y proveedor autorizados | Excluido del total |
-| Inferencia | imagen | Pendiente E7-05 | Componente separado | E7-05; el antecedente no vinculante es USD 1,75/1.000 imágenes | Excluido del total |
+## 3. Cadence and volumes
 
-## 4. Supuestos aprobados y decisiones del modelo
+The service runs three brigades, one per department. A harvest of four months has one campaign a month per department, and the eight months outside harvest have one every three months, so each department has six campaigns a year and the pilot 18. Alert missions outside harvest run at a quarter of the harvest rate, and one farm in ten is delimited again each year after the first.
 
-| Dato | Valor | Clasificación |
-|---|---:|---|
-| Fincas / departamentos / brigadas | 200 / 3 / 3 | Definición del piloto y decisión aprobada |
-| Cosecha | 4 meses/año | Decisión aprobada |
-| Campañas en cosecha | 1 por departamento y mes de cosecha | Definición del piloto |
-| Campañas fuera de cosecha | 1 por departamento cada 3 meses | Definición del piloto |
-| Campañas ordinarias | 18/año: 6 por departamento | Resultado aprobado |
-| Arranque | 1 ronda adicional por departamento durante 2 meses | Decisión aprobada |
-| Alertas fuera de cosecha | 25% del ritmo de cosecha | Supuesto de E4-02 |
-| Redelimitación posterior | 10% de fincas/año | Supuesto de E4-02 |
-| Imágenes en cosecha | 9.000/mes | Decisión aprobada |
-| Imagen de área / precisión | 100 / 44,44 | 100 aprobado como supuesto; precisión es el residual reproducible hasta 9.000 |
-| Horas por misión | 3 / 1 / 1,5 / 1 / 3,5 | Estimación propia para delimitar/confirmar/fumigar/verificar/estimar |
-| Retención | Standard 3 meses; Glacier IR hasta 60 | Decisión aprobada |
-
-## 5. Frecuencia de campañas y misiones
-
-`flight_frequency.py` produce la siguiente frecuencia. La fila fuera de cosecha muestra 24 por redondeo visual; el cálculo anual conserva 2,5 redelimitaciones/mes y por tanto usa 24,5 misiones/mes en años posteriores.
-
-| Servicio | Activación | Mes de cosecha | Mes fuera de cosecha posterior | Primer año | Años posteriores |
+| Service | Trigger | Harvest month | Outside-harvest month, following years | First year | Following years |
 |---|---|---:|---:|---:|---:|
-| Delimitación geoespacial | Programada | 0 | 2,5 | 200 | 20 |
-| Confirmación de focos | Alerta/síntoma | 40 | 10 | 240 | 240 |
-| Fumigación autorizada | Alerta confirmada + humano | 25 | 6 | 148 | 148 |
-| Verificación posterior | Cierre de fumigación | 25 | 6 | 148 | 148 |
-| Estimación de cosecha | Programada | 50 | 0 | 200 | 200 |
-| **Total** | | **140** | **24,5** | **936** | **756** |
+| Delimit the lot | Scheduled | 0 | 2.5 | 200 | 20 |
+| Confirm the alert | Sensor alert | 40 | 10 | 240 | 240 |
+| Fumigate | Confirmed focus and human authorization | 25 | 6 | 148 | 148 |
+| Verify | Closed fumigation | 25 | 6 | 148 | 148 |
+| Estimate the harvest | Scheduled | 50 | 0 | 200 | 200 |
+| **Total** | | **140** | **24.5** | **936** | **756** |
 
-Una campaña programada transporta delimitaciones, estimaciones y revisión de zonas. Las otras tres clases son misiones por alerta y se ejecutan en el siguiente día de campo disponible. El “periodo económico de campaña” usado en las tablas de costo suma la ronda programada y las alertas atendidas en el mismo departamento/mes, pero esa suma contable no cambia el SLA: las alertas nunca esperan a la campaña.
+The frequency script prints 24 for the outside-harvest month because it rounds 2.5 delimitations down to 2, while its yearly count keeps the 20 delimitations. Mission hours are 3 for a delimitation, 1 for a confirmation, 1.5 for a fumigation, 1 for a verification and 3.5 for a harvest estimation, which gives 1,910 hours in the first year and 1,370 hours in the following years, about 457 hours per brigade.
 
-### Imágenes reconciliadas
+A harvest estimation takes 100 images and each precision mission about 44, so a harvest month has `50 × 100 + 90 × 44.44 = 9,000` images. The first year adds 20,000 images of the start-up round and the following years 2,000 of the new delimitations.
 
-| Periodo | Fórmula | Imágenes |
-|---|---|---:|
-| Mes de cosecha | `50 × 100 + 90 × 44,44` | 9.000 |
-| Primer año | cosecha 36.000 + alertas fuera 7.822 + arranque 20.000 | 63.822 |
-| Año posterior | cosecha 36.000 + alertas fuera 7.822 + redelimitación 2.000 | 45.822 |
-
-El valor genérico anterior de 1.500 imágenes por mes normal equivale a 12.000 fuera de cosecha. Es un techo razonable en un año posterior, pero no representa los dos meses de arranque, con unas 10.978 imágenes/mes. Este modelo usa las misiones para no ocultar ese pico.
-
-## 6. Modelo de costos
-
-### A. Operación
-
-El operador certificado y seguros/permisos son fijos anuales. Piloto y apoyo de brigada se valoran por horas de cada servicio. Uso de equipo y mantenimiento se separan para mostrar amortización y desgaste. Los consumibles excluyen el producto de fumigación.
-
-### B. Logística
-
-Cada misión consume distancia media por el costo vehículo-km, viáticos prorrateados, transporte de equipo y el valor esperado de una visita adicional. Cada campaña-departamento agrega una movilización fija. No se agrega otro combustible: está incluido en vehículo-km.
-
-### C. Tecnología
-
-Cada imagen genera PUT, GET de verificación, una invocación Lambda de un segundo a 512 MB y almacenamiento por cohorte. Las imágenes pasan a Glacier IR al cuarto mes y vencen al mes 60. Cada estimación agrega cinco minutos de Lambda a 4 GB para el ortomosaico. La entrada de datos cuesta cero; el egreso queda pendiente porque no se conoce cuánto se descarga. VPN, endpoints y KMS ya aparecen en `cloud-cost.md` y no se repiten.
-
-### D. Unidad de costo
-
-El modelo entrega misión por servicio, campaña programada, periodo económico de campaña, departamento, finca, mes y año. “Costo cargado por misión” reparte costos fijos, movilizaciones y tecnología entre todas las misiones del año; no debe sumarse de nuevo al total anual.
-
-## 7. Fórmulas reproducibles
-
-Para servicio `s`, escenario `e`:
-
-```text
-operacion_s = horas_s × (piloto_h + apoyo_h + equipo_h)
-              + mantenimiento_mision + consumibles_s
-
-logistica_s = distancia_km × vehiculo_km
-              + viatico_persona_dia × personas × horas_s / 8
-              + transporte_equipo
-              + prob_visita_adicional × costo_visita_adicional
-
-costo_variable_s = operacion_s + logistica_s
-
-costo_anual = operador_fijo + seguros_permisos
-              + Σ(misiones_s × costo_variable_s)
-              + campañas × movilizacion
-              + almacenamiento + solicitudes + proceso_evidencia
-
-costo_cargado_s = costo_variable_s
-                  + (fijos + movilizaciones + tecnologia) / misiones_anuales
-```
-
-El almacenamiento se calcula mes a mes por cohorte:
-
-```text
-GB_cohorte = imagenes × 3 / 1024
-costo_mes = GB_cohorte × (0,023 si edad < 3 meses; 0,004 si 3 <= edad < 60)
-```
-
-La sensibilidad de IVA es `total × 1,19`; COP informativo es `total_USD × 3.269,88`. No se suma inferencia ni agroquímico.
-
-## 8. Escenarios
-
-Los tres escenarios mantienen la frecuencia aprobada y cambian únicamente tarifas, distancia y riesgo de visita adicional. “Conservador” significa menor costo presupuestario, no cotización conservadora de contingencia.
-
-| Entrada | Conservador | Base | Alto |
-|---|---:|---:|---:|
-| Operador fijo/año | 6.000 | 9.000 | 13.500 |
-| Seguros y permisos/año | 3.000 | 4.500 | 7.000 |
-| Piloto / apoyo / equipo por hora | 18 / 12 / 18 | 25 / 18 / 28 | 35 / 26 / 42 |
-| Mantenimiento/misión | 8 | 15 | 25 |
-| Distancia/misión, km | 30 | 45 | 70 |
-| Vehículo-km | 0,18 | 0,25 | 0,35 |
-| Viático/persona-día | 15 | 25 | 40 |
-| Visita adicional | 5% × 35 | 10% × 60 | 20% × 110 |
-| Movilización/campaña-departamento | 35 | 60 | 100 |
-
-## 9. Costo por misión, servicio y campaña
-
-### 9.1 Misión base, USD antes de impuestos
-
-| Servicio | Operación | Logística | Variable por misión | Cargado, año posterior |
-|---|---:|---:|---:|---:|
-| Delimitación | 231,00 | 46,00 | 277,00 | 296,32 |
-| Confirmación | 88,00 | 33,50 | 121,50 | 140,82 |
-| Fumigación | 129,50 | 36,63 | 166,13 | 185,45 |
-| Verificación | 88,00 | 33,50 | 121,50 | 140,82 |
-| Estimación | 267,50 | 49,13 | 316,63 | 335,95 |
-
-La fumigación no incluye agroquímico. El costo cargado usa 756 misiones; sirve para precio unitario interno y no para sumar el año otra vez.
-
-### 9.2 Campaña base por departamento
-
-| Tipo | Trabajo programado | Costo directo programado | Periodo económico con alertas y prorrateos |
-|---|---|---:|---:|
-| Arranque, una ronda de dos meses | 66,67 delimitaciones | 18.526,67 | No comparable con un solo mes |
-| Mes de cosecha | 16,67 estimaciones | 5.337,08 | 9.729,71 |
-| Fuera de cosecha, año posterior | 3,33 redelimitaciones por ronda | 983,33 | 2.339,34 en el mes de la ronda |
-
-No existe una campaña real con exactamente una misión de cada servicio. Forzar los cinco servicios dentro de cada ronda duplicaría vuelos: delimitación ocurre al inicio o por cambios; confirmación, fumigación y verificación solo ocurren ante alertas. Los cinco sí están costeados en el portafolio anual.
-
-### 9.3 Costo anual base por servicio
-
-| Servicio | Primer año | Año posterior |
-|---|---:|---:|
-| Delimitación | 55.400,00 | 5.540,00 |
-| Confirmación | 29.160,00 | 29.160,00 |
-| Fumigación | 24.586,50 | 24.586,50 |
-| Verificación | 17.982,00 | 17.982,00 |
-| Estimación | 63.325,00 | 63.325,00 |
-| Fijos de operador, seguro y permisos | 13.500,00 | 13.500,00 |
-| Movilización de campañas | 1.260,00 | 1.080,00 |
-| Tecnología sin inferencia | 23,39 | 27,07 |
-| **Total** | **205.236,89** | **155.200,57** |
-
-La misma suma clasificada por comportamiento deja USD 13.500,00 fijos en ambos años. El costo variable de misiones es USD 190.453,50 el primer año y USD 140.593,50 después; la movilización variable por campaña es USD 1.260,00 y USD 1.080,00, y la tecnología por uso/retención es USD 23,39 y USD 27,07. No existe otro bloque oculto.
-
-## 10. Proyección mensual, anual y por unidad
-
-### 10.1 Escenario base
-
-| Métrica | Resultado, USD |
+| Period | Images |
 |---|---:|
-| Mes de arranque, piloto completo | 31.902,70 |
-| Mes de arranque por finca | 159,51 |
-| Mes de cosecha, piloto completo | 29.189,13 |
-| Mes de cosecha por finca | 145,95 |
-| Mes fuera de cosecha posterior, promedio | 4.805,51 |
-| Mes fuera de cosecha por finca | 24,03 |
-| Mes fuera de cosecha del primer año, sin arranque | 4.112,70 |
-| Primer año | 205.236,89 |
-| Primer año, promedio mensual | 17.103,07 |
-| Primer año por departamento | 68.412,30 |
-| Primer año por finca | 1.026,18 |
-| Año posterior | 155.200,57 |
-| Año posterior por departamento | 51.733,52 |
-| Año posterior por finca | 776,00 |
-| Primer año, COP a TRM aprobada | 671.099.992 COP |
-| Año posterior, COP a TRM aprobada | 507.487.249 COP |
+| Harvest month | 9,000 |
+| Start-up month | about 10,978 |
+| First year | 63,822 |
+| Following year | 45,822 |
 
-Los dos meses de arranque concentran 100 delimitaciones/mes en todo el piloto y por eso se muestran separados del mes normal fuera de cosecha. La suma reproducible es `2 × arranque + 4 × cosecha + 6 × fuera de cosecha = primer año`.
+## 4. Rates and their sources
 
-### 10.2 Escenarios anuales
+Exchange rate is COP 3,269.88 per USD and taxes are excluded, following the [price basis](../governance/price-basis.md).
 
-| Escenario | Primer año | Año posterior | Primer año/finca |
-|---|---:|---:|---:|
-| Conservador | 129.589,29 | 97.555,97 | 647,95 |
-| Base | 205.236,89 | 155.200,57 | 1.026,18 |
-| Alto | 327.365,39 | 249.039,07 | 1.636,83 |
+### 4.1 Labor
 
-### 10.3 Tecnología y retención
+Labor is paid by mission hour, which assumes a contracted operator that bills the hours it flies for the Federation and uses its staff for other clients in the remaining time. Section 9 shows the cost when the brigades are dedicated full time.
 
-| Año | Imágenes nuevas | Tecnología anual sin inferencia, USD |
+| Input | Value | Source |
+|---|---:|---|
+| Pilot salary | COP 4,800,000 a month | Public job offer for a drone pilot in Bogotá |
+| Support salary | Minimum wage COP 1,750,905 plus transport aid COP 249,095 | Decrees 1469 and 1470 of 2025 |
+| Employer load on salary | 52 percent | Social security, benefits and payroll levies in Colombia |
+| Hours a month | 182, a 42-hour week | Law 2101 of 2021, in force from July 2026 |
+| Pilot hour | USD 12.26 | `4,800,000 × 1.52 / 182 / 3,269.88` |
+| Support hour | USD 4.89 | `(1,750,905 × 1.52 + 249,095) / 182 / 3,269.88` |
+
+The pilot offer is not specific to agriculture, and few operators hold the spraying certificate yet, so the high scenario raises labor by half.
+
+### 4.2 Equipment
+
+Each brigade carries one spraying drone of 40 kg payload in its ready-to-fly kit with batteries and charger, listed at USD 24,519, and one multispectral mapping drone, listed at USD 5,919. The equipment rate spreads that kit of USD 30,438 in a straight line over its life and the 457 mission hours a brigade flies a year.
+
+| Scenario | Life | Equipment per mission hour |
 |---|---:|---:|
-| 1 | 63.822 | 23,39 |
-| 2 | 45.822 | 27,07 |
-| 3 | 45.822 | 33,57 |
-| 4 | 45.822 | 40,02 |
-| 5 | 45.822 | 46,46 |
+| Low | 4 years | USD 16.66 |
+| Base | 3 years | USD 22.22 |
+| High | 2 years | USD 33.33 |
 
-El crecimiento refleja archivos acumulados, no duplicados. La inferencia pendiente sería `imágenes × tarifa_E7-05` y se reportará al lado, no dentro de estos totales.
+These are list prices of foreign dealers before import duties and VAT. A Colombian dealer quote replaces them.
 
-## 11. Sensibilidad
+### 4.3 Team estimates
 
-### 11.1 Número de misiones, escenario base, año posterior
+| Input | Low | Base | High | Note |
+|---|---:|---:|---:|---|
+| Operator management, three brigades, per year | 6,000 | 9,000 | 13,500 | Contract and compliance management |
+| Insurance and permits, per year | 3,000 | 4,500 | 7,000 | Third-party liability policy and operation permits |
+| Maintenance per mission | 8 | 15 | 25 | Batteries, propellers and nozzles, on top of the equipment rate |
+| Distance per mission, km | 30 | 45 | 70 | Round trip from the municipal seat |
+| Vehicle per km | 0.18 | 0.25 | 0.35 | Gasoline at COP 15,886 a gallon is about USD 0.16 a km at 30 km a gallon, and the rest covers vehicle wear |
+| Per diem per person and day | 15 | 25 | 40 | Two people, prorated by mission hours over 8 |
+| Equipment transport per mission | 5 | 10 | 18 | On top of the vehicle cost |
+| Campaign mobilization per department | 35 | 60 | 100 | Planning, loading and unloading of each round |
+| Repeated visit | 5% × 35 | 10% × 60 | 20% × 110 | Weather, battery or a person in the area |
+| Non-chemical consumables per mission | 1 to 5 | 2 to 8 | 3 to 12 | By service |
 
-Los fijos no cambian; los costos variables sí. La campaña y tecnología se mantienen para aislar la sensibilidad operativa.
+The Colombian aviation rules require a liability policy for commercial drone operation, and its amount and premium need a quote.
 
-| Multiplicador | Misiones | Total anual, USD | Cambio frente a base |
-|---:|---:|---:|---:|
-| 0,75 | 567 | 120.052,20 | -35.148,37 |
-| 1,00 | 756 | 155.200,57 | 0 |
-| 1,25 | 945 | 190.348,95 | +35.148,38 |
-| 1,50 | 1.134 | 225.497,32 | +70.296,75 |
+### 4.4 Cloud
 
-### 11.2 Impuestos y variables pendientes
+| Item | Price, USD | Use |
+|---|---:|---|
+| S3 Standard | 0.023 per GB-month | First three months of each image |
+| S3 Glacier Instant Retrieval | 0.004 per GB-month | Months 4 to 60, then deletion |
+| S3 PUT, GET and lifecycle transition | 0.005, 0.0004 and 0.02 per 1,000 | One PUT and one GET per image, one transition |
+| Data transfer into S3 | 0 | Egress depends on how often images are downloaded |
+| Lambda | 0.0000166667 per GB-second, 0.20 per million requests | One second at 512 MB per image, and five minutes at 4 GB per orthomosaic |
+| Image size | 3 MB | Retention design of the platform |
 
-| Cambio | Efecto |
-|---|---|
-| IVA de 19% sobre todas las líneas | Base: 244.231,90 primer año y 184.688,68 posterior; es techo, no tratamiento confirmado |
-| Duplicar distancia media | Sube `misiones × distancia × vehículo-km`; no cambia operación ni nube |
-| Una visita adicional más por cada 10 misiones | Sube `0,10 × costo_visita × misiones` |
-| Dos cosechas por finca | Agrega 200 estimaciones, imágenes de área y campañas que la Federación debe calendarizar |
-| Más focos | Confirmación escala primero; fumigación/verificación dependen de la tasa de conversión de foco a orden |
-| Agroquímico | Suma `área_tratada × dosis × precio_producto`; hoy no cuantificable |
+## 5. Cost model
 
-## 12. Reconciliación de cifras anteriores
+For a service `s` in a scenario, the variable cost of one mission is the sum of operation and logistics.
 
-| Cifra anterior | Comprobación | Decisión |
-|---|---|---|
-| USD 5.640/año | No tiene desglose ni fórmula. Es menor que `4 × 1.980 = 7.920`, antes de ocho meses fuera de cosecha. | Se rechaza como total operativo. Queda solo como antecedente en `operating-mode.md`. |
-| USD 1.980/mes de cosecha | Implica USD 9,90/finca, pero 140 misiones darían USD 14,14 por misión incluyendo brigada, vehículo, equipo, permisos y nube. | No es compatible con los componentes exigidos ni con una tarifa trazable. |
-| 1.500 imágenes/mes normal | No proviene de las misiones. En arranque son unas 10.978/mes; luego el promedio modelado es 1.228/mes. | Se usa cálculo por servicio; 1.500 puede conservarse como techo de plataforma posterior. |
-| 24 misiones/mes fuera de cosecha | La tabla redondea 2,5 delimitaciones a 2, pero el anual usa 20. | El modelo usa 24,5 y reconcilia 756/año. |
-| Quién posee certificado | `operating-mode.md` lo deja abierto; E4-02 posterior elige operador contratado. | Prevalece la decisión fusionada de E4-02. |
+```text
+operation_s = hours_s × (pilot_hour + support_hour + equipment_hour)
+              + maintenance + consumables_s
 
-## 13. Riesgos y controles
+logistics_s = distance_km × vehicle_km
+              + per_diem × 2 × hours_s / 8
+              + equipment_transport
+              + repeat_share × repeat_cost
 
-| Riesgo | Consecuencia | Control |
-|---|---|---|
-| Escenarios confundidos con cotizaciones | Presupuesto usado como compromiso comercial | Etiqueta “estimación propia” y sustitución obligatoria por oferta fechada |
-| Un permiso por misión, no por periodo | Más tiempo y costo que el modelo | Validación legal/Aerocivil antes de contratar |
-| Distancias rurales mayores | Combustible, viático y días exceden base | Cotizar por departamento con rutas reales |
-| Dos cosechas regionales | Estimaciones y campañas adicionales | Confirmar calendario por comité departamental |
-| Capacidad inferior a 2,3 misiones/día | Más días, viáticos y retraso | Prueba de ruta durante el arranque |
-| Repeticiones por clima, batería o privacidad | Visitas adicionales por encima del 10% base | Medir causal y tasa desde la primera misión |
-| Dosis/producto desconocidos | Fumigación subestimada | Mantener el agroquímico fuera del total hasta receta/cotización |
-| Descargas desde Glacier | Solicitudes/egreso no modelados | Medir revisiones y agregar costo por recuperación |
-| IVA y aranceles | Hasta 19% o más en hardware importado | Validación tributaria y aduanera por línea |
-
-## 14. Criterios de aceptación y verificación
-
-| Criterio de Issue #53 | Evidencia | Estado |
-|---|---|---|
-| Costo por campaña con cinco servicios, operador, desplazamiento y almacenamiento | Secciones 6, 9 y 10; los cinco se costean sin obligarlos a volar en la misma ronda | Cumplido |
-| Cadencia en cosecha y fuera de cosecha | Sección 5, importada del script aprobado | Cumplido |
-| Frecuencias reconciliadas | 936 primer año, 756 posteriores, 9.000 imágenes/mes cosecha | Cumplido |
-| Sin doble conteo | Inferencia, VPN/endpoints, supervisores y agroquímico se separan | Cumplido |
-| Cálculo repetible | Script y pruebas estándar de Python | Cumplido |
-
-Comandos de comprobación:
-
-```powershell
-python docs/drones/tools/flight_frequency.py
-python docs/drones/tools/campaign_cost.py
-python -m unittest discover -s docs/drones/tools -p "test_campaign_cost.py" -v
+annual = operator_management + insurance_permits
+         + Σ missions_s × (operation_s + logistics_s)
+         + campaigns × mobilization
+         + storage + requests + processing
 ```
 
-## 15. Decisiones pendientes
+Storage is computed month by month for each cohort of images, as `images × 3 / 1024` GB at the Standard price for three months and at the Glacier Instant Retrieval price until month 60. Fuel sits inside the vehicle rate and is not added again. The loaded cost per mission spreads the fixed, mobilization and cloud lines over all missions of the year, so it serves as an internal unit price and is never added back to the yearly total.
 
-| Decisión/dato | Responsable | Sustituye o afecta |
+## 6. Cost per mission
+
+Base scenario, USD before tax.
+
+| Service | Operation | Logistics | Variable | Loaded, following year |
+|---|---:|---:|---:|---:|
+| Delimit the lot | 136.10 | 46.00 | 182.10 | 201.43 |
+| Confirm the alert | 56.37 | 33.50 | 89.87 | 109.19 |
+| Fumigate | 82.05 | 36.62 | 118.68 | 138.00 |
+| Verify | 56.37 | 33.50 | 89.87 | 109.19 |
+| Estimate the harvest | 156.79 | 49.12 | 205.91 | 225.23 |
+
+A fumigation excludes the product. A focus covers up to 0.79 ha, and a commercial spraying service in Colombia charges COP 60,000 to 70,000 a hectare on large areas, mapping included, which puts the flight over one focus near USD 16. The rest of the fumigation cost is the trip and the setup that a single focus cannot share with other hectares.
+
+## 7. Cost per campaign of one department
+
+A campaign period adds the scheduled round of one department and the alert missions it flies in that month. No single period carries all five services, since delimitation happens at start-up and on one farm in ten a year, harvest estimation only in harvest, and the three alert services only after an alert. Flying the five in every round would add flights the farms do not need. The table shows each service in each kind of period, with zero where the service does not fly, and the year of one department, where all five appear.
+
+Base scenario, USD before tax, missions and cost.
+
+| Service | Start-up month, first year | Harvest month | Outside-harvest month, following years | Year of one department, following years |
+|---|---:|---:|---:|---:|
+| Delimit the lot | 33.33 missions, 6,070.12 | 0 | 0.83 missions, 151.75 | 6.67 missions, 1,214.02 |
+| Confirm the alert | 3.33 missions, 299.56 | 13.33 missions, 1,198.24 | 3.33 missions, 299.56 | 80 missions, 7,189.43 |
+| Fumigate | 2 missions, 237.35 | 8.33 missions, 988.97 | 2 missions, 237.35 | 49.33 missions, 5,854.72 |
+| Verify | 2 missions, 179.74 | 8.33 missions, 748.90 | 2 missions, 179.74 | 49.33 missions, 4,433.48 |
+| Estimate the harvest | 0 | 16.67 missions, 3,431.87 | 0 | 66.67 missions, 13,727.50 |
+| Mobilization, fixed lines and cloud | 420.65 | 435.75 | 390.75 | 4,869.02 |
+| **Total** | **7,207.42** | **6,803.74** | **1,259.15** | **37,288.17** |
+
+The outside-harvest month is the average of the eight months, with a campaign in a quarter of them. In the first year a department costs USD 48,273.16, because its 66.67 start-up delimitations add USD 12,140.24.
+
+## 8. Monthly and yearly cost
+
+Base scenario, whole pilot, USD before tax.
+
+| Period | Missions | Cost | Per farm |
+|---|---:|---:|---:|
+| Start-up month | 122 | 21,622.25 | 108.11 |
+| Harvest month | 140 | 20,410.90 | 102.05 |
+| Outside-harvest month, first year | 22 | 3,321.90 | 16.61 |
+| Outside-harvest month, following years | 24.5 | 3,777.46 | 18.89 |
+
+The first year is `2 × 21,622.25 + 4 × 20,410.90 + 6 × 3,321.90 = 144,819.47`.
+
+| Line | First year | Following years |
+|---|---:|---:|
+| Delimit the lot | 36,420.71 | 3,642.07 |
+| Confirm the alert | 21,568.28 | 21,568.28 |
+| Fumigate | 17,564.16 | 17,564.16 |
+| Verify | 13,300.44 | 13,300.44 |
+| Estimate the harvest | 41,182.49 | 41,182.49 |
+| Operator management, insurance and permits | 13,500.00 | 13,500.00 |
+| Campaign mobilization, 21 and 18 campaigns | 1,260.00 | 1,080.00 |
+| Cloud storage, requests and processing | 23.39 | 27.07 |
+| **Total** | **144,819.47** | **111,864.52** |
+| Per department | 48,273.16 | 37,288.17 |
+| Per farm | 724.10 | 559.32 |
+| In COP | 473.5 million | 365.8 million |
+
+The cloud line grows each year as images accumulate in Glacier Instant Retrieval, from USD 23.39 in the first year to 27.07, 33.57, 40.02 and 46.46 in the fifth. Inference adds `images × inference rate` beside these totals.
+
+## 9. Scenarios and sensitivity
+
+The three scenarios keep the same cadence and change rates, distance and the share of repeated visits.
+
+| Scenario | First year | Following years | Per farm, first year | Per farm, following years |
+|---|---:|---:|---:|---:|
+| Low | 98,980.59 | 75,601.04 | 494.90 | 378.01 |
+| Base | 144,819.47 | 111,864.52 | 724.10 | 559.32 |
+| High | 243,424.26 | 188,829.99 | 1,217.12 | 944.15 |
+
+| Change, base scenario, following years | Total | Effect |
+|---|---:|---:|
+| Missions × 0.75 | 87,550.16 | −24,314.36 |
+| Missions × 1.25 | 136,178.88 | +24,314.36 |
+| Missions × 1.50 | 160,493.24 | +48,628.72 |
+| Brigades dedicated full time to the Federation | 200,737.51 | +88,872.99 |
+| VAT of 19 percent on every line, as a ceiling | 133,118.78 | +21,254.26 |
+
+Dedicated brigades pay six people for twelve months, about USD 112,000 a year, against USD 23,496 of flown hours. Missions are few outside harvest, about 0.4 per brigade and field day, so a contract per mission hour costs less as long as the operator can serve other clients between campaigns. Twice the distance adds `missions × distance × vehicle rate`, more foci raise confirmations first, and fumigations follow the share of foci that become an order. A second harvest a year adds 200 estimations and their campaigns.
+
+## 10. Previous figures
+
+An earlier estimate of the shared service gave about USD 5,640 a year and USD 1,980 in a harvest month, USD 9.90 per farm. Spread over the 140 missions of a harvest month, that figure leaves about USD 14 per mission for the pilot, the support person, the vehicle, the drone, the permits and the cloud, which no component of this model supports. The model of this document replaces those figures. Weekly area sweeps of all 200 farms, the alternative the shared service avoids, cost about USD 2.15 million a year with the same rates, about 19 times the sensor-directed service.
+
+## 11. Risks
+
+| Risk | Effect | Control |
 |---|---|---|
-| Cotización de operador certificado para tres brigadas, con pilotos, equipos y SLA | Federación / compras | Todos los supuestos de operación |
-| Póliza, tasas, alcance y periodicidad real de autorizaciones | Operador y revisión legal | Fijos y tiempo de respuesta |
-| Dron elegible, mantenimiento, baterías y vida útil | Operador / proveedor | Equipo por hora y mantenimiento |
-| Rutas, km, peajes, noches y viáticos por departamento | Operador / comités | Logística y campañas |
-| Producto, dosis, área media tratada e impuestos | Agronomía / proveedor | Costo de fumigación hoy excluido |
-| Meses de cosecha y posible cosecha secundaria | Comités departamentales | Estimaciones y campañas |
-| Tarifa final de inferencia | E7-05 | Línea separada de procesamiento |
-| IVA de AWS, operador y conectividad; aranceles | Federación / asesor tributario | Sensibilidad fiscal |
-| Imágenes, tamaños, repetición y descargas reales | Primeras campañas | Nube, visitas y capacidad |
+| The operator asks for a retainer to keep brigades available | Labor approaches the dedicated case of section 9 | Ask for both prices in the tender, per mission hour and per month |
+| Permits are granted per flight | More time and cost per mission | Legal review of the permit period before contracting |
+| Rural distances exceed the base | Fuel, per diem and days rise | Quote by department with real routes |
+| Brigades fly fewer than 2.3 missions a field day in harvest | More days, per diem and delay | Measure the route during the start-up round |
+| Repeated visits above 10 percent | Logistics rise | Record the cause and rate of each repeated visit |
+| Unknown product and dose | Fumigation is understated | Keep the product out of the totals until a prescription and quote exist |
+| Frequent downloads from Glacier Instant Retrieval | Retrieval and egress cost appear | Measure reviews and add the retrieval cost |
+| Import duties and VAT on the drones | Equipment rises by 19 percent or more | Tax and customs review per line |
 
-## Fuentes oficiales
+## 12. Assumptions and pending confirmations
 
-- AWS Price List API: [Amazon S3](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/us-east-1/index.json) y [AWS Lambda](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSLambda/current/us-east-1/index.json), `us-east-1`.
-- AWS, [precios de Amazon S3](https://aws.amazon.com/s3/pricing/).
-- Aerocivil, [drones y movilidad urbana aérea](https://www.aerocivil.gov.co/preguntas-frecuentes/18/drones-y-movilidad-urbana-aerea/), para categoría específica, certificado de operador y autorización.
-- Superintendencia Financiera de Colombia, [TRM en el portal nacional de datos abiertos](https://www.datos.gov.co/Econom-a-y-Finanzas/Tasa-de-Cambio-Representativa-del-Mercado-TRM/32sa-8pi3).
+| Assumption | Who confirms | What changes if it fails |
+|---|---|---|
+| The operator bills by mission hour and uses its staff elsewhere between campaigns | Federation procurement and operator | Following-year total rises to about USD 201,000 in the base scenario |
+| Pilot cost follows a public offer of COP 4.8 million a month with a 52 percent employer load | Operator quote | Labor lines scale with the quoted rate |
+| One spraying drone and one mapping drone per brigade, used for three years | Operator and dealer | Equipment rate scales with price and inversely with life |
+| Mission hours of 3, 1, 1.5, 1 and 3.5 by service | First campaign | Labor, equipment and per diem scale with hours |
+| Management, insurance, permits, vehicle, per diem and mobilization at team estimates | Operator quote and legal review | Fixed and logistics lines change |
+| Agrochemical product stays out of the totals | Agronomy and supplier | Fumigation adds treated area × dose × product price |
+| Harvest lasts four months | Departmental committees | Estimations and campaigns change |
+| Images of 3 MB, 100 per estimation and about 44 per precision mission | First campaign | Cloud line scales, still below USD 50 a year |
+
+## 13. Sources
+
+- AWS Price List API, [Amazon S3](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonS3/current/us-east-1/index.json) and [AWS Lambda](https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AWSLambda/current/us-east-1/index.json), `us-east-1`.
+- Superintendencia Financiera, [representative exchange rate](https://www.datos.gov.co/Econom-a-y-Finanzas/Tasa-de-Cambio-Representativa-del-Mercado-TRM/32sa-8pi3).
+- Minimum wage and transport aid of 2026, [Decrees 1469 and 1470 of 2025](https://consultorsalud.com/aumento-del-salario-minimo-en-colombia-2026/).
+- Employer load on payroll, [hacecuentas, cost of hiring in Colombia](https://hacecuentas.com/co/trabajo/costo-de-contratar).
+- Drone pilot job offer, [cazvid, Bogotá](https://cazvid.com/empleo/piloto-de-drone-en-bogota-colombia).
+- Spraying drone list price and ready-to-fly kit, [AgTecher, DJI Agras T50](https://agtecher.com/product/dji-agras-t50).
+- Mapping drone list price, [Advexure, DJI Mavic 3 Multispectral](https://advexure.com/products/dji-mavic-3-multispectral).
+- Commercial spraying price per hectare, [Contexto Ganadero, Agrodron](https://www.contextoganadero.com/regiones/agrodron-integra-mapeo-y-aspersion-con-drones-en-un-solo-servicio).
+- Fuel price, [Ministry of Mines and Energy, November prices](https://minenergia.gov.co/es/sala-de-prensa/noticias-index/en-noviembre-el-gobierno-nacional-mantiene-estables-los-precios-de-la-gasolina-y-el-acpm/).
+- Aerocivil, [drones and urban air mobility](https://www.aerocivil.gov.co/preguntas-frecuentes/18/drones-y-movilidad-urbana-aerea/), for the specific category, operator certificate and authorization.
