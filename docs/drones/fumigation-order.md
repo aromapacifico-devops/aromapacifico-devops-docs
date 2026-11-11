@@ -121,13 +121,13 @@ OK 17 states, 41 transitions, only people reach AUTHORIZED, CLOSED, REJECTED
 
 | Actor | Moves | How the platform knows |
 |---|---|---|
-| Supervisor | Authorizes, rejects, revises, cancels, resolves a review, accepts a partial application, closes | Supervisor group claim, department or backup check, second factor in the token |
+| Supervisor | Authorizes, rejects, revises, cancels, resolves a review, accepts a partial application, records a verification result when inference failed, closes | Supervisor group claim, department or backup check, second factor in the token |
 | Farmer | Refuses the visit before authorization | Farmer account of the farm, or the supervisor records the refusal in person |
 | Applicator | Starts, ends and aborts an execution | Brigade group claim and the assignment of the order, recorded by the station or the phone |
-| Platform function | Checks prerequisites, blocks, records the package acknowledgements, publishes records, sends records to review | Its own role, with conditional writes only |
+| Platform function | Checks prerequisites, blocks, records the package acknowledgements, publishes records, sends records to review, writes a closable verification result | Its own role, with conditional writes only |
 | Scheduler | Moves an order to `EXPIRED` when its window closes | A one-time schedule at `not_after` that calls the same transition function |
 
-The transition function rejects a token that carries both the supervisor and the brigade groups, and an authorization where the supervisor is the assigned applicator, as the [identity and access](../security/identity-and-access.md) rules state. An inference result can open a recommendation in the supervisor's queue and nothing more.
+The transition function rejects a token that carries both the supervisor and the brigade groups, and an authorization where the supervisor is the assigned applicator, as the [identity and access](../security/identity-and-access.md) rules state. Before the application, an inference result can open a recommendation in the supervisor's queue and nothing more. After it, a closable verification result moves the order to `VERIFIED`, where it waits for the supervisor to close it.
 
 ## 7. Window
 
