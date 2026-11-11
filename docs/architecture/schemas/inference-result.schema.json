@@ -175,10 +175,10 @@
               "method_version": {"type": "string", "minLength": 1},
               "lots": {"type": "array", "minItems": 1},
               "conversion": {"type": "object"},
-              "estimated_sacks": {"type": "integer", "minimum": 0},
-              "sacks_low": {"type": "integer", "minimum": 0},
-              "sacks_high": {"type": "integer", "minimum": 0},
-              "relative_range": {"type": "number", "minimum": 0},
+              "estimated_sacks": {"type": ["integer", "null"], "minimum": 0},
+              "sacks_low": {"type": ["integer", "null"], "minimum": 0},
+              "sacks_high": {"type": ["integer", "null"], "minimum": 0},
+              "relative_range": {"type": ["number", "null"], "minimum": 0},
               "status": {"enum": ["PENDING", "REVIEW_REQUIRED", "FAILED"]}
             }
           }

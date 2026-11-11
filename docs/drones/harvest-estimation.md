@@ -67,7 +67,7 @@ The farm history becomes a second source after the first harvest. The platform a
 2. The ground station loads the mission at the municipal seat or the collection center, and the drone flies with the sprayer off. During the visit the brigade records the field sample of each lot.
 3. On return, the station uploads the photos, the flight log and the sample record, as the [drone mission link](../network/drone-mission-link.md) defines. No estimate starts until the platform publishes the flight record.
 4. The publication event starts the estimation function. It screens every image for people first. An image with a person goes to the restricted prefix and never reaches inference, and the brigade repeats that capture if the lot loses coverage.
-5. The function builds the orthomosaic of each lot, counts productive trees through the managed inference service, reads the field sample, applies the conversion, and writes the result with a conditional write. A repeated event finds the same key and changes nothing.
+5. The function builds a TIFF orthomosaic and PNG inference tiles for each lot, counts productive trees through the managed inference service, reads the field sample, applies the conversion, and writes the result with a conditional write. The TIFF stays as durable evidence. The model accepts PNG, JPEG, GIF and WebP, so it reads the PNG tiles and never an oversized TIFF. A repeated event finds the same key and changes nothing.
 6. The supervisor reviews the count on a sample of tiles and the field sample, then validates the estimate. Only a validated estimate reaches the center.
 
 When the function fails, it retries three times, then sends the event to the dead letter queue and raises an alarm. The source objects stay, and no estimate changes.
@@ -76,37 +76,71 @@ When the function fails, it retries three times, then sends the event to the dea
 
 The example uses invented values and identifiers.
 
+The result uses the common envelope and idempotency rule of the [inference functions](../architecture/inference-functions.md).
+
 ```json
 {
-  "estimate_id": "est-demo-001",
-  "farm_id": "farm-demo",
-  "harvest_id": "harvest-demo-main",
-  "mission_id": "mission-demo-77",
-  "method_version": "trees-sample-cenicafe-1",
-  "lots": [
+  "schema_version": "1.0",
+  "result_id": "result-demo-estimate-0001",
+  "function": "harvest_estimation",
+  "subject": {
+    "farm_id": "farm-demo",
+    "harvest_id": "harvest-demo-main",
+    "mission_id": "mission-demo-77",
+    "mission_execution_id": "mission-exec-demo-77-01",
+    "flight_record_id": "flight-record-demo-77-01"
+  },
+  "source_objects": [
     {
-      "lot_id": "lot-demo-a",
-      "geometry_version": 3,
-      "productive_trees": 5000,
-      "productive_trees_low": 4800,
-      "productive_trees_high": 5200,
-      "cherry_kg_per_tree": 2.0,
-      "cherry_kg_per_tree_low": 1.7,
-      "cherry_kg_per_tree_high": 2.3,
-      "sample_trees": 30,
-      "sample_ref": "sample-demo-a-1",
-      "orthomosaic": {"key": "estimation/farm-demo/lot-demo-a/ortho.tif", "version_id": "v-demo", "sha256": "4f8e2c9b7d1a0e63c5b2f7d8a9e1c3b5d7f9a1c3e5b7d9f1a3c5e7b9d1f3a5c7"}
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "estimation/farm-demo/exec-demo-77-01/flight-record.json",
+      "version_id": "v-demo-record-77",
+      "sha256": "e3bc27a4d0d90e68f8b4a58112ae6fd28980bc6269f30c7a801eea933260816e",
+      "role": "flight_record"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "estimation/farm-demo/lot-demo-a/ortho.tif",
+      "version_id": "v-demo",
+      "sha256": "047a6063192ad8210817281f4b7d5837755970c2dd297a08f6c27a8508ab924d",
+      "role": "orthomosaic"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "estimation/farm-demo/lot-demo-a/sample.json",
+      "version_id": "v-demo-sample",
+      "sha256": "4108d1c28860e1eafa28e39753fb963e3844bf7e8d1f21ee7534e770179163ab",
+      "role": "field_sample"
     }
   ],
-  "conversion": {"parchment_per_cherry": 0.20, "range": [0.20, 0.222], "source": "Cenicafe, Avance Tecnico 370"},
-  "estimated_sacks": 33,
-  "sacks_low": 27,
-  "sacks_high": 44,
-  "relative_range": 0.26,
-  "captured_at": "2026-04-02T15:10:00Z",
-  "estimated_at": "2026-04-03T09:00:00Z",
-  "status": "VALIDATED",
-  "validated_by": "supervisor-demo-02"
+  "evaluated_at": "2026-04-03T09:00:00Z",
+  "confidence": 0.79,
+  "model_id": "us.amazon.nova-2-lite-v1:0",
+  "prompt_version": 5,
+  "idempotency_key": "ecfdfbb89faa14f2d9b139761532d248cf2f4375f2936bd20b89474b16e06f2c",
+  "result": {
+    "method_version": "trees-sample-cenicafe-1",
+    "lots": [
+      {
+        "lot_id": "lot-demo-a",
+        "geometry_version": 3,
+        "productive_trees": 5000,
+        "productive_trees_low": 4800,
+        "productive_trees_high": 5200,
+        "cherry_kg_per_tree": 2.0,
+        "cherry_kg_per_tree_low": 1.7,
+        "cherry_kg_per_tree_high": 2.3,
+        "sample_trees": 30,
+        "sample_ref": "sample-demo-a-1"
+      }
+    ],
+    "conversion": {"parchment_per_cherry": 0.2, "range": [0.2, 0.222], "source": "Cenicafe, Avance Tecnico 370"},
+    "estimated_sacks": 33,
+    "sacks_low": 27,
+    "sacks_high": 44,
+    "relative_range": 0.26,
+    "status": "PENDING"
+  }
 }
 ```
 
@@ -114,14 +148,15 @@ The example uses invented values and identifiers.
 |---|---|
 | Farm, harvest and mission | Exactly one planned estimation mission per farm and harvest. A corrective flight links to the original and does not count as another |
 | Lots | Each lot with its exact published polygon version, tree count with its range, load per tree with its range and the sample behind it |
-| Source objects | S3 key, version and SHA-256 of each orthomosaic, plus the field sample record |
+| Source objects | Bucket, key, exact S3 version and SHA-256 of the flight record, each orthomosaic and the field sample. The flight record manifest identifies every source photo version |
 | Conversion | The factor, its range and its source, stored with the result so a later change of factor never rewrites past estimates |
 | Result | Estimated sacks of 60 kg of dry parchment, with the low and high values |
-| Confidence | `relative_range`, the half width of the range divided by the estimate, together with the range itself |
-| Dates | Capture, upload and estimation times in UTC, each kept apart |
-| Status | `PENDING`, `REVIEW_REQUIRED`, `VALIDATED` or `FAILED`, with validation by a named supervisor |
+| Confidence | The median model score of the tree count tiles. It orders the evidence for review and is not the agronomic uncertainty |
+| Uncertainty | `relative_range`, the half width of the sack range divided by the estimate, together with the range itself |
+| Dates | Capture and upload times stay in the flight record. `evaluated_at` records the inference time |
+| Status | `PENDING`, `REVIEW_REQUIRED` or `FAILED` in the immutable inference result. A separate validation record names the supervisor and marks the latest estimate `VALIDATED` |
 
-A correction creates a new version of the result, linked to the one it replaces. The idempotency key is the mission, the lot and the version of the source object, so a repeated or late event never counts a lot twice.
+A correction creates a new result linked to the one it replaces. The idempotency key covers the function, subject, exact source versions, model and prompt version, so a repeated or late event never counts a lot twice.
 
 ## 6. What the center sees
 
@@ -129,7 +164,7 @@ The center reads the latest validated estimate of each farm that delivers to it,
 
 ## 7. Integrity, privacy and limits
 
-- Photos, orthomosaics, logs and samples stay in the encrypted, versioned bucket for five years.
+- Photos, orthomosaics, PNG inference tiles, logs and samples stay in the encrypted, versioned bucket for five years.
 - An image with a person never reaches inference, and if screening fails or is unavailable, the image waits for review.
 - The inference function reads only the estimation prefix and writes only results. Center operators read validated results. Buyers and carriers have no access.
 - An estimate is a forecast. Before the second harvest, the team compares each estimate with the sacks actually delivered and adjusts the method, the sample size and the tree count review.
