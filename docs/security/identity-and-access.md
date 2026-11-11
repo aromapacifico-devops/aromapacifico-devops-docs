@@ -63,7 +63,7 @@ The drone operator role holds two groups. The brigade group holds the pilots of 
 | Federation analyst | IAM Identity Center | Reads only the files of the monthly pilot report, which are aggregated and name no person or farm |
 | Buyer | None | Read-only access needs no account, and the code is the capability |
 
-A single user pool with groups was preferred over one pool per role, since the applications share one set of users and the groups already separate permissions. Phones and browsers call the public HTTP API, and center stations call a private REST API reached only through the tunnel. Both validate the same token with a Cognito authorizer, and each function checks the group.
+A single user pool with groups was preferred over one pool per role, since the applications share one set of users and the groups already separate permissions. Phones and the reports web call the public HTTP API, and center stations call a private REST API reached only through the tunnel. The buyer page calls the lookup function through the CloudFront distribution, with no token. Both validate the same token with a Cognito authorizer, and each function checks the group.
 
 Federation staff could later sign in with a corporate directory by adding a federated provider to the pool, with no change to the applications.
 
@@ -156,6 +156,8 @@ A stolen device can only publish as itself, and revocation stops it. One certifi
 | Random code of 60 bits | A code cannot be derived or listed |
 | Buyer view only | The response comes from a table that holds only the buyer view, and the function can read nothing else. [Views by actor](../traceability/actor-views.md) lists every field |
 | WAF rate rule | Limits automated reading, with a threshold above the peak of 30 reads a minute |
+| Only path through the firewall | The function URL admits only requests that the distribution signed, so no request skips the rate rule |
+| Ceiling | Five reserved copies of the lookup function bound the rate at about 25 lookups a second, whatever the number of addresses |
 | Audit of each read | Required for the sack |
 
 ## 10. What is audited

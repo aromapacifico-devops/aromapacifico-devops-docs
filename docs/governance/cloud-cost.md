@@ -44,13 +44,13 @@ Rates are the on-demand prices of `us-east-1` read on the retrieval date of the 
 | Telemetry ingestion | Messages, rules, queue, function, tables, archive and the hourly configuration read of each node | 0.72 | 0.98 |
 | Carrier positions | 216,000 requests through the API, function and table writes | 0.58 | 0.58 |
 | Sack events | Transactional writes, reads and the trip index, with events grouped by truck. Center requests use the private REST API at USD 3.50 per million and add at most 0.03 | 0.20 | 0.81 |
-| Public sack queries | Per million requests, 1.00 API, 0.60 web firewall, 1.03 function and 0.38 table reads, which is 3.01 | 0.41 | 1.62 |
+| Public sack queries | Per million requests through the function URL, 0.60 web firewall, 1.03 function and 0.06 table read, which is 1.70. CloudFront requests stay inside its free tier | 0.23 | 0.92 |
 | Inference | 1,500 or 9,000 images at USD 1.75 per 1,000, with the person filter | 2.63 | 15.75 |
 | New objects in S3 | Storage and uploads of the images of the month | 0.11 | 0.65 |
 | Alert delivery | 40 or 200 SMS at USD 0.05087, plus push, logs and queues under USD 0.01 | 2.03 | 10.17 |
 | Ranges, cases and delivery queues | Reads and writes of the small tables, under USD 0.05 together | 0.05 | 0.05 |
 | Audit logs and trail | Sack reads, telemetry entries, delivery stream, storage and trail events, at the busiest case | 0.40 | 0.40 |
-| **Variable lines** | | **7.13** | **31.01** |
+| **Variable lines** | | **6.95** | **30.31** |
 | Site-to-site VPN | 3 connections × USD 0.05 × 730 hours | 109.50 | 109.50 |
 | Interface endpoints | 3 endpoints × 2 zones × USD 0.01 × 730 hours | 43.80 | 43.80 |
 | KMS | 5 keys × USD 1.00, four platform keys and one to sign drone packages | 5.00 | 5.00 |
@@ -59,7 +59,7 @@ Rates are the on-demand prices of `us-east-1` read on the retrieval date of the 
 | CloudWatch | Allowance for alarms at USD 0.10 each and platform logs at USD 0.50 per GB ingested | 2.20 | 2.20 |
 | Cognito | Within the free allowance of 10,000 monthly users with direct sign-in | 0.00 | 0.00 |
 | **Fixed lines** | | **170.10** | **170.10** |
-| **Cloud platform, production** | | **177.23** | **201.11** |
+| **Cloud platform, production** | | **177.05** | **200.41** |
 
 The network lines, VPN and endpoints, are 153.30 and make up about 87 percent of a normal month. Variable cost is small, so the serverless design leaves the savings in the network, and the demonstration environments exist only while the team uses them, which protects the credits. Removing the endpoints would save USD 43.80 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
 
@@ -85,9 +85,9 @@ The platform key of each environment encrypts its state, so the bootstrap create
 
 | Item | Normal month | Harvest month |
 |---|---|---|
-| Cloud platform, production | 177.23 | 201.11 |
+| Cloud platform, production | 177.05 | 200.41 |
 | Dedicated links of three centers, at the exchange rate of the price basis | 229 to 321 | 229 to 321 |
-| **Platform with links** | **407 to 498** | **431 to 522** |
+| **Platform with links** | **406 to 498** | **430 to 522** |
 | Development and test, 80 hours each in a month | 9.24 | 9.24 |
 | Platform keys of shared, development and test, kept by the bootstrap | 3.00 | 3.00 |
 | Stored history and its backup, added at the end of year five | About 10.2 | About 10.2 |
@@ -98,7 +98,7 @@ The stored history is the cost of keeping five years of records, and it grows fr
 
 | Change | Effect on the harvest month |
 |---|---|
-| Public queries at half the ceiling | 0.81 less |
+| Public queries at half the ceiling | 0.46 less |
 | No SMS, every urgent alert confirmed on the phone | 10.17 less |
 | Images double | 15.75 more for inference, 0.65 more for storage |
 | Sack events not grouped by truck, one request per event | 0.46 more |
@@ -111,7 +111,7 @@ The stored history is the cost of keeping five years of records, and it grows fr
 |---|---|---|
 | A normal month receives a quarter of the sacks and of the public queries of a harvest month | Federation | The sack and query lines change in proportion, by less than USD 2 |
 | Public sack queries run at their peak all day in harvest | Federation | The ceiling falls and the line with it |
-| A public query reads about 3 read units of the table | First queries in the test environment | The table line changes in proportion, by cents |
+| A public query reads half a read unit of the table, since a buyer view stays under 4 KB | Schema of the buyer view | The table line doubles, by cents |
 | SMS reaches the phone only for urgent alerts | Federation | The SMS line changes, up to its upper bound |
 | Users who sign in directly stay under 10,000 a month | Federation | Cognito costs USD 0.015 per user above the allowance |
 | Cost of the dedicated links | Operator quotes | The totals with links change |
