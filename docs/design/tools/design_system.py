@@ -89,7 +89,7 @@ USES = [
     ("Labels on a muted surface", "text/secondary", "surface/muted", "Offline bar, secondary sections", True),
     ("Microcopy on the canvas", "text/muted", "surface/canvas", "Relative times", True),
     ("Microcopy on a card", "text/muted", "surface/card", "Hints under a field", True),
-    ("Microcopy on a muted surface", "text/muted", "surface/muted", "Offline bar, status bars", True),
+    ("Microcopy on a muted surface, do not use for normal text", "text/muted", "surface/muted", "Inherited from the mockups, not used by these components", True),
     ("Link and primary text button", "action/primary", "surface/canvas", "Links, secondary button", True),
     ("Link on a card", "action/primary", "surface/card", "Links inside a card", True),
     ("Label of the primary button", "text/inverse", "action/primary", "Primary button", True),
@@ -126,7 +126,7 @@ MATRIX = build_matrix()
 FAILING = [m for m in MATRIX if m[0] not in NOT_TEXT and m[5] == "fail"]
 
 # every text combination reaches AA except the ones that carry a documented variant
-VARIANT_FOR = {"Microcopy on a muted surface"}
+VARIANT_FOR = {"Microcopy on a muted surface, do not use for normal text"}
 for name, fg, bg, where, r, lv in MATRIX:
     if name not in NOT_TEXT and name not in VARIANT_FOR:
         check(r >= 4.5, f"{name} is {r:.2f}, below AA, and has no documented variant")
@@ -195,6 +195,11 @@ ICONS = {
 for name in ICONS:
     check((DESIGN / "icons" / f"{name}.svg").exists(), f"icon {name} is missing")
 check((DESIGN / "icons" / "LICENSE.txt").exists(), "the license of the icon set is missing")
+
+# no component may put the muted text on the muted surface, and the document must say so
+for cname, cdesc, *_ in COMPONENTS:
+    check(not ("text/muted" in cdesc and "surface/muted" in cdesc), f"component {cname} pairs text/muted with surface/muted")
+check("do not use for normal text" in (DESIGN / "design-system.md").read_text(encoding="utf-8"), "the document does not mark the pair below AA as not for normal text")
 
 # ---------------------------------------------------------------- screens: view, id, name, components, icons
 SCREENS = [
@@ -297,6 +302,7 @@ def tables():
 
 def main():
     if "--sheet" in sys.argv:
+        sys.dont_write_bytecode = True
         sys.path.insert(0, str(Path(__file__).resolve().parent))
         import design_sheet
         i = sys.argv.index("--sheet")
