@@ -61,7 +61,7 @@ Rates are the on-demand prices of `us-east-1` read on the retrieval date of the 
 | **Fixed lines** | | **170.10** | **170.10** |
 | **Cloud platform, production** | | **177.23** | **201.11** |
 
-The network lines, VPN and endpoints, are 153.30 and make up about 87 percent of a normal month. Variable cost is small, so the serverless design leaves the savings in the network, and the nightly destroy of the demonstration environments protects the credits. Removing the endpoints would save USD 43.80 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
+The network lines, VPN and endpoints, are 153.30 and make up about 87 percent of a normal month. Variable cost is small, so the serverless design leaves the savings in the network, and the demonstration environments exist only while the team uses them, which protects the credits. Removing the endpoints would save USD 43.80 a month and would send center traffic over the internet with MFA and TLS alone, so the design keeps them.
 
 The audit line and the alert delivery line are upper bounds. A normal month spends less on audit than the busiest case, and the SMS line assumes that every urgent alert reaches the phone only by SMS.
 

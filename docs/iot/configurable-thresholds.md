@@ -77,17 +77,17 @@ Grain temperature above 40 °C is an alert range with `max` 40 excluded, so exac
 
 ## 5. Ranges table
 
-The ranges table keeps every version. Its partition key stays `zone_type`, and its sort key becomes `variable#valid_from`, so the versions of one variable sort by time.
+The ranges table keeps every version. Its partition key stays `zone_type`, and its sort key becomes `variable#valid_from`, so the versions of one variable sort by time. One version item holds every kind of range of its variable, because pH and air temperature carry both an alert range and a recommended range, and the evaluation reads a single item for the measured time.
 
 | Attribute | Meaning |
 |---|---|
 | `zone_type` | `cultivation` or `drying`, partition key |
 | `variable#valid_from` | Message field and the UTC time from which the version applies, sort key |
-| `kind` | `alert`, `recommended` or `reference` |
-| `min`, `max`, `min_included`, `max_included` | Limits of a range |
-| `target`, `tolerance` | Value of a reference, with the tolerance empty until defined |
+| `alert` | Map with `min`, `max`, `min_included` and `max_included`, present when the variable has an alert range |
+| `recommended` | Map with `min` and `max`, present when the variable has a recommended range |
+| `reference` | Map with `target`, and `tolerance` once defined, present when the variable has a reference |
 | `unit` | Unit of the field, matched against the message contract |
-| `version` | Integer that grows by one for each version of the variable and kind |
+| `version` | Integer that grows by one for each version of the variable |
 | `reason` | Why the version exists |
 | `published_by` | Cognito subject of the platform operator who published it |
 | `published_at` | UTC time of publication |
@@ -99,11 +99,8 @@ Example of one version.
 {
   "zone_type": "cultivation",
   "variable#valid_from": "ph#2026-11-10T00:00:00Z",
-  "kind": "alert",
-  "min": 4.5,
-  "min_included": true,
-  "max": 6.0,
-  "max_included": true,
+  "alert": {"min": 4.5, "min_included": true, "max": 6.0, "max_included": true},
+  "recommended": {"min": 4.9, "max": 5.6},
   "unit": "pH",
   "version": 1,
   "reason": "Initial range of the pilot",
@@ -149,7 +146,7 @@ Only the platform operator publishes a range, through the platform API, signed i
 | A reference for grain humidity carries no closing action | Rejected |
 | The reason is present | Rejected |
 
-A rollback publishes a new version that copies the limits of an older one and fills `reverts_to`. No version is ever edited or deleted, and versions are kept for five years with the rest of the audit evidence. The evaluation function caches the versions of a zone type for one minute, so a change applies to readings measured after its `valid_from` within a minute of publication.
+A change to one kind of range publishes a new version of the variable that copies the other kinds unchanged. A rollback publishes a new version that copies the limits of an older one and fills `reverts_to`. No version is ever edited or deleted, and versions are kept for five years with the rest of the audit evidence. The evaluation function caches the versions of a zone type for one minute, so a change applies to readings measured after its `valid_from` within a minute of publication.
 
 A write on the table that does not come from the platform function still leaves a CloudTrail data event, which the audit design compares with the `threshold.changed` events.
 
@@ -171,7 +168,7 @@ A write on the table that does not come from the platform function still leaves 
 
 ## 9. Infrastructure code
 
-The telemetry ingestion module creates the ranges table with the sort key `variable#valid_from` and receives the initial ranges in its `alert_ranges` input, which it writes as version 1 of each range. Later versions come only through the platform API, so a new `terraform apply` never overwrites a range the Federation changed. The audit design already names the table in its CloudTrail selector.
+The telemetry ingestion module creates the ranges table with the sort key `variable#valid_from` and receives the initial ranges in its `alert_ranges` input, which it writes as version 1 of each variable, with `published_by` set to `terraform`. Later versions come only through the platform API, so a new `terraform apply` never overwrites a range the Federation changed. The audit design already names the table in its CloudTrail selector.
 
 ## 10. Cost
 
