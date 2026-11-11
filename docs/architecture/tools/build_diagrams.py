@@ -1210,7 +1210,7 @@ def fumigation_order():
     p.step("<b><font style=\"font-size:10px\">EXECUTED_PENDING_SYNC</font></b><br>log closed<br>in the field", 1400, 260, cid="eps", **st)
     p.step("<b><font style=\"font-size:10px\">FLIGHT_RECORD_PERSISTED</font></b><br>record verified,<br>planned product lot", 1720, 260, cid="frp", **st)
     p.step("<b><font style=\"font-size:10px\">VERIFICATION_PENDING</font></b><br>stays open with<br>no verification file", 1980, 260, cid="vp", **st)
-    p.step("<b><font style=\"font-size:10px\">VERIFIED</font></b><br>verification<br>record stored", 2240, 260, cid="ver", **st)
+    p.step("<b><font style=\"font-size:10px\">VERIFIED</font></b><br>photos evaluated,<br>record written", 2240, 260, cid="ver", **st)
     p.step("<b><font style=\"font-size:10px\">CLOSED</font></b><br>outcome and any<br>follow-up order", 2500, 260, cid="closed", **green, **st)
     p.step("<b><font style=\"font-size:10px\">REJECTED</font></b><br>supervisor or<br>farmer refused", 320, 80, cid="rej", **grey, **st)
     p.step("<b><font style=\"font-size:10px\">CANCELLED</font></b><br>withdrawn<br>before takeoff", 660, 80, cid="can", **grey, **st)
@@ -1227,7 +1227,8 @@ def fumigation_order():
     p.edge("exec", "eps", "log closed", BIZ)
     p.edge("eps", "frp", "record published", TEL)
     p.edge("frp", "vp", "planned", TEL)
-    p.edge("vp", "ver", "stored", TEL)
+    p.edge("vp", "ver", "closable result", TEL)
+    p.edge("vp", "ver", "reviews after dead letter", BIZ, exit=(0.7, 1), entry=(0.3, 1), points=[(2099, 420), (2291, 420)])
     p.edge("ver", "closed", "closes", BIZ, width=2)
 
     p.edge("ready", "rej", "refuses", BIZ, exit=(0.5, 0), entry=(0.5, 1))
@@ -1254,7 +1255,7 @@ def fumigation_order():
     p.legend(40, 740, 560, [(TEL, False, "Platform function, conditional write"), (BIZ, False, "Person, with the group and second factor checked"),
                             (FAIL, False, "Safety stop or failure"), (CTRL, False, "Scheduler at the end of the window")])
     p.note("<b>Only a supervisor</b> moves an order to AUTHORIZED or CLOSED, and only the supervisor or the farmer to REJECTED. No model, function, event or upload can authorize.", 640, 740, 640, 60, fill="#FDEDEC", stroke=FAIL)
-    p.note("<b>Not drawn.</b> READY_FOR_HUMAN_REVIEW expires when its proposed window ends. ABORTED expires when no product left the tank. BLOCKED and EXPIRED can be revised or cancelled, and READY, AUTHORIZED and PACKAGE_PRELOADED can be revised. All 40 moves are in fumigation-order-transitions.json.", 1320, 740, 860, 76)
+    p.note("<b>Not drawn.</b> READY_FOR_HUMAN_REVIEW expires when its proposed window ends. ABORTED expires when no product left the tank. BLOCKED and EXPIRED can be revised or cancelled, and READY, AUTHORIZED and PACKAGE_PRELOADED can be revised. All 41 moves are in fumigation-order-transitions.json.", 1320, 740, 860, 76)
     p.note("<b>Audit.</b> Every move, allowed or denied, writes one fumigation.transition event to the log archive.", 2220, 740, 480, 60)
     return p
 
