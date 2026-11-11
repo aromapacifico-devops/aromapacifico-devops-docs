@@ -90,7 +90,7 @@ Sites at the edge hold their data until a path exists. A serverless platform in 
 | 2. Crop alert | Ingestion function, SNS, farmer's phone | IAM role of the function | Mobile push |
 | 3. Sack, trip and order events | Application, API Gateway, domain function, DynamoDB transaction | Cognito token, MFA at centers and for drones | HTTPS, or IPsec from a center |
 | 4. Drone objects | Ground station, S3, EventBridge, inference function, Rekognition, Bedrock, case | Cognito token and presigned URL | HTTPS, or IPsec from a center |
-| 5. Public query | Browser, WAF, CloudFront, API Gateway, domain function | None, read by code | HTTPS |
+| 5. Public query | Browser, CloudFront with WAF, lookup function through its function URL | None, read by code | HTTPS |
 | 6. Infrastructure delivery | Pull request, plan, approval, apply | GitHub OIDC role | HTTPS |
 
 The buyer flow deserves a note. A buyer does not sign in, so the sack code works as a capability to read one sack. The code is random and reveals nothing, and the response holds only the buyer view. Every read is [audited](../security/audit.md).
@@ -132,7 +132,7 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 | Item | Normal month, USD | Harvest month, USD |
 |---|---|---|
 | Telemetry ingestion | 0.72 | 0.98 |
-| APIs for positions, sacks and queries | 1.19 | 3.01 |
+| APIs for positions, sacks and queries | 1.01 | 2.31 |
 | Inference | 2.63 | 15.75 |
 | New objects in S3, for that month | 0.11 | 0.65 |
 | Alert delivery, SMS at its upper bound | 2.03 | 10.17 |
@@ -143,7 +143,7 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 | Secrets, four | 1.60 | 1.60 |
 | WAF, web ACL and three rules | 8.00 | 8.00 |
 | CloudWatch, alarms and logs | 2.20 | 2.20 |
-| **Total** | **177.23** | **201.11** |
+| **Total** | **177.05** | **200.41** |
 
 About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links.
 
@@ -176,5 +176,5 @@ Development, test and production come from the same code with different variable
 | Security | Identity and access, encryption and revocation, personal data and retention |
 | Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
 | Automation and change | Implementation scope, environments and promotion |
-| Workloads | Sensors, alert ranges, telemetry ingestion, alert to drone confirmation, drone operating mode, drone roles and permits, lot boundaries, harvest estimation, sack identity, sack states, custody chain, carrier application contract |
+| Workloads | Sensors, alert ranges, telemetry ingestion, alert to drone confirmation, drone operating mode, drone roles and permits, lot boundaries, harvest estimation, sack identity, sack states, custody chain, views by actor, carrier application contract |
 | Decisions and assumptions | Decision records and assumption register |

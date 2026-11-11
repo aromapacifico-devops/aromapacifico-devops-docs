@@ -134,13 +134,13 @@ If a service is blocked on the free plan, the variables that enable it stay off 
 |---|---|---|
 | Bootstrap | Once, by hand | Creates the state buckets, the platform keys, the OIDC provider, the pipeline roles and the budget, which are never destroyed |
 | Plan | Each pull request | Shows the changes |
-| Deploy | Manually, choosing the environment | Applies, and production needs approval |
-| Destroy | Manually, and each night for every environment of the demonstration | Removes the environment, keeping bootstrap |
+| Deploy | Manually from GitHub, choosing the environment, when the team starts using it | Applies, and production needs approval |
+| Destroy | Manually from GitHub, choosing the environment, when work on it stops | Removes the environment, keeping bootstrap |
 | Drift | On a schedule | Runs a plan and reports differences against the code |
 
 Serverless resources cost almost nothing while idle, so the money goes to two items, the VPN and the interface endpoints. Two variables turn them off, `enable_center_link` and `enable_private_endpoints`, for sessions that do not need them.
 
-The team brings environments up and down through the pipeline while it works. The nightly destroy protects the credits from a forgotten environment, and it covers production too, since the demonstration has no pilot to keep running. The account also gets a budget with an alert at USD 20 and USD 50, created in bootstrap.
+An environment of the demonstration exists only while the team uses it. The team brings it up with the deploy workflow when work starts and takes it down with the destroy workflow when work stops, production included, since the demonstration has no pilot to keep running. No destroy runs on a schedule, so the decision stays with the person who knows whether the environment is still in use. A forgotten environment keeps billing until someone destroys it, and the budget of the account, created in bootstrap with alerts at USD 20 and USD 50, is the safeguard.
 
 ## 8. Cost per hour
 
@@ -164,7 +164,7 @@ From the AWS price list for us-east-1.
 
 The platform key of each environment encrypts its state, so it belongs to the bootstrap and stays when the environment comes down, at USD 1 a month per environment.
 
-The whole implementation fits comfortably in USD 100 if environments come down at night, which is what the nightly destroy guarantees. Bedrock and Rekognition calls in testing add about USD 1.75 per 1,000 images.
+The whole implementation fits comfortably in USD 100 when environments come down at the end of each work session, and the budget alerts catch one that stays up by mistake. Bedrock and Rekognition calls in testing add about USD 1.75 per 1,000 images.
 
 ## 9. What makes an environment hard to destroy
 

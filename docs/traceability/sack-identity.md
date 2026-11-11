@@ -115,15 +115,7 @@ The `state` field takes one of seven values, which match the states of the pilot
 
 ## 7. What each actor sees
 
-| Field | Buyer | Center | Farmer |
-|---|---|---|---|
-| Origin, at department level | Yes | Yes | Yes |
-| Process dates | Yes | Yes | Yes |
-| State | Yes | Yes | Yes |
-| Drying variables | Yes | Yes | Yes |
-| Trip | No | Yes | No |
-| Farm and lot | No | Yes | Own farms |
-| Farmer identity | No | No | Own |
+The code opens the buyer view of one sack, with its origin by department, process dates by day, state and drying variables, and no personal data. The center sees the trip and the farmer sees the sacks of their own farms. [Views by actor](actor-views.md) lists every field for every actor and explains how the buyer view is kept apart.
 
 ## 8. Code issued at the center
 

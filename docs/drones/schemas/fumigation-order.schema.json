@@ -1,0 +1,206 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fumigation-order.schema.json",
+  "title": "Fumigation order",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "order_id", "revision", "state", "method", "case_id", "farm_id", "lot_id", "department",
+    "reason", "geometry", "treated_area", "window", "operator_id", "applicator_id", "drone_id", "campaign_id",
+    "flight_authorization_ref", "planned_product_lot", "prerequisite", "farmer_acceptance", "created_by",
+    "created_at", "authorizations", "executions", "verification", "closure"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "enum": [1] },
+    "order_id": { "type": "string", "pattern": "^order-[a-z0-9-]{3,40}$" },
+    "revision": { "type": "integer", "minimum": 1 },
+    "state": {
+      "type": "string",
+      "enum": [
+        "PREREQUISITE_PENDING", "READY_FOR_HUMAN_REVIEW", "AUTHORIZED", "PACKAGE_PRELOADED", "EXECUTING",
+        "EXECUTED_PENDING_SYNC", "FLIGHT_RECORD_PERSISTED", "VERIFICATION_PENDING", "VERIFIED", "CLOSED",
+        "BLOCKED", "ABORTED", "PARTIAL", "SYNC_REVIEW_REQUIRED", "REJECTED", "EXPIRED", "CANCELLED"
+      ]
+    },
+    "method": { "type": "string", "enum": ["drone", "ground"] },
+    "case_id": { "type": "string", "pattern": "^case-[a-z0-9-]{3,40}$" },
+    "farm_id": { "type": "string", "pattern": "^farm-[a-z0-9-]{3,40}$" },
+    "lot_id": { "type": "string", "pattern": "^lot-[a-z0-9-]{3,40}$" },
+    "department": { "type": "string", "enum": ["Cauca", "Huila", "Tolima"] },
+    "reason": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "finding_code", "review_revision"],
+      "properties": {
+        "category": { "type": "string", "enum": ["pest", "disease"] },
+        "finding_code": { "type": "string", "pattern": "^[a-z_]{3,40}$" },
+        "review_revision": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["geometry_version", "geometry_sha256", "strip_parameters_version", "exclusions"],
+      "properties": {
+        "geometry_version": { "type": "integer", "minimum": 1 },
+        "geometry_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "strip_parameters_version": { "type": "integer", "minimum": 1 },
+        "exclusions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["exclusion_id", "version", "sha256"],
+            "properties": {
+              "exclusion_id": { "type": "string", "pattern": "^exclusion-[a-z0-9-]{3,40}$" },
+              "version": { "type": "integer", "minimum": 1 },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+            }
+          }
+        }
+      }
+    },
+    "treated_area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_id", "sha256", "area_m2"],
+      "properties": {
+        "artifact_id": { "type": "string", "pattern": "^treated-area-[a-z0-9-]{3,40}$" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "area_m2": { "type": "number", "exclusiveMinimum": 0 }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["not_before", "not_after", "display_timezone"],
+      "properties": {
+        "not_before": { "type": "string", "format": "date-time" },
+        "not_after": { "type": "string", "format": "date-time" },
+        "display_timezone": { "type": "string", "enum": ["America/Bogota"] }
+      }
+    },
+    "operator_id": { "type": "string", "pattern": "^operator-[a-z0-9-]{3,40}$" },
+    "applicator_id": { "$ref": "#/$defs/subject" },
+    "drone_id": { "type": ["string", "null"], "pattern": "^drone-[a-z0-9-]{3,40}$" },
+    "campaign_id": { "type": "string", "pattern": "^campaign-[a-z0-9-]{3,40}$" },
+    "flight_authorization_ref": { "type": "string", "pattern": "^[A-Z0-9-]{4,40}$" },
+    "planned_product_lot": { "type": "string", "pattern": "^[A-Z0-9-]{3,40}$" },
+    "prerequisite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mission_type", "execution_id", "flight_record_id", "log_sha256"],
+      "properties": {
+        "mission_type": { "type": "string", "enum": ["DELIMITATION", "FOCUS_CONFIRMATION"] },
+        "execution_id": { "type": "string", "pattern": "^exec-[a-z0-9-]{3,40}$" },
+        "flight_record_id": { "type": "string", "pattern": "^flight-record-[a-z0-9-]{3,40}$" },
+        "log_sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      }
+    },
+    "farmer_acceptance": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["record_id", "accepted", "farmer_id", "channel", "recorded_at"],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/record_id" },
+        "accepted": { "type": "boolean" },
+        "farmer_id": { "$ref": "#/$defs/subject" },
+        "channel": { "type": "string", "enum": ["app", "in_person_with_supervisor"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "created_by": { "$ref": "#/$defs/subject" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "authorizations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["record_id", "order_revision", "decision", "supervisor_id", "authority", "mfa", "decided_at", "reason_code"],
+        "properties": {
+          "record_id": { "$ref": "#/$defs/record_id" },
+          "order_revision": { "type": "integer", "minimum": 1 },
+          "decision": { "type": "string", "enum": ["authorized", "rejected"] },
+          "supervisor_id": { "$ref": "#/$defs/subject" },
+          "authority": { "type": "string", "enum": ["department_supervisor", "named_backup"] },
+          "mfa": { "type": "boolean", "enum": [true] },
+          "decided_at": { "type": "string", "format": "date-time" },
+          "reason_code": { "type": ["string", "null"], "enum": ["evidence_insufficient", "treated_area_wrong", "product_not_suitable", "weather", "other", null] }
+        }
+      }
+    },
+    "executions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "record_id", "execution_id", "method", "applicator_id", "drone_id", "package_digest", "started_at",
+          "ended_at", "outcome", "product_lot_used", "applied", "log", "flight_record_id"
+        ],
+        "properties": {
+          "record_id": { "$ref": "#/$defs/record_id" },
+          "execution_id": { "type": "string", "pattern": "^exec-[a-z0-9-]{3,40}$" },
+          "method": { "type": "string", "enum": ["drone", "ground"] },
+          "applicator_id": { "$ref": "#/$defs/subject" },
+          "drone_id": { "type": ["string", "null"], "pattern": "^drone-[a-z0-9-]{3,40}$" },
+          "package_digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "started_at": { "type": "string", "format": "date-time" },
+          "ended_at": { "type": "string", "format": "date-time" },
+          "outcome": { "type": "string", "enum": ["SUCCESS", "PARTIAL", "ABORTED", "FAILED"] },
+          "product_lot_used": { "type": "string", "pattern": "^[A-Z0-9-]{3,40}$" },
+          "applied": { "type": "boolean" },
+          "log": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["artifact_id", "sha256", "s3_version_id"],
+            "properties": {
+              "artifact_id": { "type": "string", "pattern": "^(flight-log|application-record)-[a-z0-9-]{3,40}$" },
+              "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+              "s3_version_id": { "type": "string", "minLength": 1, "maxLength": 1024 }
+            }
+          },
+          "flight_record_id": { "type": "string", "pattern": "^flight-record-[a-z0-9-]{3,40}$" }
+        }
+      }
+    },
+    "verification": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["record_id", "execution_id", "flight_record_id", "result", "recorded_at"],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/record_id" },
+        "execution_id": { "type": "string", "pattern": "^exec-[a-z0-9-]{3,40}$" },
+        "flight_record_id": { "type": "string", "pattern": "^flight-record-[a-z0-9-]{3,40}$" },
+        "result": { "type": "string", "enum": ["effective", "partly_effective", "not_effective"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "closure": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["record_id", "supervisor_id", "outcome", "closed_at", "follow_up_order_id"],
+      "properties": {
+        "record_id": { "$ref": "#/$defs/record_id" },
+        "supervisor_id": { "$ref": "#/$defs/subject" },
+        "outcome": { "type": "string", "enum": ["treated", "treated_partly", "new_order_needed"] },
+        "closed_at": { "type": "string", "format": "date-time" },
+        "follow_up_order_id": { "type": ["string", "null"], "pattern": "^order-[a-z0-9-]{3,40}$" }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "method": { "const": "drone" } } },
+      "then": { "properties": { "drone_id": { "type": "string" } } }
+    },
+    {
+      "if": { "properties": { "method": { "const": "ground" } } },
+      "then": { "properties": { "drone_id": { "type": "null" } } }
+    }
+  ],
+  "$defs": {
+    "subject": { "type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$" },
+    "record_id": { "type": "string", "pattern": "^rec-[a-z0-9-]{3,40}$" }
+  }
+}
