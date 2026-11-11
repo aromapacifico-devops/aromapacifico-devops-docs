@@ -335,7 +335,7 @@ def overview():
     p.edge("web", "waf", "", BIZ, exit=(0, 0.5), entry=(1, 0.15), points=[(2195, 588), (2195, 636)], width=2)
     p.edge("cf", "wa", "", BIZ, exit=(0.5, 0), entry=(0.5, 1), width=2)
     p.edge("waf", "cf", "", BIZ, width=2)
-    p.edge("cf", "api", "⑤ read-only API", BIZ, exit=(0, 0.25), entry=(0.5, 0), points=[(1700, 642), (1700, 606), (682, 606)], width=2)
+    p.edge("cf", "dom", "⑤ signed lookup", BIZ, exit=(0, 0.25), entry=(0.5, 0), points=[(1700, 642), (1700, 606), (1082, 606)], width=2)
     p.edge("fw", "vgw", "③ ④", OBJ, exit=(1, 0.5), entry=(0, 0.5), points=[(562, 1110), (562, 1058)], width=2)
     p.edge("vgw", "obj", "④", OBJ, exit=(0.3, 0), entry=(0.3, 1), width=2)
     p.edge("vgw", "api", "③", BIZ, exit=(0.6, 0), entry=(0.85, 1), points=[(714, 1000), (782, 1000), (782, 730), (739, 730)], width=2)
@@ -448,7 +448,7 @@ def end_to_end():
     p.edge("web", "cf", "reports", BIZ, exit=(1, 0.5), entry=(1, 0.25), points=[(1760, 276), (1760, 383)])
     p.edge("farmer", "cf", "history", BIZ, exit=(1, 0.5), entry=(1, 0.75), points=[(1795, 146), (1795, 409)])
     p.edge("buyer", "cf", "HTTPS", BIZ, exit=(0.5, 0), entry=(0.5, 1))
-    p.edge("cf", "api", "public API behind WAF, read-only buyer view", BIZ, exit=(0, 0.5), entry=(0.5, 0), points=[(1560, 396), (1560, 310), (816, 310)])
+    p.edge("cf", "domfn", "function URL behind WAF, read-only buyer view", BIZ, exit=(0, 0.5), entry=(0.5, 0), points=[(1560, 396), (1560, 310), (1136, 310)])
 
     p.group("Azure East US: prepared, idle", 1580, 630, 240, 240, stroke="#0078D4", dashed=True, sw=2)
     p.azure("IoT Hub", 1604, 664, "iot/IoT_Hub.svg")
@@ -1194,8 +1194,46 @@ def alert_delivery():
     return p
 
 
+def public_query():
+    p = Page("16 Public query", 2000, 860, "How a buyer reads one sack by code, and what limits bulk reads of the public query")
+    p.zone("Public internet", 40, 80, 260, 600, "#FDEDEC", FAIL, dashed=True)
+    p.card("Buyer phone", "Scans the QR, no sign-in", 60, 150, 220, 64, cid="buyer", net="mobile")
+    p.card("Direct caller", "Calls the function URL address", 60, 560, 220, 64, cid="direct", net="pc", stroke=FAIL, dashed=True)
+
+    p.zone("CloudFront edge", 360, 80, 490, 600, "#F4ECF7", NET)
+    p.card("AWS WAF web ACL", "300 per address in 5 min, managed rules", 440, 140, 180, 84, cid="waf", icon="waf", color=SEC)
+    p.card("Distribution", "Page cached, lookup path not cached", 670, 140, 160, 84, cid="cf", icon="cloudfront", color=NET)
+
+    p.zone("AWS us-east-1, production account", 890, 80, 830, 600, "#EBF5FB", INK)
+    p.card("Query page bucket", "S3, read by the distribution only", 950, 140, 210, 84, cid="page", icon="s3", color=STORAGE)
+    p.card("Lookup function", "Function URL, IAM auth, 5 reserved copies", 950, 320, 210, 84, cid="fn", icon="lambda", color=COMPUTE)
+    p.card("Buyer view table", "buyer_views, GetItem only", 1240, 330, 200, 64, cid="table", icon="dynamodb", color=DATA)
+    p.card("Audit log group", "One event per lookup", 1500, 330, 200, 64, cid="audit", icon="cloudwatch_2", color=MGMT)
+    p.card("CloudWatch alarms", "Over 1,500 in 5 min, any throttle", 1240, 500, 210, 64, cid="alarm", icon="cloudwatch_2", color=MGMT)
+
+    p.zone("Operations", 1760, 80, 200, 600, "#F2F3F4", CTRL)
+    p.card("Platform operator", "Blocks addresses or sets 0 copies", 1775, 500, 170, 64, cid="op", net="pc")
+
+    p.edge("buyer", "waf", "HTTPS, page and lookup", BIZ, exit=(1, 0.5), entry=(0, 0.5), points=[(400, 182)])
+    p.edge("waf", "cf", "allowed", BIZ)
+    p.edge("cf", "page", "page, signed", OBJ)
+    p.edge("cf", "fn", "lookup, signed", BIZ, exit=(0.5, 1), entry=(0, 0.5), points=[(750, 362)])
+    p.edge("fn", "table", "GetItem", BIZ, exit=(1, 0.5), entry=(0, 0.5))
+    p.edge("fn", "audit", "audit event", BIZ, exit=(0.5, 0), entry=(0.5, 0), points=[(1055, 290), (1600, 290)])
+    p.edge("fn", "alarm", "invocations, throttles", CTRL, dashed=True, exit=(0.5, 1), entry=(0, 0.5), points=[(1055, 532)])
+    p.edge("alarm", "op", "notify", CTRL, dashed=True)
+    p.edge("direct", "fn", "unsigned, refused with 403", FAIL, dashed=True, exit=(1, 0.5), entry=(0.2, 1), points=[(992, 592)])
+
+    p.legend(40, 710, 420, [(BIZ, False, "Lookup of one sack"), (OBJ, False, "Query page, cached at the edge"),
+                            (FAIL, True, "Request that never reaches the function"), (CTRL, True, "Alarm and response")])
+    p.note("<b>Peak.</b> 30 lookups a minute, 0.5 a second, 0.1 copies running on average. With 5 reserved copies a buyer meets a refusal about once in ten million lookups. The ceiling is 25 a second, about 50 times the peak", 500, 710, 470, 64)
+    p.note("<b>Bulk reads.</b> Codes of 60 random bits. A month of guesses at the ceiling finds about 0.0002 valid codes, and each hit shows one buyer view with no personal data", 1000, 710, 460, 64)
+    p.note("<b>Response.</b> First a temporary rule blocks the addresses. If they are too many, reserved copies go to 0 and every lookup gets 429. Then back to 5", 1490, 710, 470, 64)
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), public_query()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
