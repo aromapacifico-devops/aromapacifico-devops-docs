@@ -46,7 +46,7 @@ Figures in USD before IVA, at the prices of the [price basis](price-basis.md).
 | **Total without the links** | **6,148.36** | **22,807.09** | **140,416.48** |
 | **Total with the links** | **6,377 to 6,469** | **23,036 to 23,128** | **143,164 to 144,268** |
 
-A following year holds eight normal months and four harvest months. The drone service takes its yearly figure from its own document, which averages the outside-harvest months exactly, so the year column differs from eight times the normal month plus four times the harvest month by about USD 1.
+A following year holds eight normal months and four harvest months. The harvest month of the drone service is the one of the first year, and in later years the storage of earlier images adds about USD 0.31 to it. The year column takes the drone service from its own yearly figure, so it is about USD 1 above eight normal months plus four harvest months.
 
 | One-time item | USD | COP at the TRM |
 |---|---:|---:|
