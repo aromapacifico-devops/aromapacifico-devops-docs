@@ -38,9 +38,11 @@ La versión con ondas (rojo, naranja y azul al pie del slide) es el motivo gráf
 
 | Versión | Regla | Estado |
 |---|---|---|
-| **Principal (color)** | Isotipo en sus tres colores y palabra en negro `#161412`, sobre fondo blanco o `surface/canvas` | Hecha en Figma |
-| **Una tinta** | Isotipo y palabra en negro `#111111`, sin semitonos. Para costales de fique, recibos térmicos de báscula y sellos de acopio | **Pendiente** de exportar |
-| **Negativa** | Isotipo y palabra en blanco sobre fondo oscuro. Las llamas conservan rojo, azul y dorado solo si el fondo es `#161412` o más oscuro | **Pendiente** de exportar |
+| **Principal (color)** | Isotipo en sus tres colores y palabra en negro, sobre fondo blanco o `surface/canvas`. Componente `Logo/Principal` | Hecha en Figma |
+| **Una tinta** | Isotipo y palabra en negro `#111111`, sin semitonos. Para costales de fique, recibos térmicos de báscula y sellos de acopio. Componente `Logo/Una tinta` | Hecha en Figma |
+| **Negativa** | Isotipo y palabra en blanco sobre fondo oscuro `#161412`. El rojo `#8C0303` sobre ese fondo solo da cerca de 2:1, así que las llamas no conservan sus colores. Componente `Logo/Negativo` | Hecha en Figma |
+
+Las tres están en el slide `Branding 7 — Versiones del logotipo`. Los SVG se exportan desde cada componente en Figma.
 
 ### 2.3. Área de reserva y tamaños mínimos
 
@@ -200,7 +202,7 @@ Los valores de las pantallas (lote, receptor, recibo, códigos de saco y lectura
 | Entregable | Dónde |
 |---|---|
 | Archivo de diseño | Figma `sFAlRb7c5pxXKsQK7ZRub0` |
-| Slides de branding (6) | Página 1: portada, racional, paleta, estados del saco, alertas y tipografía, tres vistas |
+| Slides de branding (7) | Página 1: portada, racional, paleta, estados del saco, alertas y tipografía, tres vistas, versiones del logotipo |
 | Mockups, componentes y tokens | Página "Mockups — tres vistas", y colecciones de variables y estilos de texto del archivo |
 | PDFs | `docs/design/aroma-pacifico-branding.pdf`, `farmer-views.pdf`, `carrier-views.pdf`, `buyer-views.pdf` |
 
@@ -208,7 +210,6 @@ Los valores de las pantallas (lote, receptor, recibo, códigos de saco y lectura
 
 | Pendiente | Responsable |
 |---|---|
-| Exportar el logotipo en **una tinta** y en **negativo** (criterio de aceptación de #56) | Daniel |
 | Confirmar `action/primary` en azul y que el rojo queda solo para marca y peligro | Isabella (E7-08) |
 | Enlazar las pantallas a las variables de Figma | Isabella (E7-08) |
 | Elegir el set de iconos. Los mockups usan trazos de 2 px, estilo Lucide | Isabella (E7-08) |
