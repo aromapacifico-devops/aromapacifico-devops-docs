@@ -39,8 +39,8 @@ EMAIL_PER_1000 = 2.00 / 100  # USD 2.00 per 100,000 notifications
 ALARMS = []
 
 
-def al(i, crit, name, kind, signal, doc, kw, cond, owner, second, action, sev, count=1, own="new", note=""):
-    ALARMS.append(dict(id=i, crit=crit, name=name, kind=kind, signal=signal, doc=doc, kw=kw, cond=cond, owner=owner, second=second, action=action, sev=sev, count=count, own=own, note=note))
+def al(i, crit, name, kind, signal, doc, kw, cond, owner, second, action, sev, count=1, own="new", note="", status="documented", mechanism="", threshold="", basis="", event=""):
+    ALARMS.append(dict(status=status, mechanism=mechanism, threshold=threshold, basis=basis, event=event, id=i, crit=crit, name=name, kind=kind, signal=signal, doc=doc, kw=kw, cond=cond, owner=owner, second=second, action=action, sev=sev, count=count, own=own, note=note))
 
 
 # criterion 1, nodes and farms without telemetry
@@ -115,6 +115,41 @@ al("AL-31", 0, "Encryption key state change", "rule", "D-03", "architecture/reco
 al("AL-32", 0, "Point-in-time recovery turned off", "rule", "D-04", "architecture/recovery.md", "point-in-time recovery turned off",
    "A configuration change event of a sack table", "Platform operator", "", "Turn it on again through the infrastructure code", "urgent", count=0, own="elsewhere")
 
+# proposals that cover what criterion 3 leaves open. None is an approved rule, and every threshold is an assumption
+al("AL-33", 3, "Flight object verification, messages in the dead letter queue", "alarm", "F-06", "drones/flight-objects.md", "Verification function fails",
+   "Messages visible in the dead letter queue above 0 in 5 minutes", "Platform operator", "",
+   "Read the failed message and the function log, fix the cause and redrive. The object stays unverified and the flight keeps waiting for it", "urgent",
+   status="proposed", mechanism="CloudWatch alarm on the SQS metric of the dead letter queue, with the condition that two merged documents already use for dead letter queues",
+   threshold="Any message", basis="Assumption. The flight object design sets no retry count or alarm for this queue")
+al("AL-34", 3, "Flight object verification, failed invocations", "alarm", "F-06", "drones/flight-objects.md", "Verification function fails",
+   "Lambda Errors of the function sum above 0 in 5 minutes", "Platform operator", "",
+   "Read the failure entry by execution identifier and check that the object is still unverified. It may still succeed on a retry", "routine",
+   status="proposed", mechanism="CloudWatch alarm on the Lambda metric, as the failure policy does for the inference functions",
+   threshold="Any error", basis="Assumption. Same condition as the failure policy")
+al("AL-35", 3, "Flight completion, failed invocations", "alarm", "F-06", "drones/flight-objects.md", "Crash between the record object and the case item",
+   "Lambda Errors of the completion function sum above 0 in 5 minutes", "Platform operator", "Drone operator, supervisor group",
+   "Read the failure entry by execution identifier. The station repeats the completion request, and a repeat finds the stored record, so check that a record is published", "urgent",
+   status="proposed", mechanism="CloudWatch alarm on the Lambda metric. The completion function answers the station directly and has no queue",
+   threshold="Any error", basis="Assumption. The completion function is the step that publishes the flight record, so its failure is a flight without a record")
+al("AL-36", 3, "Fumigation log overdue", "rule", "F-04", "drones/fumigation-order.md", "The log never arrives",
+   "An order is still in EXECUTED_PENDING_SYNC when its check runs", "Drone operator, supervisor group", "Platform operator",
+   "Ask the brigade whether the station holds the log and whether the link has returned, look for events of the execution in the flight object log, and run the incident procedure if the station is lost", "urgent", count=0,
+   status="proposed", event="order.attention_required",
+   mechanism="When the transition function moves the order into the state it creates a one-time schedule, as it already does for the end of the order window. At the check the function reads the order, and if the state and revision are the same it publishes one platform event that an event rule sends to the topic. A changed state makes the check do nothing",
+   threshold="First check 24 hours after the order entered the state, second check at 48 hours", basis="Assumption. No document sets a time for the log to arrive. The orders in this state wait for a link that may be a day away")
+al("AL-37", 3, "Package past its window with no flight record", "rule", "F-06", "drones/flight-objects.md", "flight.record.published",
+   "A package whose execution window has ended has no flight.record.published and no flight.record.review_required for its package_id when the check runs", "Drone operator, supervisor group", "Platform operator",
+   "Ask the brigade whether the flight took place. A package that was never flown shows here too, and the brigade closes the item", "routine", count=0,
+   status="proposed", event="flight.package.overdue",
+   mechanism="The package function creates a one-time schedule at the end of the execution window of the package plus the grace. The check looks for a record of the package and publishes one platform event when none exists",
+   threshold="24 hours after the end of the package window", basis="Assumption. The package window is the one in the signed package and is not the 72 hour window of an order")
+al("AL-38", 3, "Order waiting too long to close", "rule", "F-04", "drones/post-fumigation-verification.md", "VERIFICATION_PENDING",
+   "An order is still in SYNC_REVIEW_REQUIRED, PARTIAL, VERIFICATION_PENDING or VERIFIED when its check runs", "Drone operator, supervisor group", "Platform operator",
+   "Open the order and find what it waits for. In SYNC_REVIEW_REQUIRED decide the record. In VERIFICATION_PENDING check the verification file and the function. In VERIFIED review the verification and close", "routine", count=0,
+   status="proposed", event="order.attention_required",
+   mechanism="The same schedule as the log check, created when the order enters each waiting state. For VERIFICATION_PENDING the check time is counted from the end of the window of the latest verification package, which each attempt records, and for the other states from the transition",
+   threshold="24 hours after the order entered the state or after the verification window ended, second check at 48 hours", basis="Assumption. The documents give each state one exit and no time for it")
+
 IDS = [a["id"] for a in ALARMS]
 check(len(IDS) == len(set(IDS)), "an alarm id is listed twice")
 KINDS = {"alarm", "rule", "review", "pending"}
@@ -140,6 +175,16 @@ def run_checks():
             check("no age is defined" in a["cond"].lower(), f"{i} states an age that no document defines")
         check("72" not in a["cond"], f"{i} takes a time from the 72 hour window of an order, which is not a deadline for the log")
         check("dashboard" not in a["action"].lower(), f"{i} sends the operator to a dashboard, which the chosen telemetry does not have")
+    for a_ in ALARMS:
+        if a_["status"] == "proposed":
+            check(bool(a_["mechanism"]) and bool(a_["threshold"]) and "assumption" in a_["basis"].lower(), f"{a_['id']} is a proposal and needs its mechanism, threshold and an assumption as basis")
+        else:
+            check(not a_["threshold"], f"{a_['id']} is documented and cannot carry a proposed threshold")
+        if a_["event"]:
+            # a proposed event name must not be defined by any other document, otherwise it is no longer a proposal
+            for path in DOCS.rglob("*.md"):
+                if path.name != "operational-alarms.md":
+                    check(a_["event"] not in path.read_text(encoding="utf-8"), f"{a_['event']} appears in {path.name}, so it is no longer only a proposal")
     # the failure policy covers four inference functions with three alarms each
     fp = [a for a in ALARMS if a["doc"] == "architecture/failure-policy.md"]
     check(len(fp) == 12, "the failure policy gives three alarms for each of four functions")
@@ -160,13 +205,13 @@ def run_checks():
     for a_ in ALARMS:
         check(a_["id"] in covered, f"{a_['id']} is not in the document")
     tel = telemetry()
-    n = sum(a_["count"] for a_ in ALARMS)
-    check(f"| Alarms of the register | {n} | {n * PRICE_ALARM:.2f} |" in doc, "the document does not show the alarm count and cost of the register")
+    nd = sum(a_["count"] for a_ in ALARMS if a_["status"] == "documented")
+    npr = sum(a_["count"] for a_ in ALARMS if a_["status"] == "proposed")
+    check(f"| Alarms in merged documents | {nd} | {nd * PRICE_ALARM:.2f} |" in doc, "the document does not show the count and cost of the documented alarms")
+    check(f"| Proposed alarms for the flight object functions | {npr} | {npr * PRICE_ALARM:.2f} |" in doc, "the document does not show the count and cost of the proposed alarms")
     for m, v in tel.items():
-        check(f"| {m} | {v:.2f} | {n * PRICE_ALARM:.2f} | {v + n * PRICE_ALARM:.2f} | 2.20 | {v + n * PRICE_ALARM - 2.20:.2f} |" in doc, f"the document does not show the total of the {m.lower()}")
-    check(any(a["kind"] == "alarm" for a in ALARMS if a["crit"] == 1), "criterion 1 has no alarm")
-    for a in ALARMS:
-        check((a["kind"] == "alarm") == (a["count"] > 0) or a["id"] == "AL-02", f"{a['id']} is billed inconsistently with its kind")
+        d1, d2 = v + nd * PRICE_ALARM, v + (nd + npr) * PRICE_ALARM
+        check(f"| {m} | {v:.2f} | {d1:.2f} | {d1 - 2.20:.2f} | {d2:.2f} | {d2 - 2.20:.2f} |" in doc, f"the document does not show the totals of the {m.lower()}")
 
 
 def telemetry():
@@ -177,7 +222,7 @@ def telemetry():
 
 def totals():
     tel = telemetry()
-    n_all = sum(a["count"] for a in ALARMS)
+    n_all = sum(a["count"] for a in ALARMS if a["status"] == "documented")
     n_new = sum(a["count"] for a in ALARMS if a["crit"] in (1, 2))
     n_fp = sum(a["count"] for a in ALARMS if a["doc"] == "architecture/failure-policy.md")
     return tel, n_all, n_new, n_fp
@@ -197,16 +242,19 @@ def main():
         print(f"| {a['id']} | {a['action']} | {a['note']} |")
     kinds = {k: sum(1 for a in ALARMS if a["kind"] == k) for k in KINDS}
     print(f"\n## Counts\nRows {len(ALARMS)}, alarms billed {n_all}, of which {n_new} serve criteria 1 and 2 and {n_fp} come from the failure policy. Kinds {kinds}.")
+    npr = sum(a["count"] for a in ALARMS if a["status"] == "proposed")
     print("\n## Cost")
-    print("| Item | Count | Rate | USD a month |\n|---|---|---|---|")
-    print(f"| Standard metric alarms of the register | {n_all} | USD {PRICE_ALARM:.2f} | {n_all * PRICE_ALARM:.2f} |")
-    print(f"| Of them for silent nodes and undelivered alerts | {n_new} | USD {PRICE_ALARM:.2f} | {n_new * PRICE_ALARM:.2f} |")
-    print("\n| Month | Telemetry before alarms | Alarms of the register | Total | Reference | Above the reference |\n|---|---|---|---|---|---|")
+    print("| Item | Count | USD a month |\n|---|---|---|")
+    print(f"| Alarms in merged documents | {n_all} | {n_all * PRICE_ALARM:.2f} |")
+    print(f"| Proposed alarms for the flight object functions | {npr} | {npr * PRICE_ALARM:.2f} |")
+    print(f"| Alarms with the proposals | {n_all + npr} | {(n_all + npr) * PRICE_ALARM:.2f} |")
+    print("\n| Month | Telemetry before alarms | Total with documented alarms | Above the reference | Total with the proposals | Above the reference |\n|---|---|---|---|---|---|")
     for m in ("Normal month", "Harvest month"):
-        tot = tel.get(m, 0) + n_all * PRICE_ALARM
-        print(f"| {m} | {tel.get(m, 0):.2f} | {n_all * PRICE_ALARM:.2f} | {tot:.2f} | 2.20 | {tot - 2.20:.2f} |")
+        v = tel.get(m, 0)
+        d1, d2 = v + n_all * PRICE_ALARM, v + (n_all + npr) * PRICE_ALARM
+        print(f"| {m} | {v:.2f} | {d1:.2f} | {d1 - 2.20:.2f} | {d2:.2f} | {d2 - 2.20:.2f} |")
     print(f"\nMetric math merges nothing, since each metric in an expression is billed as one alarm metric. A composite alarm costs USD {PRICE_COMPOSITE:.2f} and adds to its parts.")
-    print(f"Event rules carry no alarm charge. The events are billed to the bus at USD 1.00 per million custom events and email notifications are free up to {EMAIL_FREE:,} a month and USD {EMAIL_PER_1000:.2f} per 1,000 after.")
+    print(f"Event rules carry no alarm charge. The events are billed to the bus at USD 1.00 per million custom events and email notifications are free up to {EMAIL_FREE:,} a month and USD {EMAIL_PER_1000:.2f} per 1,000 after. One-time schedules are free for the first 14 million invocations a month.")
     for e in errors:
         print("FAIL", e)
     print("OK" if not errors else f"{len(errors)} problems")

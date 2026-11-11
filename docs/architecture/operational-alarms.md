@@ -1,6 +1,6 @@
 # Operational alarms and response routes
 
-This document lists the alarms that tell an operator that the pilot needs attention before a farmer is affected. For each alarm it names the signal, the condition, who answers, the first action and the route of the notice. It covers nodes and farms without telemetry, crop alerts that were not delivered, flights without a record, fumigations that cannot close, and inference invocations that failed and left the state unchanged. It also separates what the platform detects by itself from what a person finds by reading a daily list, and it counts the cost of the whole set against the reference of the cost document. It is a design. No alarm, topic or rule was created, and the checker described in section 11 verifies the register as written and not an account.
+This document lists the alarms that tell an operator that the pilot needs attention before a farmer is affected. For each alarm it names the signal, the condition, who answers, the first action and the route of the notice. It covers nodes and farms without telemetry, crop alerts that were not delivered, flights without a record, fumigations that cannot close, and inference invocations that failed and left the state unchanged. It also separates what the platform detects by itself from what a person finds by reading a daily list, and it counts the cost of the whole set against the reference of the cost document. It is a design. No alarm, topic or rule was created, and the checker described in section 12 verifies the register as written and not an account. Rows come in two kinds. A documented row restates a rule that a merged design already sets. A proposed row covers something that no merged design settles, carries its mechanism, its threshold and the assumption behind it, and is not an approved rule.
 
 ## Contents
 
@@ -10,13 +10,14 @@ This document lists the alarms that tell an operator that the pilot needs attent
 4. Register of alarms
 5. Failed invocations that left the state unchanged
 6. Slow live alerts and the live-only metric
-7. Flights without a record and fumigations without a closure
+7. Flights without a record and orders that do not close
 8. Owners and routes
 9. Cost
 10. What the alarms do not see
-11. What the checker proves
-12. Assumptions and pending confirmations
-13. Sources
+11. Decisions that belong to the owners
+12. What the checker proves
+13. Assumptions and pending confirmations
+14. Sources
 
 ## 1. Terms
 
@@ -27,6 +28,8 @@ This document lists the alarms that tell an operator that the pilot needs attent
 | Daily review | A saved query that a person reads each day. It detects nothing by itself and sends no notice |
 | Answering role | The role of the access design that receives the notice and acts first |
 | Second role | The role that acts when the first one cannot, or that decides after the first has looked |
+| Documented | A rule that a merged design already sets |
+| Proposed | A row that no merged design settles. Its threshold is an assumption and its mechanism needs the owner of the design it touches |
 | Urgent | A farmer, a flight or the data path is affected now |
 | Routine | The platform needs attention and nobody is harmed yet |
 
@@ -85,12 +88,20 @@ AL-03 and AL-05 publish a value only when a bad event happens, so they treat mis
 
 ### Flights without a record, fumigations without a closure
 
-| Id | Alarm | Kind | Condition | Answers | Second |
+| Id | Alarm | Kind | Status | Answers | Second |
 |---|---|---|---|---|---|
-| AL-09 | Object rejected at verification | Event rule | `flight.object.rejected` is published | Platform operator | Drone supervisor |
-| AL-10 | Flight record needs review | Event rule | `flight.record.review_required` is published | Drone supervisor | Platform operator |
-| AL-11 | Flight whose log never arrives | Daily review | Orders in `EXECUTED_PENDING_SYNC` with the time since their execution ended | Platform operator | Drone supervisor |
-| AL-12 | Fumigation that cannot close | Daily review | Orders in `VERIFICATION_PENDING` or `SYNC_REVIEW_REQUIRED` with their age | Platform operator | Drone supervisor |
+| AL-09 | Object rejected at verification | Event rule | Documented, the event exists | Platform operator | Drone supervisor |
+| AL-10 | Flight record needs review | Event rule | Documented, the event exists | Drone supervisor | Platform operator |
+| AL-11 | Flight whose log never arrives, interim review | Daily review | Documented states, no age | Platform operator | Drone supervisor |
+| AL-12 | Fumigation that cannot close, interim review | Daily review | Documented states, no age | Platform operator | Drone supervisor |
+| AL-33 | Flight object verification, messages in the dead letter queue | Alarm | Proposed | Platform operator | None |
+| AL-34 | Flight object verification, failed invocations | Alarm | Proposed | Platform operator | None |
+| AL-35 | Flight completion, failed invocations | Alarm | Proposed | Platform operator | Drone supervisor |
+| AL-36 | Fumigation log overdue | Event rule fed by a schedule | Proposed | Drone supervisor | Platform operator |
+| AL-37 | Package past its window with no flight record | Event rule fed by a schedule | Proposed | Drone supervisor | Platform operator |
+| AL-38 | Order waiting too long to close | Event rule fed by a schedule | Proposed | Drone supervisor | Platform operator |
+
+The documented rows are the two events that the flight object design publishes and the states that the order design defines. AL-11 and AL-12 are the review that stays available while the proposed rows are not accepted. Section 7 sets out the proposed rows, and section 5 explains why AL-33 to AL-35 belong to this criterion.
 
 ### Failed invocations and other alarms already promised
 
@@ -119,7 +130,20 @@ Twelve alarms follow, at USD 1.20 a month. The first two of the focus function e
 
 That a failure left the state unchanged is shown by two facts together, a message in a dead letter queue and a case or order still in the state it had. The saved query of the failure entries joins both, and no alarm is placed on that query.
 
-The failure policy covers the four inference functions. The other functions of the platform, such as the custody write function and the alert functions, have no consolidated failure policy beyond the ingestion queue, which keeps its own three retries and dead letter queue. The register does not extend the policy to them. That is an open point.
+### Which functions the criterion requires
+
+The criterion asks for failed invocations that did not change the state. That describes a function whose failure leaves a case, an order or an estimate as it was, and whose work waits in a queue for a person. Read that way, the functions that matter are these.
+
+| Function | Failure leaves the state unchanged | Alarm today | Required by the criterion |
+|---|---|---|---|
+| The four inference functions | Yes, by the failure policy | Three alarms each, AL-13 to AL-24 | Yes, covered |
+| Flight object verification | Yes. The object stays unverified, the flight keeps waiting and the message goes to its dead letter queue | None in any document, and no retry count is set for its queue | Yes. AL-33 and AL-34 are proposed |
+| Flight completion | Yes. A failed completion publishes no record, and the station repeats the request | None | Yes, because its failure is a flight without a record. AL-35 is proposed |
+| Ingestion and alert delivery | Their own state, readings and alerts, and no case or order | Queue age and dead letter queues, AL-06 to AL-08 | No. They already have alarms |
+| Custody write function | The conditional write refuses or applies, and the sender retries | None needed for this criterion | No |
+| Order transition function | Every move is one conditional write, and a denied move is audited | Not a failure in the queue sense | No |
+
+The flight object verification function runs from a queue with a dead letter queue, so it is the one function outside the inference set that the criterion reaches. The failure policy does not cover it and no document sets its retry count or its alarm. The proposed rows use the condition that two merged documents already use for a dead letter queue, which is any message, and set no retry value. The retry count of that queue belongs to the owner of the flight object design.
 
 ## 6. Slow live alerts and the live-only metric
 
@@ -135,17 +159,49 @@ The proposal is that the alert function publishes the handoff time as a metric f
 
 This is a change to the instruction of the alert function, whose design belongs to another document, so the register records it as a proposal that the owner of that design confirms. Until then the condition of AL-04 is not final.
 
-## 7. Flights without a record and fumigations without a closure
+## 7. Flights without a record and orders that do not close
 
-Two kinds of event exist. The platform publishes `flight.object.rejected` when a check fails and the object moves to quarantine, and `flight.record.review_required` when the completion of a flight fails. Both are events, so an event rule notifies from them with no metric. The rejected object needs a new upload from the station, and the record in review puts the order in `SYNC_REVIEW_REQUIRED`, where the drone supervisor decides.
+### What the documents fix
 
-Two states have no event. A fumigation whose log never arrives stays in `EXECUTED_PENDING_SYNC`, and an order whose verification file is missing or whose function failed stays in `VERIFICATION_PENDING` and cannot close. The documents set no time by which a log must reach the platform or by which an order must close. The register therefore offers a daily review for both, lists each order with its age, and sets no age at which the review turns into a notice. That age is a decision of the drone supervisor.
+| Fact | Where |
+|---|---|
+| The platform publishes `flight.object.rejected` and `flight.record.review_required`, so both can drive an event rule | Flight objects |
+| An order whose log never arrives stays in `EXECUTED_PENDING_SYNC`, and an order whose verification file is missing or whose function failed stays in `VERIFICATION_PENDING` and cannot close | Fumigation order and verification |
+| An order closes only in `CLOSED`, and the only way into it passes through `VERIFIED` by a supervisor | Verification |
+| Every move of an order writes a `fumigation.transition` event with the order, the states and the time | Fumigation order and audit |
+| A one-time schedule at the end of the order window moves the order to `EXPIRED` through the same transition function | Fumigation order |
+| A package carries its own execution window, with a ceiling of 12 hours for a fumigation and 72 hours for other missions | Drone mission link |
+| The verification window opens at the end of the application plus the waiting time the supervisor sets | Verification |
 
-The order window of at most 72 hours is the time in which the application may take place. It begins at the start of the window and ends when the window closes, and it says nothing about when the log must arrive. The checker fails a row that takes a time from it.
+No document sets a time by which a log must reach the platform or by which an order must close, and no event reports either state. The 72 hours of the order window and of the other missions are the time in which a flight may take place. They begin when the window opens and say nothing about when a record must arrive, so no row uses them.
 
-The fumigation order document says that the dashboard reports a log that never arrives. The chosen telemetry has no dashboard of our own, so the daily review is what reports it.
+The audit events sit in the log archive account, and the platform operator holds no access there. A saved query over them is therefore not a mechanism the operator can run, and the order list of the application is the only documented view of order states. The order design says that a dashboard reports a log that never arrives, without saying whether that is an application view or an operations dashboard. The chosen telemetry has no operations dashboard.
 
-To turn a review into an alarm, a scheduled check would publish a metric for the oldest open order and a seventh custom metric would be added at USD 0.30 a month, plus one alarm. This is an option for the team, with the age as its open question.
+### What is proposed
+
+The proposal reuses the scheduler that the order design already uses for the end of the order window. It adds no alarm and does not touch the six metrics of the chosen telemetry.
+
+| Case | Signal | Mechanism | Threshold, an assumption | Answers | First action |
+|---|---|---|---|---|---|
+| A fumigation flight log never arrives, AL-36 | The order is still in `EXECUTED_PENDING_SYNC` | The transition function creates a one-time schedule when it moves the order into the state. At the check it reads the order, and if the state and revision are unchanged it publishes one platform event that an event rule sends to the topic. A changed state makes the check do nothing | First check 24 hours after the order entered the state, second at 48 hours | Drone supervisor, then platform operator | Ask the brigade whether the station holds the log and whether the link has returned, look for events of the execution, and run the incident procedure if the station is lost |
+| Any other flight has no record, AL-37 | A package whose execution window ended with no `flight.record.published` and no `flight.record.review_required` for its `package_id` | The package function creates a one-time schedule at the end of the package window plus the grace, and the check looks for a record of the package | 24 hours after the end of the package window | Drone supervisor, then platform operator | Ask the brigade whether the flight took place. A package that was never flown shows here too and the brigade closes the item |
+| An order does not close, AL-38 | The order is still in `SYNC_REVIEW_REQUIRED`, `PARTIAL`, `VERIFICATION_PENDING` or `VERIFIED` | The same schedule, created when the order enters each state. In `VERIFICATION_PENDING` the time counts from the end of the window of the latest verification package | 24 hours after the order entered the state or the verification window ended, second check at 48 hours | Drone supervisor, then platform operator | Open the order and find what it waits for. Decide the record in review, check the verification file and the function in verification, and review and close in verified |
+
+The new events are `order.attention_required` and `flight.package.overdue`. No document defines them, so they are proposals. The checker fails if either name appears in another document, which tells the owner that the proposal has become a design and that this row must be reconciled.
+
+### Approved rules and assumptions
+
+| Approved by a merged design | Assumed here |
+|---|---|
+| The states, the exits and the events listed above | The 24 and 48 hour checks |
+| The scheduler pattern for the end of the order window | That the scheduler pattern extends to the states of this section |
+| The roles that answer | That the drone supervisor answers first and the platform operator second |
+| The dead letter queue condition of any message | That it applies to the flight object verification queue |
+| | The two event names and the new checks of the transition function and the package function |
+
+The cost of the mechanism is small. About 25 orders a month in a harvest month, with three states and two checks each, give a few hundred scheduled invocations, and the first 14 million a month are free. The events add custom event charges of USD 1.00 per million and the notices count toward the email allowance, so the mechanism adds no alarm and no measurable charge, and it adds work to two functions that other designs own.
+
+Until the owners accept this, AL-11 and AL-12 remain. They list the same states as a daily review with no age, and they need the order list of the application to show each order with the time it entered its state. That requirement is not verified in the documents.
 
 ## 8. Owners and routes
 
@@ -168,6 +224,10 @@ The answering roles come from the access design. The platform operator is Federa
 | AL-13, AL-16, AL-19, AL-22 | Read the failure entry of the log by case, order or flight identifier and check that the state did not move |
 | AL-14, AL-17, AL-20, AL-23 | Fix the cause and redrive the work queue. For verification the supervisor may record the result by hand meanwhile |
 | AL-15, AL-18, AL-21, AL-24 | Read the rule dead letter queue once it exists, otherwise the saved query of flight records with no result |
+| AL-33 | Read the failed message and the function log, fix the cause and redrive. The object stays unverified and the flight keeps waiting for it |
+| AL-34 | Read the failure entry by execution identifier and check that the object is still unverified. It may still succeed on a retry |
+| AL-35 | Read the failure entry by execution identifier. The station repeats the completion request, and a repeat finds the stored record, so check that a record is published |
+| AL-36 to AL-38 | The first action of the table in section 7 |
 | AL-25 to AL-32 | Follow the recovery, persistence and release steps of their own designs |
 
 Where the action says to read a case, an order or a flight, the platform operator reads identifiers, states and error codes from the operational log. The content of a case belongs to the drone supervisor, since the platform operator holds no read on business data.
@@ -187,6 +247,7 @@ Prices are from the AWS Price List API for us-east-1, publication of 2026-11-04 
 | Custom event on the platform bus | USD 1.00 per million received, billed to the publisher |
 | SNS email notification | First 1,000 a month free, then USD 2.00 per 100,000 |
 | SNS requests | First 1,000,000 a month free, then USD 0.50 per million |
+| EventBridge Scheduler | First 14 million scheduled invocations a month free, then USD 1.00 per million |
 
 The price list holds no charge for an event rule or for an invocation of a target in the same account, so an event rule adds no alarm charge. That is not the same as free. The events it matches are custom events that the platform bus already bills at USD 1.00 per million, and each notification counts toward the email allowance. Below 1,000 email notifications a month the notices add nothing, and each 1,000 above that adds USD 0.02.
 
@@ -194,16 +255,16 @@ Merging alarms does not lower the cost. The CloudWatch pricing page bills a metr
 
 | Item | Count | USD a month |
 |---|---|---|
-| Alarms of the register | 25 | 2.50 |
-| Of them for silent nodes and undelivered alerts | 5 | 0.50 |
-| Of them from the failure policy | 12 | 1.20 |
+| Alarms in merged documents | 25 | 2.50 |
+| Proposed alarms for the flight object functions | 3 | 0.30 |
+| Alarms with the proposals | 28 | 2.80 |
 
-| Month | Telemetry before alarms | Alarms | Total | Reference | Above the reference |
+| Month | Telemetry before alarms | Total with documented alarms | Above the reference | Total with the proposals | Above the reference |
 |---|---|---|---|---|---|
-| Normal month | 2.13 | 2.50 | 4.63 | 2.20 | 2.43 |
-| Harvest month | 2.55 | 2.50 | 5.05 | 2.20 | 2.85 |
+| Normal month | 2.13 | 4.63 | 2.43 | 4.93 | 2.73 |
+| Harvest month | 2.55 | 5.05 | 2.85 | 5.35 | 3.15 |
 
-The telemetry figure is the chosen telemetry of the observability design at list price, with its custom metrics, logs, queries and traces. The reference of USD 2.20 is a reference and not an accepted budget. The set of alarms and the telemetry together are about USD 2.4 above it in a normal month and USD 2.9 above it in a harvest month, and the figure depends on which alarms the team keeps. The levers are to drop the routine alarms on failed invocations, which are four and USD 0.40, to let the release alarms and the error alarms of the same functions watch one metric, or to raise the reference. The team decides. The cost document is not changed.
+The telemetry figure is the chosen telemetry of the observability design at list price, with its custom metrics, logs, queries and traces. The reference of USD 2.20 is a reference and not an accepted budget. The documented alarms and the telemetry together are USD 2.43 above it in a normal month and USD 2.85 above it in a harvest month, and the proposals raise that by USD 0.30. The figures depend on which alarms the team keeps, and the three proposed event rules add no alarm. The levers are to drop the routine alarms on failed invocations, which are four and USD 0.40, to let the release alarms and the error alarms of the same functions watch one metric, or to raise the reference. The team decides. The cost document is not changed.
 
 The daily reviews are Logs Insights queries and fall inside the 2 GB a month of scanned data that the observability design assumes.
 
@@ -212,31 +273,47 @@ The daily reviews are Logs Insights queries and fall inside the 2 GB a month of 
 | Case | Why it is not seen | What shows it |
 |---|---|---|
 | A farm with no node alarm because one of its nodes still reports | The alarm counts nodes and not farms | The saved query by farm |
-| A flight whose log never arrives | No event and no deadline exist | The daily review of orders in `EXECUTED_PENDING_SYNC` |
+| A flight whose log never arrives | No event and no deadline exist in the merged designs | The interim review, or the proposed schedule check once its owners accept it |
 | A center that is open and has no sacks | It looks like a closed center | The usual silence of each center, which is not known |
 | A provider link down while the firewall holds a tunnel | The cloud sees a down tunnel only | The tunnel metric and the events of the center |
-| Failures of functions outside the inference set | The failure policy does not cover them | The error metrics of those functions, with no alarm yet |
+| Failures of the custody write function, the order transition function and the alert functions | They are outside the criterion, since a failure there either keeps the sender retrying or already has an alarm | Their own error metrics and the audit events |
 
-## 11. What the checker proves
+## 11. Decisions that belong to the owners
 
-`tools/alarms_catalog.py` reads the register and the documents it cites. It fails when an alarm has no signal in the catalog, no condition, no action or a role outside the access design, when an alarm sits on a metric that the chosen telemetry reads by a query, when a daily review is billed or named as an alarm or states an age that no document defines, when a row takes a time from the 72 hour window, when an action sends the operator to a dashboard, when the failure policy no longer gives three alarms to each of four functions, and when a cited document stops naming what the row cites. It prints the register and the cost from the same rows.
+| Decision | Owner | Effect of the answer | Needed for this card |
+|---|---|---|---|
+| The alert function publishes the handoff metric for live alerts only | Owner of the alert delivery design | AL-04 reads live alerts only. Without it the alarm would fire on drained alerts, or the dimension `kind` adds one series | Yes for AL-04 to be final |
+| The two checks, the two events and the schedule for the log, the package and the open order | Owners of the fumigation order and the flight object designs | AL-36 to AL-38 become automatic. Without them AL-11 and AL-12 stay a review with no age | Yes for criterion 3 to be met by detection and not by review |
+| The ages of 24 and 48 hours, or others | Drone supervisor | The checks use the ages the supervisor sets | Yes for the same rows |
+| The retry count and the alarm of the flight object verification queue | Owner of the flight object design | AL-33 and AL-34 take its values | Yes for criterion 3 |
+| The real mailboxes of the operations topic | Federation | Notices reach people | Yes for criterion 4 to work in operation |
+| The number of alarms the team keeps against the reference | Team and owner of the cost document | The total moves USD 0.10 for each alarm | No, a decision on cost |
+| One metric for failed and limited deletion runs | Owner of the persistence design | One more metric or one alarm less | No |
+| The source of the silent vereda signal | Owner of the LoRa design | AL-02 becomes buildable | No. The silent nodes alarm covers the farms of a vereda after 24 hours, and the signal is an earlier warning |
+
+## 12. What the checker proves
+
+`tools/alarms_catalog.py` reads the register and the documents it cites. It fails when an alarm has no signal in the catalog, no condition, no action or a role outside the access design, when an alarm sits on a metric that the chosen telemetry reads by a query, when a daily review is billed or named as an alarm or states an age that no document defines, when a proposed row lacks its mechanism, its threshold or an assumption as basis, when a documented row carries a proposed threshold, when a proposed event name appears in another document, when a row takes a time from the 72 hour window, when an action sends the operator to a dashboard, when the failure policy no longer gives three alarms to each of four functions, and when a cited document stops naming what the row cites. It prints the register and the cost from the same rows.
 
 It checks the register as written. It does not prove that any alarm, topic or rule exists, and it measures no traffic.
 
-## 12. Assumptions and pending confirmations
+## 13. Assumptions and pending confirmations
 
 | Item | Who confirms | Effect if it fails |
 |---|---|---|
 | The alert function publishes the handoff metric for live alerts only | Owner of the alert delivery design | AL-04 fires on drained alerts, or the dimension `kind` is added at one more series |
 | The real mailboxes of the operations topic | Federation | No notice reaches anyone |
-| The age at which an open order or a missing log becomes a notice | Drone supervisor | The two daily reviews stay manual |
+| The age at which an open order or a missing log becomes a notice, proposed as 24 and 48 hours | Drone supervisor | The two daily reviews stay manual |
+| The schedule mechanism and the events `order.attention_required` and `flight.package.overdue` | Owners of the order and flight object designs | The checks do not exist and the reviews stay |
+| The order list of the application shows each order with the time it entered its state | Owner of the order design | The interim review has nothing to read |
+| The flight object verification queue takes the condition of any message | Owner of the flight object design | AL-33 takes its retry count and alarm |
 | The source of the silent vereda signal | Owner of the LoRa design | AL-02 stays defined and unbuilt |
 | One metric for failed and limited deletion runs can serve both conditions of the design | Owner of the persistence design | One more metric or one alarm less |
 | Failures of functions outside the inference set | Team | Those functions have no consolidated failure policy |
 | The number of alarms the team keeps | Team and owner of the cost document | The total moves USD 0.10 for each alarm |
 | Fewer than 1,000 email notifications a month | Operator practice | Each 1,000 above adds USD 0.02 |
 
-## 13. Sources
+## 14. Sources
 
 | Source | Used for |
 |---|---|
