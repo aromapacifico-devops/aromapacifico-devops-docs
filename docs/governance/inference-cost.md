@@ -140,11 +140,11 @@ python3 docs/governance/tools/inference_cost.py --check
 
 | Document | Figure it shows for inference in harvest | Why it differs |
 |---|---|---|
-| [Monthly cloud cost](cloud-cost.md) | USD 15.75, from 9,000 drone images at USD 1.75 per 1,000 | It counts the fumigation photos, which start no inference, and leaves out the function time, the orthomosaic and the telemetry batch |
+| [Monthly cloud cost](cloud-cost.md) | USD 1.63 in a normal month, USD 16.26 in an average harvest month and USD 45.95 at the estimation peak | It imports this document's complete inference line once; it does not add a second model, filter, function or telemetry charge |
 | [Inference functions](../architecture/inference-functions.md) | USD 16.05 in an average harvest month | It prices the image without function time and counts fewer telemetry objects |
 | This document | USD 16.26 in an average harvest month, USD 45.95 at the estimation peak | It counts each trigger and every billed piece of a run |
 
-The three figures agree within USD 0.51 for an average harvest month. The consolidated cost document takes the figures of this one for its inference line, and it holds the estimation peak as the monthly ceiling of that line.
+The remaining independent design estimate differs by USD 0.21 in an average harvest month because it omits part of the function and telemetry work. The consolidated cost document takes the figures of this one for its single inference line and holds the estimation peak as the monthly ceiling of that line.
 
 ## 7. What moves the cost
 

@@ -133,7 +133,7 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 |---|---|---|
 | Telemetry ingestion | 0.72 | 0.98 |
 | APIs for positions, sacks and queries | 1.01 | 2.31 |
-| Inference | 2.63 | 15.75 |
+| Inference | 1.63 | 16.26 |
 | New objects in S3, for that month | 0.11 | 0.65 |
 | Alert delivery, SMS at its upper bound | 2.03 | 10.17 |
 | Audit and the small event-driven pieces | 0.45 | 0.45 |
@@ -143,9 +143,9 @@ These figures come from the AWS price list for us-east-1 and from the volumes of
 | Secrets, four | 1.60 | 1.60 |
 | WAF, web ACL and three rules | 8.00 | 8.00 |
 | CloudWatch, alarms and logs | 2.20 | 2.20 |
-| **Total** | **177.05** | **200.41** |
+| **Total** | **176.05** | **200.92** |
 
-About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links. The [inference cost](../governance/inference-cost.md) document gives the cost per 1,000 invocations in harvest, by trigger and per image.
+About 87 percent of the normal month is fixed network, the VPN and the endpoints. Variable cost is small, which confirms the serverless choice and shows where any saving must come from. The [monthly cloud cost](../governance/cloud-cost.md) document gives the calculation of each line, the development and test environments, and the dedicated links. The [inference cost](../governance/inference-cost.md) document gives the cost per 1,000 invocations in harvest, by trigger and per image. The harvest column is the average month with estimation flights spread across four months; when all 200 estimation flights occur in one month, inference reaches USD 45.95 and the production total reaches USD 230.61.
 
 ## 8. What the infrastructure code builds
 
