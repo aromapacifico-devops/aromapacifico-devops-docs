@@ -116,7 +116,7 @@ Functions stay outside the VPC unless they need a private resource. Inside it, t
 
 The VPC has no internet gateway and no NAT gateway. Only logistics and local servers receive a route, so the visitor network has no path into the cloud even if a firewall rule failed at the center.
 
-Endpoint security groups allow TCP 443 from those same ranges and deny all else.
+Endpoint security groups allow TCP 443 from those same ranges and deny all else. The [center cloud link](center-cloud-link.md) lists the exact entries of each table and the routes that the firewall of a center holds.
 
 ## 8. Name convention
 

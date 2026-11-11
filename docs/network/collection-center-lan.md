@@ -110,7 +110,7 @@ The firewall must support IKEv2 and two tunnels, since AWS provides two endpoint
 | Visitors | Internet only | Isolated, capped |
 | Cloud link | Tunnel endpoint | Carries no client traffic |
 
-Only logistics and local servers route through the tunnel, with the routes 10.X.3.0/24 and 10.X.10.0/24. The tunnel is a privilege, and giving it to fewer zones reduces what a compromised phone can reach. Visitors are denied every private range, and only DHCP and DNS reach the gateway of their VLAN.
+Only logistics and local servers route through the tunnel, with the routes 10.X.3.0/24 and 10.X.10.0/24. The [center cloud link](center-cloud-link.md) defines the routes on both sides and the failure behavior of the tunnels. The tunnel is a privilege, and giving it to fewer zones reduces what a compromised phone can reach. Visitors are denied every private range, and only DHCP and DNS reach the gateway of their VLAN.
 
 ## 7. A center with no WAN
 
