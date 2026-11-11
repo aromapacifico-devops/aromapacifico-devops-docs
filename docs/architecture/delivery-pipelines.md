@@ -83,7 +83,7 @@ All three use the same building blocks.
 - GitHub Actions with OIDC federation. Each job assumes a role named `fnc-aroma-<env>-role-pipeline-<purpose>` that trusts a single GitHub environment of a single repository, so no access key exists.
 - One protected environment per repository named `prod`, with the team as reviewers and deployments from `main` only.
 - The freeze gate that reads the harvest calendar, shared from the organization repository so all three apply the same weeks.
-- Release notes per production change, with what changes, the window, the impact, the approval, the notice to the Federation and how it goes back.
+- Release notes per production change, with what changes, the window, the impact, the approval, the notice to the Federation and how it goes back, following the [release notes and change policy](../release-notes/README.md).
 
 ## 4. Platform pipeline
 
