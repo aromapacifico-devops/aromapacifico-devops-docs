@@ -1,6 +1,12 @@
 # Delivery pipelines
 
-The platform changes through three pipelines. The platform pipeline changes infrastructure, the ingestion pipeline changes the code of the telemetry functions, and the flight object pipeline changes the code that receives drone objects and publishes flight records. All three promote the same exact version from development to test to production, stop for a person before production, keep secrets out of the repositories and the Terraform state, and go back by redeploying the previous version. This document explains each pipeline, what they share, how a change that touches both infrastructure and code is ordered, and how each one rolls back.
+The target platform changes through three pipelines. The platform pipeline changes infrastructure, the ingestion pipeline changes the code of the telemetry functions, and the flight object pipeline changes the code that receives drone objects and publishes flight records. In the target operating model, all three promote the same exact version from development to test to production, stop for a person before production, keep secrets out of the repositories and the Terraform state, and go back by redeploying the previous version. This document explains each pipeline, what they share, how a change that touches both infrastructure and code is ordered, and how each one rolls back.
+
+## Delivery scope: PLAN-ONLY
+
+This document is the conceptual architecture required by T-05. The current delivery validates documentation, diagrams, schemas, workflow definitions and infrastructure code locally, and it stops at `terraform plan`. It uses no AWS account or cloud credentials and runs no `terraform apply`, `terraform destroy`, bootstrap, environment promotion, CodeDeploy release, canary, cloud smoke test, synthetic flight or rollback exercise.
+
+The operational verbs in the sections below describe what the target pipelines are designed to do after a separately authorized deployment phase. They are not evidence that an environment or resource exists. Likewise, each "Evidence kept" column specifies the artifact a future authorized run must retain; it does not identify an artifact produced by this PLAN-ONLY delivery.
 
 ![Delivery pipelines](diagrams/22-delivery-pipelines.drawio.png)
 
@@ -38,13 +44,13 @@ The platform changes through three pipelines. The platform pipeline changes infr
 
 ## 1. Context and volumes
 
-| Pipeline | What it changes | Repository | Built in this project |
+| Pipeline | What it changes | Repository | Current delivery artifact |
 |---|---|---|---|
-| Platform | Network, center links, firewall rules, identities, keys, tables, queues, buckets, rules and the functions themselves as resources | `aromapacifico-devops-infra` and the six module repositories | Yes |
-| Ingestion | Code of the ingestion function and of the two alert delivery functions, delivery status and delivery check | `aromapacifico-ingestion` | Design |
-| Flight object | Code of the upload, verification and completion functions of the flight object bucket | `aromapacifico-flight-reception` | Design |
+| Platform | Network, center links, firewall rules, identities, keys, tables, queues, buckets, rules and the functions themselves as resources | `aromapacifico-devops-infra` and the six module repositories | Workflow and IaC definitions, validated no further than `terraform plan`; not executed |
+| Ingestion | Code of the ingestion function and of the two alert delivery functions, delivery status and delivery check | `aromapacifico-ingestion` | Conceptual design only |
+| Flight object | Code of the upload, verification and completion functions of the flight object bucket | `aromapacifico-flight-reception` | Conceptual design only |
 
-The infrastructure code builds the platform pipeline, since the infrastructure must be deployable by a pipeline with approval before production. The two application pipelines deploy code the project does not write, so they stay as designs that follow the same rules. Until the application repositories exist, the infrastructure repository carries a minimal ingestion handler and a placeholder function, packaged by Terraform, which is enough to prove the path end to end.
+The infrastructure repositories contain the definitions of the platform pipeline, since the infrastructure must eventually be deployable by a pipeline with approval before production. In this delivery those definitions receive static and plan validation only. The two application pipelines target code the project does not write, so they stay as designs that follow the same rules. Until the application repositories exist, the infrastructure repository carries a minimal ingestion handler and a placeholder function, packaged by Terraform; their definitions prove the intended path structurally, not through a deployed end-to-end test.
 
 The volumes that shape the release choices come from the pilot figures.
 
@@ -87,7 +93,7 @@ All three use the same building blocks.
 
 ## 4. Platform pipeline
 
-The platform pipeline lives in `aromapacifico-devops-infra` and in the module repositories, and it is built.
+The platform pipeline definitions live in `aromapacifico-devops-infra` and in the module repositories. They are present for review and PLAN-ONLY validation; the workflows and their cloud-changing steps are not executed as part of this delivery.
 
 | Workflow | Starts | What it does |
 |---|---|---|
@@ -105,7 +111,7 @@ The platform pipeline also creates what the two application pipelines need, name
 
 ## 5. Ingestion pipeline
 
-The ingestion pipeline deploys the code of three functions, the ingestion function that stores readings, evaluates ranges and raises alerts, and the delivery status and delivery check functions that follow each alert to the phone.
+The ingestion pipeline is designed to deploy the code of three functions: the ingestion function that stores readings, evaluates ranges and raises alerts, and the delivery status and delivery check functions that follow each alert to the phone. It remains a conceptual design in the current delivery.
 
 | Stage | What runs | Evidence kept |
 |---|---|---|
@@ -119,7 +125,7 @@ CodeDeploy stops the release and points the alias back when the error alarm of a
 
 ## 6. Flight object pipeline
 
-The flight object pipeline deploys three functions. The upload function checks the assignment of the operator and the station and returns presigned URLs. The verification function compares each stored object with its upload intent. The completion function writes the flight record and publishes `flight.record.published`.
+The flight object pipeline is designed to deploy three functions. The upload function checks the assignment of the operator and the station and returns presigned URLs. The verification function compares each stored object with its upload intent. The completion function writes the flight record and publishes `flight.record.published`. This pipeline also remains a conceptual design in the current delivery.
 
 | Stage | What runs | Evidence kept |
 |---|---|---|
