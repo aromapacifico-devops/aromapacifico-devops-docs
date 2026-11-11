@@ -98,7 +98,7 @@ A verification flight that ends aborted, partial or failed is stored as it happe
 
 ## 7. The verification function and its result
 
-`flight.record.published` of a verification mission starts the verification function. It reads only stored, verified object versions. It screens each photo for people first, and a photo with a person goes to the restricted prefix and never reaches the model. A clean photo goes to the managed model with a versioned prompt, and the function stores one result for each photo version.
+`flight.record.published` of a verification mission starts the verification function. It reads only stored, verified object versions. It screens each photo for people first, and a photo with a person goes to the restricted prefix and never reaches the model. A clean photo goes to the managed model with a versioned prompt, and the function stores one result for each photo version. The results use the common envelope and idempotency rule of the [inference functions](../architecture/inference-functions.md).
 
 | Photo label | Meaning |
 |---|---|
@@ -122,23 +122,53 @@ Example of the attempt result, with invented identifiers.
 ```json
 {
   "schema_version": "1.0",
-  "order_id": "order-demo-17",
-  "revision": 2,
-  "attempt": 1,
-  "verification_execution_id": "exec-demo-61-1",
-  "flight_record_id": "flight-record-demo-61-1",
-  "capture_mode": "photo_set",
-  "planned_photos": 20,
-  "usable_photos": 18,
-  "restricted_photos": 0,
-  "active_damage_photos": 0,
-  "closable": true,
-  "reason": null,
-  "proposed_result": "effective",
+  "result_id": "result-demo-verification-0061",
+  "function": "verification",
+  "subject": {
+    "order_id": "order-demo-17",
+    "revision": 2,
+    "attempt": 1,
+    "verification_execution_id": "exec-demo-61-1",
+    "flight_record_id": "flight-record-demo-61-1"
+  },
+  "source_objects": [
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "verification/order-demo-17/exec-demo-61-1/flight-record.json",
+      "version_id": "v-demo-record-61",
+      "sha256": "4108d1c28860e1eafa28e39753fb963e3844bf7e8d1f21ee7534e770179163ab",
+      "role": "flight_record"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "verification/order-demo-17/exec-demo-61-1/photo-001.jpg",
+      "version_id": "v-demo-photo-1",
+      "sha256": "6f06f556bfe548c460f6807ab7d892e19637d08ef50cc1aac0f38f75d64a3278",
+      "role": "photo"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "verification/order-demo-17/exec-demo-61-1/photo-002.jpg",
+      "version_id": "v-demo-photo-2",
+      "sha256": "8bcdb32c706ec233580607c1c4667738f62e52756c587aa877000c2231d6a2ae",
+      "role": "photo"
+    }
+  ],
+  "evaluated_at": "2026-11-27T14:52:00Z",
   "confidence": 0.81,
-  "model_id": "configured-managed-model",
+  "model_id": "us.amazon.nova-2-lite-v1:0",
   "prompt_version": 1,
-  "evaluated_at": "2026-11-27T14:52:00Z"
+  "idempotency_key": "d185297c25012396c63710c70d723929aa1a05b5107fb6bb399f083d16e5862e",
+  "result": {
+    "capture_mode": "photo_set",
+    "planned_photos": 2,
+    "usable_photos": 2,
+    "restricted_photos": 0,
+    "active_damage_photos": 0,
+    "closable": true,
+    "reason": null,
+    "proposed_result": "effective"
+  }
 }
 ```
 
@@ -147,12 +177,12 @@ A closable attempt makes the function emit `verification.result.persisted`. The 
 | Rule | Why |
 |---|---|
 | The function persists the photo results and the attempt result before any state change | A crash after inference loses no work, and a repeat returns the stored results |
-| Idempotency on the object version, the model and the prompt version | A repeated storage event or a retry produces no second result |
+| Idempotency on the function, subject, exact source versions, model and prompt version | A repeated storage event or a retry produces no second result |
 | The function role can write results and request the move to `VERIFIED`, and nothing more | No function can close, reject or authorize an order |
 
 ## 8. When inference fails
 
-A failed invocation never changes the order. The source photos stay in the bucket, no result is written, and the order stays in `VERIFICATION_PENDING`. The function retries a failed photo three times, and then the attempt goes to the dead letter queue with an alarm, the same treatment as the confirmation photos.
+A failed invocation never changes the order. The source photos stay in the bucket, no attempt result is written and no result event is emitted, and the order stays in `VERIFICATION_PENDING`. Photo results already stored for the attempt remain available for the supervisor. The function retries a failed photo three times, and then the attempt goes to the dead letter queue with an alarm, the same treatment as the confirmation photos.
 
 When an attempt reaches the dead letter queue, the supervisor sees the photos in the review screen and can record the result by hand. That writes a verification record with `decided_by` set to `supervisor`, the reviewer, no confidence and no model, and moves the order to `VERIFIED`. The move is a person's decision after the failure and leaves the failed invocation itself without effect. A model outage therefore never closes an order and never keeps all of them open. If the supervisor finds the photos insufficient, the platform plans another attempt.
 
