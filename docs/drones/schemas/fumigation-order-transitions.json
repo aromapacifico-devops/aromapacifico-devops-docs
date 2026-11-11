@@ -267,8 +267,15 @@
       "from": "VERIFICATION_PENDING",
       "to": "VERIFIED",
       "actor": "platform_function",
-      "trigger": "flight.record.published",
-      "guard": "The verification record is complete and stored"
+      "trigger": "verification.result.persisted",
+      "guard": "The record of a verification flight is published, and the verification function persisted for that attempt a result marked closable"
+    },
+    {
+      "from": "VERIFICATION_PENDING",
+      "to": "VERIFIED",
+      "actor": "supervisor",
+      "trigger": "verification.reviewed",
+      "guard": "The record of a verification flight is published, inference for that attempt reached the dead letter queue, and the supervisor records the result from the photos"
     },
     {
       "from": "VERIFIED",
