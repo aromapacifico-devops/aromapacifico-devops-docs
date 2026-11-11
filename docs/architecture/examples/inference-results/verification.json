@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "result_id": "result-demo-verification-0061",
+  "function": "verification",
+  "subject": {
+    "order_id": "order-demo-17",
+    "revision": 2,
+    "attempt": 1,
+    "verification_execution_id": "exec-demo-61-1",
+    "flight_record_id": "flight-record-demo-61-1"
+  },
+  "source_objects": [
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "verification/order-demo-17/exec-demo-61-1/flight-record.json",
+      "version_id": "v-demo-record-61",
+      "sha256": "4108d1c28860e1eafa28e39753fb963e3844bf7e8d1f21ee7534e770179163ab",
+      "role": "flight_record"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "verification/order-demo-17/exec-demo-61-1/photo-001.jpg",
+      "version_id": "v-demo-photo-1",
+      "sha256": "6f06f556bfe548c460f6807ab7d892e19637d08ef50cc1aac0f38f75d64a3278",
+      "role": "photo"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "verification/order-demo-17/exec-demo-61-1/photo-002.jpg",
+      "version_id": "v-demo-photo-2",
+      "sha256": "8bcdb32c706ec233580607c1c4667738f62e52756c587aa877000c2231d6a2ae",
+      "role": "photo"
+    }
+  ],
+  "evaluated_at": "2026-11-27T14:52:00Z",
+  "confidence": 0.81,
+  "model_id": "us.amazon.nova-2-lite-v1:0",
+  "prompt_version": 1,
+  "idempotency_key": "d185297c25012396c63710c70d723929aa1a05b5107fb6bb399f083d16e5862e",
+  "result": {
+    "capture_mode": "photo_set",
+    "planned_photos": 2,
+    "usable_photos": 2,
+    "restricted_photos": 0,
+    "active_damage_photos": 0,
+    "closable": true,
+    "reason": null,
+    "proposed_result": "effective"
+  }
+}

@@ -78,7 +78,7 @@ Sites at the edge hold their data until a path exists. A serverless platform in 
 
 **One regional endpoint.** Every farm publishes to the same address. Adding a farm means adding a certificate, with no change to the network, which is what lets the pilot grow to 1,000 farms with no redesign.
 
-**Managed inference.** No model is trained. A function reads a stored object, calls a managed service and writes the result. Replacing the model later touches one configuration value.
+**Managed inference.** No model is trained. A function starts on a verified flight record or a completed telemetry object, reads the exact stored version, calls a managed service and writes an idempotent result. Replacing the model later touches one configuration value.
 
 **A person decides.** Functions confirm, classify and estimate. Only a named person authorizes a fumigation, and no trigger can do it. This follows from the risk of the action, since a wrong fumigation cannot be undone.
 
@@ -89,7 +89,7 @@ Sites at the edge hold their data until a path exists. A serverless platform in 
 | 1. Telemetry | Node, IoT Core, SQS, ingestion function, DynamoDB, with a second copy through Firehose to S3 | X.509 certificate per device | MQTT over TLS |
 | 2. Crop alert | Ingestion function, SNS, farmer's phone | IAM role of the function | Mobile push |
 | 3. Sack, trip and order events | Application, API Gateway, domain function, DynamoDB transaction | Cognito token, MFA at centers and for drones | HTTPS, or IPsec from a center |
-| 4. Drone objects | Ground station, S3, EventBridge, inference function, Rekognition, Bedrock, case | Cognito token and presigned URL | HTTPS, or IPsec from a center |
+| 4. Drone objects | Ground station, S3, EventBridge, work queue, inference function, Rekognition, Bedrock, case | Cognito token and presigned URL | HTTPS, or IPsec from a center |
 | 5. Public query | Browser, CloudFront with WAF, lookup function through its function URL | None, read by code | HTTPS |
 | 6. Infrastructure delivery | Pull request, plan, approval, apply | GitHub OIDC role | HTTPS |
 
@@ -176,5 +176,5 @@ Development, test and production come from the same code with different variable
 | Security | Identity and access, encryption and revocation, personal data and retention |
 | Network and connectivity | Collection center LAN, cloud addressing, farm connectivity, drone mission link, carrier tracking, port delivery |
 | Automation and change | Implementation scope, environments and promotion |
-| Workloads | Sensors, alert ranges, telemetry ingestion, alert to drone confirmation, drone operating mode, drone roles and permits, lot boundaries, harvest estimation, sack identity, sack states, custody chain, views by actor, carrier application contract |
+| Workloads | Sensors, alert ranges, telemetry ingestion, alert to drone confirmation, inference functions, drone operating mode, drone roles and permits, lot boundaries, harvest estimation, sack identity, sack states, custody chain, views by actor, carrier application contract |
 | Decisions and assumptions | Decision records and assumption register |

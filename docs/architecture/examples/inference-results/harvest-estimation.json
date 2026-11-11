@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0",
+  "result_id": "result-demo-estimate-0001",
+  "function": "harvest_estimation",
+  "subject": {
+    "farm_id": "farm-demo",
+    "harvest_id": "harvest-demo-main",
+    "mission_id": "mission-demo-77",
+    "mission_execution_id": "mission-exec-demo-77-01",
+    "flight_record_id": "flight-record-demo-77-01"
+  },
+  "source_objects": [
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "estimation/farm-demo/exec-demo-77-01/flight-record.json",
+      "version_id": "v-demo-record-77",
+      "sha256": "e3bc27a4d0d90e68f8b4a58112ae6fd28980bc6269f30c7a801eea933260816e",
+      "role": "flight_record"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "estimation/farm-demo/lot-demo-a/ortho.tif",
+      "version_id": "v-demo",
+      "sha256": "047a6063192ad8210817281f4b7d5837755970c2dd297a08f6c27a8508ab924d",
+      "role": "orthomosaic"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "estimation/farm-demo/lot-demo-a/sample.json",
+      "version_id": "v-demo-sample",
+      "sha256": "4108d1c28860e1eafa28e39753fb963e3844bf7e8d1f21ee7534e770179163ab",
+      "role": "field_sample"
+    }
+  ],
+  "evaluated_at": "2026-04-03T09:00:00Z",
+  "confidence": 0.79,
+  "model_id": "us.amazon.nova-2-lite-v1:0",
+  "prompt_version": 5,
+  "idempotency_key": "ecfdfbb89faa14f2d9b139761532d248cf2f4375f2936bd20b89474b16e06f2c",
+  "result": {
+    "method_version": "trees-sample-cenicafe-1",
+    "lots": [
+      {
+        "lot_id": "lot-demo-a",
+        "geometry_version": 3,
+        "productive_trees": 5000,
+        "productive_trees_low": 4800,
+        "productive_trees_high": 5200,
+        "cherry_kg_per_tree": 2.0,
+        "cherry_kg_per_tree_low": 1.7,
+        "cherry_kg_per_tree_high": 2.3,
+        "sample_trees": 30,
+        "sample_ref": "sample-demo-a-1"
+      }
+    ],
+    "conversion": {
+      "parchment_per_cherry": 0.2,
+      "range": [0.2, 0.222],
+      "source": "Cenicafe, Avance Tecnico 370"
+    },
+    "estimated_sacks": 33,
+    "sacks_low": 27,
+    "sacks_high": 44,
+    "relative_range": 0.26,
+    "status": "PENDING"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "result_id": "result-demo-telemetry-0001",
+  "function": "telemetry_batch",
+  "subject": {
+    "stream": "crop"
+  },
+  "source_objects": [
+    {
+      "bucket": "fnc-aroma-test-s3-archive",
+      "key": "crop/year=2026/month=11/day=10/batch-0001.parquet",
+      "version_id": "v-demo-batch-1",
+      "sha256": "ba6f059298f39da1a3afd8a0426cf797475b8c3cc023f6334938ba7b4d6dd282",
+      "role": "telemetry_batch"
+    }
+  ],
+  "evaluated_at": "2026-11-10T20:15:00Z",
+  "confidence": null,
+  "model_id": null,
+  "prompt_version": null,
+  "idempotency_key": "c1e9d45a6d29e3eb46f23b1de9830dc00b210d8958b7f2be3723e00cb0234212",
+  "result": {
+    "evaluations": [
+      {
+        "reading_id": "node-41-00137#2026-11-10T20:00:00Z#48213",
+        "node_id": "node-41-00137",
+        "measured_at": "2026-11-10T20:00:00Z",
+        "seq": 48213,
+        "variable": "soil_humidity_pct",
+        "value": 39.4,
+        "range_version": 1,
+        "status": "out_of_range"
+      }
+    ]
+  }
+}

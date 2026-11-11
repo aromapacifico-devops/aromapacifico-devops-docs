@@ -183,10 +183,11 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["key", "s3_version_id", "sha256"],
+            "required": ["bucket", "key", "version_id", "sha256"],
             "properties": {
+              "bucket": { "type": "string", "minLength": 3, "maxLength": 63 },
               "key": { "type": "string", "minLength": 1, "maxLength": 1024 },
-              "s3_version_id": { "type": "string", "minLength": 1, "maxLength": 1024 },
+              "version_id": { "type": "string", "minLength": 1, "maxLength": 1024 },
               "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
             }
           }

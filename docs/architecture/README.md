@@ -1,6 +1,6 @@
 # Platform architecture
 
-Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production. [Persistence and archive](persistence-and-archive.md) explains where data lives for five years, how it is read and restored, and how it is deleted.
+Read [Platform overview](overview.md) first. It explains the complete platform, the flows, how each one fails, its scale and its cost. Then read [Implementation scope](implementation-scope.md) for what becomes code, and [Environments and promotion](environments-and-promotion.md) for how it reaches production. [Persistence and archive](persistence-and-archive.md) explains where data lives for five years, how it is read and restored, and how it is deleted. [Inference functions](inference-functions.md) defines the four event-driven results, their permissions, failure behavior and cost.
 
 | Diagram | Question it answers |
 |---|---|
@@ -22,6 +22,7 @@ Read [Platform overview](overview.md) first. It explains the complete platform, 
 | [Fumigation order states](diagrams/16-fumigation-order-states.drawio.png) | Which states can a fumigation order pass through, and which moves only a person can make |
 | [Public query](diagrams/17-public-query.drawio.png) | How does a buyer read one sack, and what limits bulk reads of the public query |
 | [Center cloud link](diagrams/18-center-cloud-link.drawio.png) | How does a center reach the cloud, which routes and names does it use, and what happens when the link fails |
+| [Inference functions](diagrams/19-inference-functions.drawio.png) | How does a complete mission record or archive object reach one of four inference results |
 
 ![Target platform on AWS](diagrams/00-platform-overview.drawio.png)
 

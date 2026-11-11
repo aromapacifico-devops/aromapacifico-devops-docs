@@ -63,7 +63,7 @@ The project asks for three deployment pipelines, one each for the platform, the 
 | C05 | Platform identities and encryption | Data and objects KMS keys, function, IoT rule and Firehose roles, plus the pipeline roles created in bootstrap | All modules |
 | C06 | Permanent cloud firewall rules | Security groups of the interface endpoints, default deny | Each environment |
 | C07 | Telemetry ingestion pattern | IoT rule, SQS and dead letter queue, Firehose, ingestion function, DynamoDB, S3 archive | Each environment |
-| C08 | Inference function pattern | S3 bucket, EventBridge rule, function, dead letter queue, alarm, case table, permissions | Other triggers |
+| C08 | Inference function pattern | S3 bucket, EventBridge rule on the published flight record, work queue, function, dead letter queue, alarm, case table, permissions | Other triggers |
 | C09 | Pipeline, approval and evidence | Workflows for plan, deploy, destroy and drift, shared checks, protected environment | Each environment |
 | C10 | Reusable module of one farm | IoT thing, group membership, certificate, policy attachment | Each farm |
 

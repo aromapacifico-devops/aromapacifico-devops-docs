@@ -117,21 +117,43 @@ A flight that ended aborted or partial is stored as it happened. Its photos can 
 
 ## 6. The result and its confidence
 
-After `flight.record.published`, the inference function takes each photo of the focus. It screens the photo for people first, and a photo with a person goes to the restricted prefix and never reaches the model. A clean photo goes to the managed model with a versioned prompt, and the function stores one result for each photo version.
+After `flight.record.published`, the inference function takes each photo of the focus. It screens the photo for people first, and a photo with a person goes to the restricted prefix and never reaches the model. A clean photo goes to the managed model with a versioned prompt, and the function stores one result for each photo version. The result uses the common envelope and idempotency rule of the [inference functions](../architecture/inference-functions.md).
 
 ```json
 {
   "schema_version": "1.0",
-  "result_id": "result-demo-0092",
-  "case_id": "case-demo-0088",
-  "mission_execution_id": "mission-exec-demo-0042-01",
-  "source_object": {"key": "drones/case-demo-0088/exec-01/photo-017.jpg", "version_id": "v-demo-1"},
-  "label": "possible_focus",
-  "confidence": 0.87,
-  "model_id": "configured-managed-model",
-  "prompt_version": 3,
+  "result_id": "result-demo-focus-0092",
+  "function": "focus_confirmation",
+  "subject": {
+    "case_id": "case-demo-0088",
+    "mission_execution_id": "mission-exec-demo-0042-01",
+    "flight_record_id": "flight-record-demo-0042-01"
+  },
+  "source_objects": [
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "focus/case-demo-0088/exec-01/flight-record.json",
+      "version_id": "v-demo-record-1",
+      "sha256": "614280bb1169bfba11816a800648bb766cf9db52e594c6b5dc7e40106b4d4165",
+      "role": "flight_record"
+    },
+    {
+      "bucket": "fnc-aroma-test-s3-flights",
+      "key": "focus/case-demo-0088/exec-01/photo-017.jpg",
+      "version_id": "v-demo-1",
+      "sha256": "8bcdb32c706ec233580607c1c4667738f62e52756c587aa877000c2231d6a2ae",
+      "role": "photo"
+    }
+  ],
   "evaluated_at": "2026-11-10T19:43:20Z",
-  "review_status": "pending"
+  "confidence": 0.87,
+  "model_id": "us.amazon.nova-2-lite-v1:0",
+  "prompt_version": 3,
+  "idempotency_key": "938d981712c5a1888cd27d4171d03f55d3d42ce1ddccdb9cbc8905328f10834d",
+  "result": {
+    "label": "possible_focus",
+    "review_status": "pending"
+  }
 }
 ```
 
@@ -141,7 +163,9 @@ After `flight.record.published`, the inference function takes each photo of the 
 | `confidence` | Between 0 and 1, as the model reports it. Until the agronomy review calibrates it against field checks, it orders the photos for the reviewer and decides nothing |
 | `model_id`, `prompt_version` | Pinned in configuration, so a change of model or prompt is visible in every result |
 | `evaluated_at` | Time of the inference, apart from the capture and storage times |
-| Idempotency | Source object version, model and prompt version, so a repeat returns the stored result |
+| `source_objects` | The published flight record and the exact photo version, each with bucket, key, version and SHA-256 |
+| `review_status` | `pending` until the reviewer decides |
+| Idempotency | Function, subject, source versions, model and prompt version, so a repeat returns the stored result |
 
 The case moves to review when every photo has a result or is restricted, or when inference failed three times and the reviewer works from the photos alone.
 
