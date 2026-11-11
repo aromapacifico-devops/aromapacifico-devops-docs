@@ -1417,8 +1417,52 @@ def inference_functions():
     return p
 
 
+def signals_and_correlation():
+    p = Page("20 Signals and correlation", 1700, 1000, "Which identifiers travel with a sack, a lot and a flight, and where each signal is read")
+    lane = dict(stroke="#147EBA", dashed=True, sw=2)
+    box = dict(fill="#F2F8FC", stroke="#147EBA")
+
+    p.group("Sack: the custody events of a center and of a carrier", 30, 60, 1640, 230, **lane)
+    p.step("<b>Center station or carrier phone</b><br>sack_code, event_id<br>center_id or trip_id", 60, 120, 260, 90, cid="a1", **box)
+    p.step("<b>Tunnel of the center</b><br>W-01 TunnelState<br>W-02 bytes, not health", 380, 120, 230, 90, cid="a2", **box)
+    p.step("<b>Custody API</b><br>request_id<br>A-01 requests, errors, latency", 670, 120, 250, 90, cid="a3", **box)
+    p.step("<b>Custody function</b><br>outcome applied, repeat, gap, anomaly<br>A-04, A-05, A-06", 980, 120, 290, 90, cid="a4", **box)
+    p.step("<b>Sack tables</b><br>D-01 failed writes<br>D-02 throttles, D-05 job", 1330, 120, 270, 90, cid="a5", **box)
+    for a, b in (("a1", "a2"), ("a2", "a3"), ("a3", "a4"), ("a4", "a5")):
+        p.edge(a, b, "", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    p.note("W-03 events by center_id and W-04 delay between captured_at and received_at are read from the logs of the custody function.", 60, 225, 800, 45, fill="#FFF8E1", stroke="#D6B656")
+    p.note("Not defined: an identifier of a group of sacks. The events of one request share its request_id.", 900, 225, 700, 45, fill="#FDEDEC", stroke="#DD344C")
+
+    p.group("Reading, farm lot and drying lot", 30, 320, 1640, 230, **lane)
+    p.step("<b>Farm node</b><br>node_id, farm_id<br>lot_id, drying_lot_id", 60, 380, 260, 90, cid="b1", **box)
+    p.step("<b>IoT Core</b><br>trace_id in the audit log<br>I-12", 380, 380, 230, 90, cid="b2", **box)
+    p.step("<b>Ingestion queue</b><br>I-02 depth and age<br>I-03 dead letter queue", 670, 380, 250, 90, cid="b3", **box)
+    p.step("<b>Ingestion function</b><br>reading_id, correlation_id<br>I-04, I-05, I-09", 980, 380, 290, 90, cid="b4", **box)
+    p.step("<b>Tables and alerts</b><br>I-06 handoff time<br>I-07, I-08 delivery", 1330, 380, 270, 90, cid="b5", **box)
+    for a, b in (("b1", "b2"), ("b2", "b3"), ("b3", "b4"), ("b4", "b5")):
+        p.edge(a, b, "", TEL, exit=(1, 0.5), entry=(0, 0.5))
+    p.note("LoRa farms: I-13 silent vereda and I-14 gaps in the stored sequences. I-01 reads silent nodes over 24 hours.", 60, 485, 800, 45, fill="#FFF8E1", stroke="#D6B656")
+    p.note("lot_id is the farm lot and drying_lot_id is the drying lot. Neither stands for the other.", 900, 485, 700, 45, fill="#FFF8E1", stroke="#D6B656")
+
+    p.group("Flight: mission, execution and record", 30, 580, 1640, 230, **lane)
+    p.step("<b>Ground station</b><br>mission_id, package_id<br>execution_id", 60, 640, 260, 90, cid="c1", **box)
+    p.step("<b>Upload function</b><br>F-01 flight_object.authorized<br>F-02 expired URL", 380, 640, 230, 90, cid="c2", **box)
+    p.card("Flight object bucket", "names, events and quarantine, F-06 pending", 670, 640, 250, 90, cid="c3", stroke=FAIL, dashed=True)
+    p.step("<b>Verification</b><br>F-03 hash against manifest<br>completion rule", 980, 640, 290, 90, cid="c4", **box)
+    p.step("<b>Order and record</b><br>order_id, case_id, record_id<br>F-04, F-05", 1330, 640, 270, 90, cid="c5", **box)
+    for a, b in (("c1", "c2"), ("c2", "c3"), ("c3", "c4"), ("c4", "c5")):
+        p.edge(a, b, "", TEL if a != "c2" else OBJ, dashed=(a == "c2"), exit=(1, 0.5), entry=(0, 0.5))
+    p.note("Pending. The design of the flight objects and their transport, which another card owns, sets the buckets, prefixes and events. This page is reconciled when it merges.", 60, 745, 1540, 45, fill="#FDEDEC", stroke="#DD344C")
+
+    p.group("Where the records go", 30, 840, 1100, 130, stroke=ALERT, dashed=True, sw=2)
+    p.note("<b>Operational logs.</b> Structured JSON, identifiers as fields and never as metric dimensions, kept 30 days. Nothing personal and no secret.", 50, 890, 520, 65, fill="#FFFFFF", stroke=ALERT)
+    p.note("<b>Audit logs.</b> Their own groups, 90 days in CloudWatch and five years in S3. Unchanged by this design.", 590, 890, 520, 65, fill="#FFFFFF", stroke=ALERT)
+    p.legend(1160, 840, 510, [(TEL, False, "Path of the record or the event"), (OBJ, True, "Upload that waits on the pending design"), (FAIL, True, "Pending, not yet designed")])
+    return p
+
+
 def main():
-    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link(), inference_functions()]
+    pages = [overview(), end_to_end(), cloud_deployment(), connectivity(), pest_flow(), landing_zone(), environments(), farm_sequence(), sack_states(), center_wlan(), drone_link(), audit_path(), lot_geometry(), center_operation(), crop_case(), alert_delivery(), fumigation_order(), public_query(), center_cloud_link(), inference_functions(), signals_and_correlation()]
     xml = '<mxfile host="app.diagrams.net">' + "".join(p.xml() for p in pages) + "</mxfile>"
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(xml, encoding="utf-8")
