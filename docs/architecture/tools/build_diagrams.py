@@ -1447,17 +1447,17 @@ def signals_and_correlation():
     p.group("Flight: mission, execution and record", 30, 580, 1640, 230, **lane)
     p.step("<b>Ground station</b><br>mission_id, package_id<br>execution_id", 60, 640, 260, 90, cid="c1", **box)
     p.step("<b>Upload function</b><br>F-01 flight_object.authorized<br>F-02 expired URL", 380, 640, 230, 90, cid="c2", **box)
-    p.card("Flight object bucket", "names, events and quarantine, F-06 pending", 670, 640, 250, 90, cid="c3", stroke=FAIL, dashed=True)
+    p.card("Flight object bucket", "10 prefixes, events, quarantine, F-06", 670, 640, 250, 90, cid="c3", icon="s3", color=STORAGE)
     p.step("<b>Verification</b><br>F-03 hash against manifest<br>completion rule", 980, 640, 290, 90, cid="c4", **box)
     p.step("<b>Order and record</b><br>order_id, case_id, record_id<br>F-04, F-05", 1330, 640, 270, 90, cid="c5", **box)
     for a, b in (("c1", "c2"), ("c2", "c3"), ("c3", "c4"), ("c4", "c5")):
-        p.edge(a, b, "", TEL if a != "c2" else OBJ, dashed=(a == "c2"), exit=(1, 0.5), entry=(0, 0.5))
-    p.note("Pending. The design of the flight objects and their transport, which another card owns, sets the buckets, prefixes and events. This page is reconciled when it merges.", 60, 745, 1540, 45, fill="#FDEDEC", stroke="#DD344C")
+        p.edge(a, b, "", TEL if a != "c2" else OBJ, exit=(1, 0.5), entry=(0, 0.5))
+    p.note("<b>Flight objects.</b> S3 sends Object Created to EventBridge and the verification queue. The function publishes verified or rejected, and completion publishes the record or sends it to review. F-06 reads these outcomes by execution.", 60, 735, 1540, 55, fill="#F2F8FC", stroke=OBJ)
 
     p.group("Where the records go", 30, 840, 1100, 130, stroke=ALERT, dashed=True, sw=2)
     p.note("<b>Operational logs.</b> Structured JSON, identifiers as fields and never as metric dimensions, kept 30 days. Nothing personal and no secret.", 50, 890, 520, 65, fill="#FFFFFF", stroke=ALERT)
     p.note("<b>Audit logs.</b> Their own groups, 90 days in CloudWatch and five years in S3. Unchanged by this design.", 590, 890, 520, 65, fill="#FFFFFF", stroke=ALERT)
-    p.legend(1160, 840, 510, [(TEL, False, "Path of the record or the event"), (OBJ, True, "Upload that waits on the pending design"), (FAIL, True, "Pending, not yet designed")])
+    p.legend(1160, 840, 510, [(TEL, False, "Path of the record or the event"), (OBJ, False, "Upload path of a flight object")])
     return p
 
 

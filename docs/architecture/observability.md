@@ -14,7 +14,7 @@ This document defines what the platform must record so that an operator can foll
 6. Metrics
 7. Catalog of signals
 8. The three center links
-9. Arrival of flight objects, pending
+9. Arrival of flight objects
 10. Cost and traces
 11. What the checker proves
 12. Assumptions and pending confirmations
@@ -32,7 +32,6 @@ This document defines what the platform must record so that an operator can foll
 | Event | A record of a change, such as a state change of a key |
 | Existing | Defined by a merged design document, which the row cites |
 | Derived | Computed from fields that merged documents define, with the derivation stated here |
-| Pending | Waits on the design of the flight objects and their transport, which another card owns |
 | Operational log | A log for diagnosis, kept 30 days |
 | Audit log | A log that is evidence, with its own rules, kept as the audit design says |
 
@@ -47,6 +46,7 @@ This document defines what the platform must record so that an operator can foll
 | [Recovery](recovery.md) and [persistence and archive](persistence-and-archive.md) | The alarms of the sack tables, the key, point-in-time recovery and the deletion job |
 | [Center cloud link](../network/center-cloud-link.md) and [collection center operations](../network/collection-center-operations.md) | `TunnelState`, the failure states of the link and the queue of events on the devices |
 | [Drone mission link](../network/drone-mission-link.md) and [fumigation order](../drones/fumigation-order.md) | The identifiers of a flight, the upload checks and the completion rule |
+| [Flight objects](../drones/flight-objects.md) | The bucket, ten prefixes, storage events, quarantine and flight record schema, whose outcomes F-06 reads |
 | [Cloud cost](../governance/cloud-cost.md) | The volumes of the case and the reference allowance for CloudWatch of USD 2.20 a month |
 
 ## 3. Principles
@@ -152,7 +152,6 @@ The catalog has 37 signals. A signal is defined by its name, kind, source, dimen
 | of kind logquery | 8 |
 | of kind event | 5 |
 | Custom metric series, the product of the dimension values of each custom signal | 15 |
-| Signals pending the design of the flight objects | 1 |
 
 ### Ingestion
 
@@ -214,7 +213,7 @@ The catalog has 37 signals. A signal is defined by its name, kind, source, dimen
 | F-03 | An object whose hash does not match its manifest. | logquery | Verification of the object against the manifest | `execution_id`, `package_id` | existing | [Drone mission link](../network/drone-mission-link.md) |
 | F-04 | Flights not published because an object or the closed log is missing. | custom | Orders in `EXECUTED_PENDING_SYNC` and flights below their completion rule | `execution_id`, `order_id` | existing | [Fumigation order](../drones/fumigation-order.md) |
 | F-05 | Transitions of a fumigation order, allowed and denied. | event | Audit event `fumigation.transition` | `order_id`, `case_id`, `execution_id`, `record_id`, `request_id` | existing | [Audit](../security/audit.md) |
-| F-06 | Buckets, prefixes and events by type of object, delivery of the storage events, quarantine of an object and the deduplication when the link returns. Depends on the design of the flight objects and their transport. The names are reconciled when that design is merged. | logquery | Not designed yet | none | pending | Not yet designed |
+| F-06 | Arrival of flight objects, their storage events, quarantine and repeated deliveries. A rejected object carries its quarantine key, and a repeated upload is a normal answer to a lost response. | logquery | Platform events `flight.object.verified`, `flight.object.rejected`, `flight.record.published` and `flight.record.review_required`, and the EventBridge rule of the flight prefixes | `execution_id`, `mission_id`, `package_id` | derived | [Flight objects](../drones/flight-objects.md) |
 
 ## 8. The three center links
 
@@ -233,13 +232,13 @@ A quiet center is not always a broken one. The table reads the tunnel and the ev
 
 What the cloud cannot see. A provider link that fails while the firewall still holds a tunnel is seen only as a down tunnel. A center that is open and has no sacks looks like a center that is closed. The usual silence of each center is learned from its own history and is a threshold for the alarm design.
 
-## 9. Arrival of flight objects, pending
+## 9. Arrival of flight objects
 
-The arrival of the objects of a flight is the part of this design that is not complete. The design of the flight objects and their transport, which another card owns and has not delivered, will set the buckets, the prefixes and the events by type of object, the encrypted upload with integrity and the deduplication when the link returns, and the rule that a fumigation does not close before its record is stored. That dependency is not resolved.
+The flight object design fixes one bucket per environment and ten prefixes. Five carry one mission type each, `delimitation/`, `focus/`, `fumigation/`, `verification/` and `estimation/`. `packages/` and `geometry/` hold the signed package and the published geometry, `estimation/derived/` holds inference tiles, `restricted/` holds objects with a person, and `quarantine/` holds objects that fail integrity. Each prefix has its key pattern, writer, readers and lifecycle.
 
-What this document does with the merged documents. It records the signals that the drone mission link and the fumigation order already fix, which are the permission to upload, an expired URL, a hash that does not match its manifest, a flight below its completion rule and the transitions of an order. It leaves one row pending, F-06, for the names and events that the other design will set.
+A storage event travels from S3 to EventBridge on the default bus. One rule selects `Object Created` under the five mission prefixes and sends it to the verification queue. The verification function compares the stored size and SHA-256 with the upload intent and publishes `flight.object.verified` or `flight.object.rejected`. An object whose check fails moves to `quarantine/` and its source version is removed, so the station can upload it again. The completion function publishes `flight.record.published` or `flight.record.review_required`. Inference starts only from the published record.
 
-What remains to reconcile when that design is merged. The names of the buckets and prefixes, the storage events and their delivery signals, the quarantine of an object, the deduplication signals, whether S3 request metrics are enabled on the buckets, and the age of the oldest object. The follow-up is a short edit of this section and of row F-06, made by the owner of this document after that design merges. This document does not edit that card or its files.
+F-06 reads these outcomes by execution, mission and package. F-03 remains the signal for a hash mismatch, F-04 for a flight below its completion rule, and F-05 for the order transitions that follow publication. A repeated upload that finds the same object under the conditional key is normal after a lost answer, and the query reports it with the repeated completion request rather than as a failure.
 
 ## 10. Cost and traces
 
@@ -280,9 +279,9 @@ At list price the custom metrics and the dashboards alone cost USD 10.50, which 
 
 There are 10 custom signals and 15 series in this catalog. Which of them an alarm needs is decided by the alarm design, and this document does not choose.
 
-### Minimal alternative
+### Chosen operational telemetry
 
-The full proposal above stays as the reference for the team to decide. This alternative keeps the same logs, the same service metrics and the same identifiers, and cuts the two lines that cost the most, the custom metrics and the dashboards. It is a proposal and it is not forced to fit the reference budget.
+The design adopts the minimal alternative, with X-Ray active tracing at 5 percent on functions and APIs. It keeps the same logs, service metrics and identifiers, and cuts the two lines that cost the most, the custom metrics and the dashboards.
 
 | Change | What is lost |
 |---|---|
@@ -290,27 +289,27 @@ The full proposal above stays as the reference for the team to decide. This alte
 | I-04, I-05, I-15 and F-04 are read by a log query instead of a metric | They no longer draw a graph, and no alarm can watch them. An operator runs the saved query. A metric filter would bring back a billed custom metric |
 | No dashboard of our own. The console views of each service and saved Logs Insights queries replace them | There is no single page with the signals of ingestion, applications and the centers together. An operator opens each view |
 
-| Month | Logs ingested, GB | Logs and queries | Metrics | Dashboards | Total at list price before alarms | Each alarm adds |
-|---|---|---|---|---|---|---|
-| Normal month | 0.38 | 0.21 | 1.80 | 0.00 | 2.01 | USD 0.10 |
-| Harvest month | 0.86 | 0.47 | 1.80 | 0.00 | 2.27 | USD 0.10 |
+| Month | Logs ingested, GB | Logs and queries | Metrics | Dashboards | X-Ray at 5 percent | Total at list price before alarms | Each alarm adds |
+|---|---|---|---|---|---|---|---|
+| Normal month | 0.38 | 0.21 | 1.80 | 0.00 | 0.12 | 2.13 | USD 0.10 |
+| Harvest month | 0.86 | 0.47 | 1.80 | 0.00 | 0.28 | 2.55 | USD 0.10 |
 
-At list price, with no free tier, this is USD 2.01 in a normal month and USD 2.27 in a harvest month before any alarm. That is USD 0.19 under the reference in a normal month and USD 0.07 over it in a harvest month. Each alarm that the alarm design adds costs USD 0.10 more, so eight alarms, as an example and not a decision, would bring the totals to about USD 2.81 and USD 3.07, which is USD 0.61 and USD 0.87 over. The reference of USD 2.20 is therefore not met once alarms are counted, and it is not stated as met. The team decides between the full proposal, this alternative and a higher reference. The free tier is not used in these figures. The set of kept metrics is a proposal for the alarm design to confirm, and the checker verifies that each kept metric is a custom signal of the catalog and does not exceed its full series.
+At list price, with no free tier, this is USD 2.13 in a normal month and USD 2.55 in a harvest month before any alarm. The normal month is USD 0.07 under the reference and one alarm passes it. The harvest month is USD 0.35 over before alarms, and each alarm adds USD 0.10. The design records that gap for the cost owner instead of adjusting the reference. The free tier is not used in these figures. The set of kept metrics is confirmed with the alarm design, and the checker verifies that each kept metric is a custom signal of the catalog and does not exceed its full series.
 
-### Traces with X-Ray
+### X-Ray active tracing
 
-A trace follows a request through the services that report to X-Ray, which in this design would be the functions and the APIs. A reading published by a node reaches IoT Core with no trace, and IoT Core records its own trace ID in the audit design. A custody event travels from a device that carries none. A trace is kept 30 days, and the default sampling rule of the SDK records the first request of each second and 5 percent of the rest.
+Functions and APIs run active tracing at 5 percent sampling. A trace follows a request through the services that report to X-Ray. A reading published by a node reaches IoT Core with no trace, and IoT Core records its own trace ID in the audit design. A custody event travels from a device that carries none. A trace is kept 30 days.
 
-| Month | Traced operations at the default rule, about all of them at this rate | Traces stored at USD 5 per million | At 5 percent sampling | At 1 percent sampling |
-|---|---|---|---|---|
-| Normal month | 465,900 | 2.33 | 0.12 | 0.023 |
-| Harvest month | 1,125,000 | 5.62 | 0.28 | 0.056 |
+| Month | Function and API operations | Traced at 5 percent | Traces stored, USD |
+|---|---|---|---|
+| Normal month | 465,900 | 23,295 | 0.12 |
+| Harvest month | 1,125,000 | 56,250 | 0.28 |
 
-The average rate of a harvest month is about 0.43 requests a second, below the one request a second that the default rule always records, so the default traces nearly every request. At USD 5 per million stored, that alone passes the reference budget in a harvest month. Reading and scanning cost USD 0.50 per million. The free tier of X-Ray was not read and is not assumed. The base design therefore keeps correlation in the structured logs, and X-Ray stays an option for the functions and APIs at a low sampling rate if the budget allows it.
+At USD 5.00 per million traces stored, X-Ray adds USD 0.12 in a normal month and USD 0.28 in a harvest month. Reading and scanning cost USD 0.50 per million. The free tier of X-Ray was not read and is not assumed.
 
 ## 11. What the checker proves
 
-`tools/observability_catalog.py` reads this catalog and the documents it cites and fails on an inconsistency. It checks that every cited document exists and still names the signal or the identifier, that every identifier a signal uses is in the contract, that no identifier is a metric dimension and no dimension has more than six values, that no personal or secret field is a log field, that the farm lot and the drying lot are two identifiers, that the pending row names what it waits on, that every area of the criterion has a signal, that the center links include `TunnelState` and a signal by center, and that the cost scenario is computed from the volumes of the cost document.
+`tools/observability_catalog.py` reads this catalog and the documents it cites and fails on an inconsistency. It checks that every cited document exists and still names the signal or the identifier, that every identifier a signal uses is in the contract, that no identifier is a metric dimension and no dimension has more than six values, that no personal or secret field is a log field, that the farm lot and the drying lot are two identifiers, that every area of the criterion has a signal, that F-06 reads the flight object events, that the center links include `TunnelState` and a signal by center, and that the cost scenario is computed from the volumes of the cost document.
 
 It checks the design as written. It does not prove that any log group, metric, dashboard, trace or alarm exists, it measures no real traffic, and it is not a test of a deployed monitoring.
 
@@ -323,7 +322,6 @@ It checks the design as written. It does not prove that any log group, metric, d
 | 2 GB scanned by queries a month and 2 dashboards | Assumption | Operator practice | The query and dashboard lines move |
 | The free tier of CloudWatch applies to the account | Stated on the pricing page and not assumed by the cost document | Owner of the cost document | Without it the telemetry passes the reference budget |
 | The usual silence of each center | Not known | Hours and days of operation of each center, which the Federation has not stated | The alarm for a quiet center cannot be set |
-| The names of buckets, prefixes and events of the flight objects | Pending, another card | Owner of that design | Row F-06 stays pending and the arrival section stays open |
 | The source of the age of the oldest object of the archive | Not designed | Owner of the persistence design | Signal D-06 shows size and count only |
 | The free tier of X-Ray | Not read | Owner of the cost document | The traces option has no confirmed free amount |
 
@@ -331,7 +329,7 @@ It checks the design as written. It does not prove that any log group, metric, d
 
 | Literal criterion | Where it is answered | Gaps |
 |---|---|---|
-| Señales de ingesta, aplicaciones, base, los tres enlaces WAN y llegada de objetos de vuelo | Sections 7 to 10. Ingestion, applications, the database and the three center links have their signals, with `TunnelState` and a table to read a quiet center. The arrival of flight objects has the signals that merged documents fix | The arrival of flight objects is partial. The names of buckets, prefixes and events wait on the design of the flight objects and their transport. The usual silence of each center is a threshold for the alarm design |
+| Señales de ingesta, aplicaciones, base, los tres enlaces WAN y llegada de objetos de vuelo | Sections 7 to 10. Ingestion, applications, the database and the three center links have their signals, with `TunnelState` and a table to read a quiet center. The arrival of flight objects is covered by F-06 and the storage, verification and publication events of the flight object design | The usual silence of each center is a threshold for the alarm design |
 | Identificador de correlación por saco, lote y vuelo | Section 4. A sack is `sack_code` with `event_id`, a lot is `lot_id` for the farm lot and `drying_lot_id` for the drying lot, and a flight is `mission_id` with `execution_id`. No identifier of a group of sacks is defined | None |
 
 ## 14. Sources
