@@ -202,7 +202,7 @@ The manual rollback never rebuilds anything. It moves the `live` alias to a vers
 | Artifact bucket | S3 Standard storage, rounded | Six functions, a few MB per version, old versions expire after 180 days | Below 0.01 |
 | Lambda versions | No charge for stored versions, counted in the 300 GB code storage quota of the Region | Same | 0.00 |
 
-The pipelines add no material cost. Their cost is the time an environment stays up for a test run, which `environments-and-promotion.md` prices per hour.
+The pipelines add no material cost. Their cost is the time an environment stays up for a test run, which [Environments and promotion](environments-and-promotion.md) prices per hour.
 
 ## 13. Assumptions and pending confirmations
 

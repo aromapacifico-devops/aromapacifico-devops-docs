@@ -79,6 +79,8 @@ No variable holds a secret, and the state stays in a separate bucket per environ
 
 The approval uses a protected GitHub environment. The repositories are public, so required reviewers are available. The production role in AWS trusts only that protected environment, so no branch can reach production by itself. A saved plan can hold sensitive values and a public repository exposes its artifacts, so the binary plan stays in the private state bucket and only a readable summary reaches the pull request.
 
+The ingestion and flight object code follows the same steps through its own pipeline, described in [Delivery pipelines](delivery-pipelines.md).
+
 ## 4. Rollback
 
 Going back means pointing the environment to the previous module version and running the same pipeline. Git shows what was deployed, and the state keeps the record. Data does not roll back with the code, so a change that alters a table needs its own plan, and point-in-time recovery stays available for production tables.
