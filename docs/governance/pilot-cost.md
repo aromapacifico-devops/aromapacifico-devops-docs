@@ -243,4 +243,3 @@ Whether AWS, the operators and the drone contractor charge IVA to the Federation
 - [Observability](../architecture/observability.md), [operational alarms](../architecture/operational-alarms.md) and [dashboards](../architecture/dashboards.md), for the monitoring cost.
 - [Alert delivery](../iot/alert-delivery.md) and [persistence and archive](../architecture/persistence-and-archive.md), for the SMS and storage savings.
 - AWS, [CloudFront flat-rate pricing plans](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/flat-rate-pricing-plan.html).
-- The figures of the summary are reproduced with `python3 docs/governance/tools/pilot_cost.py --check`, which reads them from the documents above and fails when this document differs.
