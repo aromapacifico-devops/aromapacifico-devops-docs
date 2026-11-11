@@ -229,7 +229,7 @@ OK 17 states, 41 transitions, only people reach AUTHORIZED, CLOSED, REJECTED
 | The verification flight aborts or ends partial | The record is stored as it happened, and the platform plans the next attempt | `VERIFICATION_PENDING` |
 | A photo shows a person | Restricted prefix, no inference, and the photo counts as unusable | `VERIFICATION_PENDING` until coverage is enough |
 | Coverage below 80 percent | Not closable, and another attempt | `VERIFICATION_PENDING` |
-| The model fails three times | Dead letter queue and alarm, no state change, and the supervisor may record the result by hand | `VERIFICATION_PENDING` |
+| The model fails on the first attempt and its three retries | Dead letter queue and alarm, no state change, and the supervisor may record the result by hand | `VERIFICATION_PENDING` |
 | The order changed while the function ran | The conditional write fails, and the result stays stored | Unchanged |
 | A function tries to close the order | The transition function refuses it and records a denied event | Unchanged |
 | The treatment did not work | The supervisor closes with `new_order_needed` and a follow-up order | `CLOSED`, with a new order open |

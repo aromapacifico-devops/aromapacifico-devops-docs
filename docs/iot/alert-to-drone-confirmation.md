@@ -194,7 +194,7 @@ The drone confirmation adds days, the time to the next brigade visit, and it has
 | The polygon changes after the package was built | `mission_stale`, and a new attempt is built |
 | The flight happened and its log is not published | The case waits in `mission_requested` |
 | An image shows a person | It goes to the restricted prefix and skips the model |
-| The inference fails three times | Dead letter queue and alarm, and the reviewer can work from the images |
+| The inference fails on the first attempt and its three retries | Dead letter queue and alarm, and the reviewer can work from the images |
 | The model reports a likely focus with high confidence | The result is stored, and the case waits for the reviewer |
 | The reviewer finds the evidence inconclusive | `retry`, with a new attempt and the earlier evidence kept |
 

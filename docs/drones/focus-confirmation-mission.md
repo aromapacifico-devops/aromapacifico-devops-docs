@@ -196,7 +196,7 @@ A confirmed focus only allows a supervisor to start a fumigation order. That ord
 | The flight lands and its log is not published | The case waits, and no photo is evaluated |
 | A mandatory photo is missing | The mission link keeps the record incomplete, and the station uploads again |
 | A photo shows a person | Restricted prefix, no inference, and the reviewer sees that it was withheld |
-| The model fails three times | Dead letter queue and alarm, and the reviewer decides from the photos |
+| The model fails on the first attempt and its three retries | Dead letter queue and alarm, and the reviewer decides from the photos |
 | The confidence is high | The result waits for the reviewer like any other |
 | The reviewer finds it inconclusive | A new attempt, with the earlier evidence kept |
 

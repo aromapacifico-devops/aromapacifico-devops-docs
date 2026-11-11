@@ -86,7 +86,7 @@ The work queue separates delivery from processing. EventBridge needs permission 
 
 Telemetry uses a completed S3 Object Created event because each Firehose object is independently complete. EventBridge sends that event to the telemetry work queue, and Lambda processes it through the same pattern. There is no need to wait for a flight record.
 
-Retry counts, visibility periods and the attempts before redrive belong to the consolidated failure policy. This document fixes the queue boundary and the requirement that a failed function cannot change business state.
+Retry counts, visibility periods and the attempts before redrive are set in the [failure policy](failure-policy.md). This document fixes the queue boundary and the requirement that a failed function cannot change business state.
 
 ## 4. The common result
 
@@ -311,7 +311,7 @@ The pattern does not include the other functions' resources. Their queues, roles
 | A telemetry batch is processed twice | The idempotency key returns the stored reconciliation | No duplicate history |
 | A work queue message is exhausted | The dead letter queue keeps it and the alarm reports the failure | No function result and no state change |
 
-The failure table deliberately omits retry counts and the attempt threshold before redrive. The consolidated failure policy sets those numbers so every function follows one operational rule.
+The [failure policy](failure-policy.md) sets the retry counts, the visibility periods, the dead letter retention, the alarms and the redrive after a fix, so every function follows one operational rule.
 
 ## 13. Cost
 
@@ -358,7 +358,7 @@ A normalized cost per 1,000 harvest invocations belongs to the consolidated infe
 
 | Subject | What this design fixes | What the next design must decide |
 |---|---|---|
-| Retry and failure policy | Each function has a work queue and a separate dead letter queue, and no failure changes business state | Retry counts, visibility periods, redrive threshold and alarms |
+| Retry and failure policy | Each function has a work queue and a separate dead letter queue, and no failure changes business state | Set in the [failure policy](failure-policy.md), with four receives, six times the function timeout as visibility, a dead letter queue on each rule and the alarms of each function |
 | Region and data exit | Objects are screened for people before a vision call, and every result records model and prompt version | Service Region, transfer mechanism, legal basis and data exit statement |
 | Consolidated cost | Rates, token profile, volumes and per-workload calculation | The cost per 1,000 invocations and its budget line |
 | Infrastructure code | Pattern resources, exact actions, prefixes and result contract | Terraform resources, role changes, alarm values and plan evidence |
