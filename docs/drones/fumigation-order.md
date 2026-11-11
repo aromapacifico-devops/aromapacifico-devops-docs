@@ -77,7 +77,7 @@ Each record is written once, in the same conditional write as the state change i
 | Farmer acceptance | Whether the farmer accepts the visit, the farmer, the channel and the time | Before authorization |
 | Authorization | Revision, decision (`authorized` or `rejected`), supervisor, whether the supervisor is the department authority or the named backup, second factor, time and reason code | Each human decision on a revision |
 | Execution | Execution identifier, method, applicator, drone, package digest, start and end, outcome, product lot used, whether product was applied, log hash and S3 version, flight record | Each application, when its record is published |
-| Verification | Verification execution, its flight record, the result and the time | When the verification record is stored |
+| Verification | Verification execution and attempt, its flight record, the photos it rests on, the result, whether the function or the supervisor decided it, the confidence, the model and the times | When the order moves to `VERIFIED` |
 | Closure | Supervisor, outcome, time and a follow-up order when one is needed | When the supervisor closes the order |
 
 Together they answer the questions of the statement. The authorization record says who authorized. The execution records say who flew or applied, when, with which product lot, and point to the closed log. The order says the window. The verification and the closure say how the case ended.
@@ -101,33 +101,33 @@ The states keep every name of the mission link, section 9, and add four exits it
 | `SYNC_REVIEW_REQUIRED` | The record failed a check, or the product lot used differs from the planned one | `FLIGHT_RECORD_PERSISTED`, `PARTIAL` |
 | `FLIGHT_RECORD_PERSISTED` | The complete record of the application is stored | `VERIFICATION_PENDING` |
 | `VERIFICATION_PENDING` | The verification mission is planned | `VERIFIED` |
-| `VERIFIED` | The verification record is stored | `CLOSED` |
+| `VERIFIED` | The verification photos are stored and evaluated, and the verification record is written | `CLOSED` |
 | `BLOCKED` | A safety condition failed before takeoff | `PREREQUISITE_PENDING`, `CANCELLED` |
 | `EXPIRED` | The window ended before any product was applied | `PREREQUISITE_PENDING`, `CANCELLED` |
 | `CLOSED` | The supervisor accepted the verification | End |
 | `REJECTED` | The supervisor or the farmer refused | End |
 | `CANCELLED` | The supervisor withdrew the order before takeoff | End |
 
-Once product may have been applied, the order can only end through the verification. `EXECUTING` and every state after it have no path to `CANCELLED` or `EXPIRED`, except an aborted application whose stored record shows that no product left the tank. A partial application therefore goes to the verification, and the rest of the area becomes a new order, which can start at once. `VERIFICATION_PENDING` has one exit, so a fumigation with no verification file stays open.
+Once product may have been applied, the order can only end through the verification. `EXECUTING` and every state after it have no path to `CANCELLED` or `EXPIRED`, except an aborted application whose stored record shows that no product left the tank. A partial application therefore goes to the verification, and the rest of the area becomes a new order, which can start at once. `VERIFICATION_PENDING` leaves only to `VERIFIED`, so a fumigation with no verification file, or whose verification could not be evaluated, stays open. The [verification after fumigation](post-fumigation-verification.md) defines that mission, its function and its failure cases.
 
 The full list of moves, with actor, trigger and guard, is [`schemas/fumigation-order-transitions.json`](schemas/fumigation-order-transitions.json). `tools/check_order_states.py` reads it with the schema and fails when a state is unreachable, a state cannot reach an end, a terminal state has an exit, a non-terminal state has none, an order with product applied can reach `CANCELLED` or `EXPIRED`, or any actor other than a person reaches `AUTHORIZED`, `CLOSED` or `REJECTED`.
 
 ```
 $ python3 docs/drones/tools/check_order_states.py
-OK 17 states, 40 transitions, only people reach AUTHORIZED, CLOSED, REJECTED
+OK 17 states, 41 transitions, only people reach AUTHORIZED, CLOSED, REJECTED
 ```
 
 ## 6. Who moves the order
 
 | Actor | Moves | How the platform knows |
 |---|---|---|
-| Supervisor | Authorizes, rejects, revises, cancels, resolves a review, accepts a partial application, closes | Supervisor group claim, department or backup check, second factor in the token |
+| Supervisor | Authorizes, rejects, revises, cancels, resolves a review, accepts a partial application, records a verification result when inference failed, closes | Supervisor group claim, department or backup check, second factor in the token |
 | Farmer | Refuses the visit before authorization | Farmer account of the farm, or the supervisor records the refusal in person |
 | Applicator | Starts, ends and aborts an execution | Brigade group claim and the assignment of the order, recorded by the station or the phone |
-| Platform function | Checks prerequisites, blocks, records the package acknowledgements, publishes records, sends records to review | Its own role, with conditional writes only |
+| Platform function | Checks prerequisites, blocks, records the package acknowledgements, publishes records, sends records to review, writes a closable verification result | Its own role, with conditional writes only |
 | Scheduler | Moves an order to `EXPIRED` when its window closes | A one-time schedule at `not_after` that calls the same transition function |
 
-The transition function rejects a token that carries both the supervisor and the brigade groups, and an authorization where the supervisor is the assigned applicator, as the [identity and access](../security/identity-and-access.md) rules state. An inference result can open a recommendation in the supervisor's queue and nothing more.
+The transition function rejects a token that carries both the supervisor and the brigade groups, and an authorization where the supervisor is the assigned applicator, as the [identity and access](../security/identity-and-access.md) rules state. Before the application, an inference result can open a recommendation in the supervisor's queue and nothing more. After it, a closable verification result moves the order to `VERIFIED`, where it waits for the supervisor to close it.
 
 ## 7. Window
 
@@ -205,7 +205,7 @@ The order, its revisions and its records live in the case table, next to the cas
 | The log never arrives | The order stays in `EXECUTED_PENDING_SYNC`, and the dashboard reports it |
 | The record fails its hash or signature check | The order moves to `SYNC_REVIEW_REQUIRED`, and the station keeps its copy |
 | A different product lot was used | `SYNC_REVIEW_REQUIRED`, and the supervisor decides |
-| The verification file is missing | The order stays in `VERIFICATION_PENDING` and cannot close |
+| The verification file is missing, or the function fails on it | The order stays in `VERIFICATION_PENDING` and cannot close |
 | The verification shows the treatment failed | The supervisor closes with `new_order_needed` and creates a follow-up order |
 | Two moves arrive for the same order | The conditional write accepts one, and the other gets the current state |
 

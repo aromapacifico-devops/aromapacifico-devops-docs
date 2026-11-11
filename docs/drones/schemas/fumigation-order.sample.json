@@ -112,7 +112,27 @@
     "record_id": "rec-demo-17-05",
     "execution_id": "exec-demo-61-1",
     "flight_record_id": "flight-record-demo-61-1",
+    "attempt": 1,
+    "capture_mode": "photo_set",
+    "source_objects": [
+      {
+        "key": "drones/case-demo-0088/exec-demo-61-1/photo-004.jpg",
+        "s3_version_id": "demo-version-0061",
+        "sha256": "4b1f0c6e2d9a8b7c5e3f1a0d9c8b7a6e5f4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b"
+      },
+      {
+        "key": "drones/case-demo-0088/exec-demo-61-1/photo-011.jpg",
+        "s3_version_id": "demo-version-0062",
+        "sha256": "a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1"
+      }
+    ],
     "result": "effective",
+    "decided_by": "inference",
+    "reviewer_id": null,
+    "confidence": 0.81,
+    "model_id": "configured-managed-model",
+    "prompt_version": 1,
+    "evaluated_at": "2026-11-27T14:52:00Z",
     "recorded_at": "2026-11-27T15:00:00Z"
   },
   "closure": {
